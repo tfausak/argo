@@ -32,19 +32,20 @@ jobs:
       - uses: actions/cache@v2
         with:
           path: ${{ steps.setup-haskell.outputs.cabal-store }}
-          key: ${{ runner.os }}-${{ matrix.ghc }}-${{ hashFiles('cabal.project.freeze') }}
-          restore-keys: ${{ runner.os }}-${{ matrix.ghc }}-
+          key: ${{ matrix.os }}-${{ matrix.ghc }}-${{ hashFiles('cabal.project.freeze') }}
+          restore-keys: ${{ matrix.os }}-${{ matrix.ghc }}-
 
       - run: cabal build
 
       - run: cabal check
 
-      - run: mkdir argo-${{ github.sha }}
+      - run: mkdir artifact
 
-      - run: mkdir argo-${{ github.sha }}/${{ runner.os }}
+      - run: mkdir artifact/${{ matrix.os }}
 
-      - run: cabal sdist --output-dir argo-${{ github.sha }}/${{ runner.os }}
+      - run: cabal sdist --output-dir artifact/${{ matrix.os }}
 
       - uses: actions/upload-artifact@v2
         with:
-          path: argo-${{ github.sha }}
+          name: argo-${{ github.sha }}
+          path: artifact
