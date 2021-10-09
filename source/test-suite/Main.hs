@@ -1,8 +1,12 @@
-import Test.Tasty
-import Test.Tasty.HUnit
+import qualified Test.Tasty as Tasty
+import qualified Test.Tasty.HUnit as Tasty
 
 main :: IO ()
-main = defaultMain $ testGroup "Argo"
-    [ testCase "succeeds" $ do
-        1 + 2 @?= 3
+main = Tasty.defaultMain $ Tasty.testGroup "Argo"
+    [ Tasty.testCase "succeeds" $ do
+        1 + 2 ?= (3 :: Int)
     ]
+
+(?=) :: (Eq a, Show a) => a -> a -> Tasty.Assertion
+(?=) = (Tasty.@?=)
+infix 1 ?=

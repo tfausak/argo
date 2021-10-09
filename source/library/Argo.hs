@@ -1,1 +1,1 @@
-module Argo where
+module Argo () where

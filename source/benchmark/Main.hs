@@ -1,6 +1,6 @@
-import Test.Tasty.Bench
+import qualified Test.Tasty.Bench as Tasty
 
 main :: IO ()
-main = defaultMain
-    [ bench "id" $ whnf id ()
+main = Tasty.defaultMain
+    [ Tasty.bench "id" $ Tasty.whnf id ()
     ]
