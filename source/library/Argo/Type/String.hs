@@ -1,6 +1,4 @@
-module Argo.Type.String
-    ( Argo.Type.String.String(..)
-    ) where
+module Argo.Type.String where
 
 import qualified Data.Text as Text
 

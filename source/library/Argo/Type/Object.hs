@@ -1,6 +1,4 @@
-module Argo.Type.Object
-    ( Object(..)
-    ) where
+module Argo.Type.Object where
 
 import qualified Argo.Type.Pair as Pair
 import qualified Argo.Type.String as String

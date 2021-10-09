@@ -1,6 +1,4 @@
-module Argo.Type.Value
-    ( Value(..)
-    ) where
+module Argo.Type.Value where
 
 import qualified Argo.Type.Array as Array
 import qualified Argo.Type.Boolean as Boolean

@@ -1,6 +1,4 @@
-module Argo.Type.Number
-    ( Number(..)
-    ) where
+module Argo.Type.Number where
 
 data Number
     = Number Integer Integer

@@ -1,6 +1,4 @@
-module Argo.Encode
-    ( encode
-    ) where
+module Argo.Encode where
 
 import qualified Argo.Type.Array as Array
 import qualified Argo.Type.Boolean as Boolean

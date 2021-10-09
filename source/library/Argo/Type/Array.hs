@@ -1,6 +1,4 @@
-module Argo.Type.Array
-    ( Array(..)
-    ) where
+module Argo.Type.Array where
 
 import qualified Data.Array as Array
 

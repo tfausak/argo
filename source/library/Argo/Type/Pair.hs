@@ -1,6 +1,4 @@
-module Argo.Type.Pair
-    ( Pair(..)
-    ) where
+module Argo.Type.Pair where
 
 newtype Pair k v
     = Pair (k, v)

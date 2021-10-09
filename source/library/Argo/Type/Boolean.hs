@@ -1,6 +1,4 @@
-module Argo.Type.Boolean
-    ( Boolean(..)
-    ) where
+module Argo.Type.Boolean where
 
 newtype Boolean
     = Boolean Bool

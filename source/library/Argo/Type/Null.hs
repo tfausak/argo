@@ -1,6 +1,4 @@
-module Argo.Type.Null
-    ( Null(..)
-    ) where
+module Argo.Type.Null where
 
 newtype Null
     = Null ()
