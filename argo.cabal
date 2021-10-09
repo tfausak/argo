@@ -28,3 +28,11 @@ test-suite argo-test-suite
     hs-source-dirs: source/test-suite
     main-is: Main.hs
     type: exitcode-stdio-1.0
+
+benchmark argo-benchmark
+    build-depends:
+        base
+        , tasty-bench >= 0.3 && < 0.4
+    hs-source-dirs: source/benchmark
+    main-is: Main.hs
+    type: exitcode-stdio-1.0
