@@ -33,6 +33,8 @@ jobs:
 
       - run: cat cabal.project.freeze
 
+      - run: cp cabal.project.freeze artifact/${{ matrix.os }}
+
       - uses: actions/cache@v2
         with:
           path: ${{ steps.setup-haskell.outputs.cabal-store }}
