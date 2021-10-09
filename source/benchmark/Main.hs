@@ -1,13 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 import qualified Argo
-import qualified Argo.Type.Array as Array
-import qualified Argo.Type.Boolean as Boolean
-import qualified Argo.Type.Null as Null
-import qualified Argo.Type.Number as Number
-import qualified Argo.Type.Object as Object
-import qualified Argo.Type.String as String
-import qualified Argo.Type.Value as Value
 import qualified Data.Array
 import qualified Data.ByteString.Builder as Builder
 import qualified Test.Tasty.Bench as Tasty
@@ -16,22 +9,22 @@ main :: IO ()
 main = Tasty.defaultMain
     [ Tasty.bgroup "encode" $ let encode = Builder.toLazyByteString . Argo.encode in
         [ Tasty.bgroup "Null"
-            [ Tasty.bench "null" . Tasty.nf encode . Value.Null $ Null.Null ()
+            [ Tasty.bench "null" $ Tasty.nf encode Argo.Null
             ]
         , Tasty.bgroup "Boolean"
-            [ Tasty.bench "false" . Tasty.nf encode . Value.Boolean $ Boolean.Boolean False
+            [ Tasty.bench "false" . Tasty.nf encode $ Argo.Boolean False
             ]
         , Tasty.bgroup "Number"
-            [ Tasty.bench "zero" . Tasty.nf encode . Value.Number $ Number.Number 0 0
+            [ Tasty.bench "zero" . Tasty.nf encode $ Argo.Number 0 0
             ]
         , Tasty.bgroup "String"
-            [ Tasty.bench "empty" . Tasty.nf encode . Value.String $ String.String ""
+            [ Tasty.bench "empty" . Tasty.nf encode $ Argo.String ""
             ]
         , Tasty.bgroup "Array"
-            [ Tasty.bench "empty" . Tasty.nf encode . Value.Array . Array.Array $ array []
+            [ Tasty.bench "empty" . Tasty.nf encode . Argo.Array $ array []
             ]
         , Tasty.bgroup "Object"
-            [ Tasty.bench "empty" . Tasty.nf encode . Value.Object . Object.Object $ array []
+            [ Tasty.bench "empty" . Tasty.nf encode . Argo.Object $ array []
             ]
         ]
     ]
