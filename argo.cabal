@@ -1,0 +1,21 @@
+cabal-version: >= 1.8
+
+name: argo
+version: 0.2021.10.9
+
+build-type: Simple
+category: JSON
+description: Argo parses and renders JSON.
+license-file: LICENSE.txt
+license: MIT
+maintainer: Taylor Fausak
+synopsis: Parse and render JSON.
+
+source-repository head
+    location: https://github.com/tfausak/argo
+    type: git
+
+library
+    build-depends: base >= 4.15.0 && < 4.16
+    exposed-modules: Argo
+    hs-source-dirs: source/library
