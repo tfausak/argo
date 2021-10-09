@@ -20,6 +20,11 @@ library
     exposed-modules: Argo
     hs-source-dirs: source/library
 
+executable argo
+    build-depends: base
+    hs-source-dirs: source/executable
+    main-is: Main.hs
+
 test-suite argo-test-suite
     build-depends:
         base

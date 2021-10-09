@@ -39,7 +39,7 @@ jobs:
           key: ${{ matrix.os }}-${{ matrix.ghc }}-${{ hashFiles('cabal.project.freeze') }}
           restore-keys: ${{ matrix.os }}-${{ matrix.ghc }}-
 
-      - run: cabal build
+      - run: cabal install --install-method copy --installdir artifact/${{ matrix.os }}
 
       - run: cabal test --test-show-details direct
 
