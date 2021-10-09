@@ -1,3 +1,4 @@
+import Argo ()
 import qualified Test.Tasty.Bench as Tasty
 
 main :: IO ()

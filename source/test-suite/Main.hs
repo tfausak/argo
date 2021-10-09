@@ -1,3 +1,4 @@
+import Argo ()
 import qualified Test.Tasty as Tasty
 import qualified Test.Tasty.HUnit as Tasty
 

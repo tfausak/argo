@@ -38,6 +38,9 @@ common library
 common executable
     import: library
 
+    build-depends: argo
+    ghc-options: -rtsopts -threaded
+
 library
     import: library
 
