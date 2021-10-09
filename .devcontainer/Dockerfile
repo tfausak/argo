@@ -1,6 +1,7 @@
 ARG UBUNTU_TAG=20.04
 FROM ubuntu:"$UBUNTU_TAG"
 
+ENV LANG=C.UTF-8
 RUN \
     apt-get update && \
     apt-get install --assume-yes curl gcc git libgmp-dev make sudo
