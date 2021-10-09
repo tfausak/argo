@@ -15,7 +15,6 @@ import qualified Data.ByteString.Builder as Builder
 import qualified Data.ByteString.Builder.Prim as P
 import qualified Data.Text.Encoding as Text
 import qualified Data.Word as Word
-import qualified Data.List as List
 
 encode :: Value.Value -> Builder.Builder
 encode x = case x of
@@ -49,19 +48,17 @@ encodeString (String.String x) =
 encodeArray :: (a -> Builder.Builder) -> Array.Array a -> Builder.Builder
 encodeArray f (Array.Array x) =
     Builder.char7 '['
-    <> (mconcat
-        . List.intersperse (Builder.char7 ',')
-        . fmap f
-        $ Data.Array.elems x)
+    <> foldMap
+        (\ (i, e) -> (if i /= 0 then Builder.char7 ',' else mempty) <> f e)
+        (Data.Array.assocs x)
     <> Builder.char7 ']'
 
 encodeObject :: (a -> Builder.Builder) -> Object.Object a -> Builder.Builder
 encodeObject f (Object.Object x) =
     Builder.char7 '{'
-    <> (mconcat
-        . List.intersperse (Builder.char7 ',')
-        . fmap (encodePair encodeString f)
-        $ Data.Array.elems x)
+    <> foldMap
+        (\ (i, e) -> (if i /= 0 then Builder.char7 ',' else mempty) <> encodePair encodeString f e)
+        (Data.Array.assocs x)
     <> Builder.char7 '}'
 
 encodePair :: (k -> Builder.Builder) -> (v -> Builder.Builder) -> Pair.Pair k v -> Builder.Builder
