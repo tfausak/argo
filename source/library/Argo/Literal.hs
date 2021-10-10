@@ -95,6 +95,3 @@ space = 0x20
 
 true :: ByteString.ByteString
 true = ByteString.pack [0x74, 0x72, 0x75, 0x65]
-
-unitSeparator :: Word.Word8
-unitSeparator = 0x1f

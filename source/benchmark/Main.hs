@@ -57,6 +57,13 @@ main = Tasty.defaultMain
             ]
         , Tasty.bgroup "String"
             [ Tasty.bench "empty" $ Tasty.nf decode "\"\""
+            , Tasty.bench "one byte" $ Tasty.nf decode "\"$\""
+            , Tasty.bench "two bytes" $ Tasty.nf decode "\"\xc2\xa2\""
+            , Tasty.bench "three bytes" $ Tasty.nf decode "\"\xe2\x82\xac\""
+            , Tasty.bench "four bytes" $ Tasty.nf decode "\"\xf0\x90\x8d\x88\""
+            , Tasty.bench "short escape" $ Tasty.nf decode "\"\\n\""
+            , Tasty.bench "long escape" $ Tasty.nf decode "\"\\u001f\""
+            , Tasty.bench "surrogate pair" $ Tasty.nf decode "\"\\ud834\\udd1e\""
             ]
         , Tasty.bgroup "Array"
             [ Tasty.bench "empty" $ Tasty.nf decode "[]"

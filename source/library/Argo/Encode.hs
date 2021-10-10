@@ -79,7 +79,7 @@ encodeChar =
     . P.condB (== Literal.newLine) (encodeShortEscape Literal.latinSmallLetterN)
     . P.condB (== Literal.carriageReturn) (encodeShortEscape Literal.latinSmallLetterR)
     . P.condB (== Literal.horizontalTabulation) (encodeShortEscape Literal.latinSmallLetterT)
-    . P.condB (<= Literal.unitSeparator) encodeLongEscape
+    . P.condB (< Literal.space) encodeLongEscape
     $ P.liftFixedToBounded P.word8
 
 encodeShortEscape :: Word.Word8 -> P.BoundedPrim a

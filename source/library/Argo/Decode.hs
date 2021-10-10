@@ -80,6 +80,7 @@ decodeString = do
     put b2
     word8 Literal.quotationMark
     spaces
+    -- TODO: reject strings with unescaped control characters
     case Text.decodeUtf8' xs of
         Left e -> fail $ show e
         Right x -> pure . String.String $ f4 x
