@@ -132,6 +132,8 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
                 decode "1e12" @?= Just (Argo.Number 1 12)
             , Tasty.testCase "kitchen sink" $ do
                 decode "12.34e56" @?= Just (Argo.Number 1234 54)
+            , Tasty.testCase "normalized" $ do
+                decode "10" @?= Just (Argo.Number 1 1)
             ]
         , Tasty.testGroup "String"
             [ Tasty.testCase "empty" $ do

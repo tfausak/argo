@@ -59,7 +59,7 @@ decodeNumber = do
         e <- takeWhile1 isDigit
         pure (ne, e)
     spaces
-    pure $ Number.Number
+    pure . Number.normalize $ Number.Number
         ((if ni then negate else id) $ (f7 i * 10 ^ ByteString.length f) + f7 f)
         ((if ne then negate else id) (f7 e) - intToInteger (ByteString.length f))
 
