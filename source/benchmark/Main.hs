@@ -45,22 +45,22 @@ main = Tasty.defaultMain
         ]
     , Tasty.bgroup "decode" $ let decode = Argo.decode in
         [ Tasty.bgroup "Null"
-            [ Tasty.bench "null" $ Tasty.whnf decode "null"
+            [ Tasty.bench "null" $ Tasty.nf decode "null"
             ]
         , Tasty.bgroup "Boolean"
-            [ Tasty.bench "false" $ Tasty.whnf decode "false"
+            [ Tasty.bench "false" $ Tasty.nf decode "false"
             ]
         , Tasty.bgroup "Number"
-            [ Tasty.bench "zero" $ Tasty.whnf decode "0"
+            [ Tasty.bench "zero" $ Tasty.nf decode "0"
             ]
         , Tasty.bgroup "String"
-            [ Tasty.bench "empty" $ Tasty.whnf decode "\"\""
+            [ Tasty.bench "empty" $ Tasty.nf decode "\"\""
             ]
         , Tasty.bgroup "Array"
-            [ Tasty.bench "empty" $ Tasty.whnf decode "[]"
+            [ Tasty.bench "empty" $ Tasty.nf decode "[]"
             ]
         , Tasty.bgroup "Object"
-            [ Tasty.bench "empty" $ Tasty.whnf decode "{}"
+            [ Tasty.bench "empty" $ Tasty.nf decode "{}"
             ]
         ]
     ]
