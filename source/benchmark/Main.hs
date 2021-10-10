@@ -43,6 +43,26 @@ main = Tasty.defaultMain
             , Tasty.bench "10000 elements" . Tasty.nf encode . Argo.Object . array . replicate 10000 $ Argo.Pair "" Argo.Null
             ]
         ]
+    , Tasty.bgroup "decode" $ let decode = Argo.decode in
+        [ Tasty.bgroup "Null"
+            [ Tasty.bench "null" $ Tasty.whnf decode "null"
+            ]
+        , Tasty.bgroup "Boolean"
+            [ Tasty.bench "false" $ Tasty.whnf decode "false"
+            ]
+        , Tasty.bgroup "Number"
+            [ Tasty.bench "zero" $ Tasty.whnf decode "0"
+            ]
+        , Tasty.bgroup "String"
+            [ Tasty.bench "empty" $ Tasty.whnf decode "\"\""
+            ]
+        , Tasty.bgroup "Array"
+            [ Tasty.bench "empty" $ Tasty.whnf decode "[]"
+            ]
+        , Tasty.bgroup "Object"
+            [ Tasty.bench "empty" $ Tasty.whnf decode "{}"
+            ]
+        ]
     ]
 
 array :: [a] -> Data.Array.Array Int a

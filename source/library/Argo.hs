@@ -10,8 +10,10 @@ module Argo
     , pattern Object
     , pattern Pair
     , Encode.encode
+    , Decode.decode
     ) where
 
+import qualified Argo.Decode as Decode
 import qualified Argo.Encode as Encode
 import qualified Argo.Type.Value as Value
 import qualified Argo.Type.Null as Null

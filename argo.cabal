@@ -55,7 +55,9 @@ library
 
     exposed-modules:
         Argo
+        Argo.Decode
         Argo.Encode
+        Argo.Literal
         Argo.Type.Array
         Argo.Type.Boolean
         Argo.Type.Null

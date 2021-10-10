@@ -1,5 +1,6 @@
 module Argo.Encode where
 
+import qualified Argo.Literal as Literal
 import qualified Argo.Type.Array as Array
 import qualified Argo.Type.Boolean as Boolean
 import qualified Argo.Type.Null as Null
@@ -15,75 +16,84 @@ import qualified Data.Text.Encoding as Text
 import qualified Data.Word as Word
 
 encode :: Value.Value -> Builder.Builder
-encode x = case x of
+encode = encodeValue
+
+encodeValue :: Value.Value -> Builder.Builder
+encodeValue x = case x of
     Value.Null y -> encodeNull y
     Value.Boolean y -> encodeBoolean y
     Value.Number y -> encodeNumber y
     Value.String y -> encodeString y
-    Value.Array y -> encodeArray encode y
-    Value.Object y -> encodeObject encode y
+    Value.Array y -> encodeArray encodeValue y
+    Value.Object y -> encodeObject encodeValue y
 
 encodeNull :: Null.Null -> Builder.Builder
 encodeNull _ =
-    Builder.string7 "null"
+    Builder.byteString Literal.null
 
 encodeBoolean :: Boolean.Boolean -> Builder.Builder
 encodeBoolean (Boolean.Boolean x) =
-    Builder.string7 $ if x then "true" else "false"
+    Builder.byteString $ if x then Literal.true else Literal.false
 
 encodeNumber :: Number.Number -> Builder.Builder
 encodeNumber (Number.Number x y) =
     if y == 0
     then Builder.integerDec x
-    else Builder.integerDec x <> Builder.char7 'e' <> Builder.integerDec y
+    else Builder.integerDec x
+        <> Builder.word8 Literal.latinSmallLetterE
+        <> Builder.integerDec y
 
 encodeString :: String.String -> Builder.Builder
 encodeString (String.String x) =
-    Builder.char7 '"'
+    Builder.word8 Literal.quotationMark
     <> Text.encodeUtf8BuilderEscaped encodeChar x
-    <> Builder.char7 '"'
+    <> Builder.word8 Literal.quotationMark
 
 encodeArray :: (a -> Builder.Builder) -> Array.Array a -> Builder.Builder
 encodeArray f (Array.Array x) =
-    Builder.char7 '['
+    Builder.word8 Literal.leftSquareBracket
     <> foldMap
-        (\ (i, e) -> (if i /= 0 then Builder.char7 ',' else mempty) <> f e)
+        (\ (i, e) -> (if i /= 0 then Builder.word8 Literal.comma else mempty)
+            <> f e)
         (Data.Array.assocs x)
-    <> Builder.char7 ']'
+    <> Builder.word8 Literal.rightSquareBracket
 
 encodeObject :: (a -> Builder.Builder) -> Object.Object a -> Builder.Builder
 encodeObject f (Object.Object x) =
-    Builder.char7 '{'
+    Builder.word8 Literal.leftCurlyBracket
     <> foldMap
-        (\ (i, e) -> (if i /= 0 then Builder.char7 ',' else mempty) <> encodePair encodeString f e)
+        (\ (i, e) -> (if i /= 0 then Builder.word8 Literal.comma else mempty)
+            <> encodePair encodeString f e)
         (Data.Array.assocs x)
-    <> Builder.char7 '}'
+    <> Builder.word8 Literal.rightCurlyBracket
 
 encodePair :: (k -> Builder.Builder) -> (v -> Builder.Builder) -> Pair.Pair k v -> Builder.Builder
 encodePair f g (Pair.Pair (x, y)) =
     f x
-    <> Builder.char7 ':'
+    <> Builder.word8 Literal.colon
     <> g y
 
 encodeChar :: P.BoundedPrim Word.Word8
 encodeChar =
-    P.condB (== 0x22) (encodeShortEscape 0x22) -- U+0022 quotation mark
-    . P.condB (== 0x5c) (encodeShortEscape 0x5c) -- U+005c reverse solidus
-    . P.condB (== 0x08) (encodeShortEscape 0x62) -- U+0008 backspace
-    . P.condB (== 0x0c) (encodeShortEscape 0x66) -- U+000c form feed
-    . P.condB (== 0x0a) (encodeShortEscape 0x6e) -- U+000a new line
-    . P.condB (== 0x0d) (encodeShortEscape 0x72) -- U+000d carriage return
-    . P.condB (== 0x09) (encodeShortEscape 0x74) -- U+0009 horizontal tabulation
-    . P.condB (<= 0x1f) encodeLongEscape
+    P.condB (== Literal.quotationMark) (encodeShortEscape Literal.quotationMark)
+    . P.condB (== Literal.reverseSolidus) (encodeShortEscape Literal.reverseSolidus)
+    . P.condB (== Literal.backspace) (encodeShortEscape Literal.latinSmallLetterB)
+    . P.condB (== Literal.formFeed) (encodeShortEscape Literal.latinSmallLetterF)
+    . P.condB (== Literal.newLine) (encodeShortEscape Literal.latinSmallLetterN)
+    . P.condB (== Literal.carriageReturn) (encodeShortEscape Literal.latinSmallLetterR)
+    . P.condB (== Literal.horizontalTabulation) (encodeShortEscape Literal.latinSmallLetterT)
+    . P.condB (<= Literal.unitSeparator) encodeLongEscape
     $ P.liftFixedToBounded P.word8
 
 encodeShortEscape :: Word.Word8 -> P.BoundedPrim a
-encodeShortEscape x = P.liftFixedToBounded $ const (0x5c, x)
+encodeShortEscape x = P.liftFixedToBounded
+    $ const (Literal.reverseSolidus, x)
     P.>$< P.word8
     P.>*< P.word8
 
 encodeLongEscape :: P.BoundedPrim Word.Word8
-encodeLongEscape = P.liftFixedToBounded $ (\ x -> (0x5c, (0x75, word8ToWord16 x)))
+encodeLongEscape = P.liftFixedToBounded
+    $ (\ x -> (Literal.reverseSolidus, (Literal.latinSmallLetterU, word8ToWord16 x)))
     P.>$< P.word8
     P.>*< P.word8
     P.>*< P.word16HexFixed
