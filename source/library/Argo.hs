@@ -9,21 +9,27 @@ module Argo
     , pattern Array
     , pattern Object
     , pattern Pair
-    , Encode.encode
-    , Decode.decode
+    , encode
+    , decode
+    , FromValue.FromValue(..)
+    , ToValue.ToValue(..)
     ) where
 
+import qualified Argo.Class.FromValue as FromValue
+import qualified Argo.Class.ToValue as ToValue
 import qualified Argo.Decode as Decode
 import qualified Argo.Encode as Encode
-import qualified Argo.Type.Value as Value
-import qualified Argo.Type.Null as Null
-import qualified Argo.Type.Boolean as Boolean
-import qualified Argo.Type.Number as Number
-import qualified Argo.Type.String as String
 import qualified Argo.Type.Array as Array
+import qualified Argo.Type.Boolean as Boolean
+import qualified Argo.Type.Null as Null
+import qualified Argo.Type.Number as Number
 import qualified Argo.Type.Object as Object
 import qualified Argo.Type.Pair as Pair
+import qualified Argo.Type.String as String
+import qualified Argo.Type.Value as Value
 import qualified Data.Array
+import qualified Data.ByteString as ByteString
+import qualified Data.ByteString.Builder as Builder
 import qualified Data.Text as Text
 
 pattern Null :: Value.Value
@@ -50,3 +56,11 @@ pattern Pair :: Text.Text -> Value.Value -> Pair.Pair String.String Value.Value
 pattern Pair k v = Pair.Pair (String.String k, v)
 
 {-# COMPLETE Pair #-}
+
+encode :: ToValue.ToValue a => a -> Builder.Builder
+encode = Encode.encodeValue . ToValue.toValue
+
+decode :: FromValue.FromValue a => ByteString.ByteString -> Maybe a
+decode x = do
+    (_, y) <- Decode.run (Decode.spaces *> Decode.decodeValue <* Decode.eof) x
+    FromValue.fromValue y

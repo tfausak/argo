@@ -4,13 +4,15 @@ import Test.Tasty.HUnit ((@?=))
 
 import qualified Argo
 import qualified Data.Array as Array
+import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Builder as Builder
+import qualified Data.ByteString.Lazy as LazyByteString
 import qualified Test.Tasty as Tasty
 import qualified Test.Tasty.HUnit as Tasty
 
 main :: IO ()
 main = Tasty.defaultMain $ Tasty.testGroup "Argo"
-    [ Tasty.testGroup "encode" $ let encode = Builder.toLazyByteString . Argo.encode in
+    [ Tasty.testGroup "encode" $ let encode = Builder.toLazyByteString . Argo.encode :: Argo.Value -> LazyByteString.ByteString in
         [ Tasty.testGroup "Null"
             [ Tasty.testCase "null" $ do
                 encode Argo.Null @?= "null"
@@ -88,7 +90,7 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
                 encode (Argo.Object (array [Argo.Pair "a" $ Argo.Number 1 0, Argo.Pair "b" $ Argo.Number 2 0])) @?= "{\"a\":1,\"b\":2}"
             ]
         ]
-    , Tasty.testGroup "decode" $ let decode = Argo.decode in
+    , Tasty.testGroup "decode" $ let decode = Argo.decode :: ByteString.ByteString -> Maybe Argo.Value in
         [ Tasty.testGroup "Null"
             [ Tasty.testCase "null" $ do
                 decode "null" @?= Just Argo.Null

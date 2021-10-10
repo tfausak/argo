@@ -15,9 +15,6 @@ import qualified Data.ByteString.Builder.Prim as P
 import qualified Data.Text.Encoding as Text
 import qualified Data.Word as Word
 
-encode :: Value.Value -> Builder.Builder
-encode = encodeValue
-
 encodeValue :: Value.Value -> Builder.Builder
 encodeValue x = case x of
     Value.Null y -> encodeNull y

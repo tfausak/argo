@@ -21,9 +21,6 @@ import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
 import qualified Data.Word as Word
 
-decode :: ByteString.ByteString -> Maybe Value.Value
-decode = fmap snd . run (spaces *> decodeValue <* eof)
-
 decodeValue :: Decode Value.Value
 decodeValue =
     Value.Null <$> decodeNull

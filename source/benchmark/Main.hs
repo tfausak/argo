@@ -2,13 +2,15 @@
 
 import qualified Argo
 import qualified Data.Array
+import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Builder as Builder
+import qualified Data.ByteString.Lazy as LazyByteString
 import qualified Data.Text as Text
 import qualified Test.Tasty.Bench as Tasty
 
 main :: IO ()
 main = Tasty.defaultMain
-    [ Tasty.bgroup "encode" $ let encode = Builder.toLazyByteString . Argo.encode in
+    [ Tasty.bgroup "encode" $ let encode = Builder.toLazyByteString . Argo.encode :: Argo.Value -> LazyByteString.ByteString in
         [ Tasty.bgroup "Null"
             [ Tasty.bench "null" $ Tasty.nf encode Argo.Null
             ]
@@ -43,7 +45,7 @@ main = Tasty.defaultMain
             , Tasty.bench "10000 elements" . Tasty.nf encode . Argo.Object . array . replicate 10000 $ Argo.Pair "" Argo.Null
             ]
         ]
-    , Tasty.bgroup "decode" $ let decode = Argo.decode in
+    , Tasty.bgroup "decode" $ let decode = Argo.decode :: ByteString.ByteString -> Maybe Argo.Value in
         [ Tasty.bgroup "Null"
             [ Tasty.bench "null" $ Tasty.nf decode "null"
             ]
