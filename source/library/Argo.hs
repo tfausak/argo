@@ -39,7 +39,8 @@ pattern Boolean :: Bool -> Value.Value
 pattern Boolean x = Value.Boolean (Boolean.Boolean x)
 
 pattern Number :: Integer -> Integer -> Value.Value
-pattern Number x y = Value.Number (Number.Number x y)
+pattern Number x y <- Value.Number (Number.Number x y) where
+    Number x y = Value.Number . Number.normalize $ Number.Number x y
 
 pattern String :: Text.Text -> Value.Value
 pattern String x = Value.String (String.String x)
