@@ -201,6 +201,8 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
                 decode "\"\\uwxyz\"" @?= Nothing
             , Tasty.testCase "incomplete long escape" $ do
                 decode "\"\\u00\"" @?= Nothing
+            , Tasty.testCase "unescaped control character" $ do
+                decode "\"\n\"" @?= Nothing
             ]
         , Tasty.testGroup "Array"
             [ Tasty.testCase "empty" $ do

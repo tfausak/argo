@@ -77,10 +77,10 @@ decodeString = do
         Nothing -> fail "unterminated string"
         Just i -> pure i
     let (xs, b2) = ByteString.splitAt i b1
+    Monad.when (ByteString.any (< Literal.space) xs) $ fail "unescaped control character"
     put b2
     word8 Literal.quotationMark
     spaces
-    -- TODO: reject strings with unescaped control characters
     case Text.decodeUtf8' xs of
         Left e -> fail $ show e
         Right x -> case f4 x of
