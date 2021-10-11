@@ -83,7 +83,9 @@ decodeString = do
     -- TODO: reject strings with unescaped control characters
     case Text.decodeUtf8' xs of
         Left e -> fail $ show e
-        Right x -> pure . String.String $ f4 x
+        Right x -> case f4 x of
+            Nothing -> fail "invalid escape"
+            Just y -> pure $ String.String y
 
 -- finds the index at or after i of byte x
 f1 :: Word.Word8 -> Int -> ByteString.ByteString -> Maybe Int
@@ -101,8 +103,8 @@ f3 b i = do
     if even n then Just j else f3 b $ j + 1
 
 -- unescapes text
-f4 :: Text.Text -> Text.Text
-f4 = Text.pack . combineSurrogatePairs . f5 . Text.unpack
+f4 :: Text.Text -> Maybe Text.Text
+f4 = fmap (Text.pack . combineSurrogatePairs) . f5 . Text.unpack
 
 combineSurrogatePairs :: String -> String
 combineSurrogatePairs xs = case xs of
@@ -124,26 +126,30 @@ isLowSurrogate :: Char -> Bool
 isLowSurrogate x = '\xdc00' <= x && x <= '\xdfff'
 
 -- unescapes string
-f5 :: String -> String
+f5 :: String -> Maybe String
 f5 xs = case xs of
-    "" -> xs
-    '\\' : '"' : ys -> '"' : f5 ys
-    '\\' : '\\' : ys -> '\\' : f5 ys
-    '\\' : '/' : ys -> '/' : f5 ys
-    '\\' : 'b' : ys -> '\b' : f5 ys
-    '\\' : 'f' : ys -> '\f' : f5 ys
-    '\\' : 'n' : ys -> '\n' : f5 ys
-    '\\' : 'r' : ys -> '\r' : f5 ys
-    '\\' : 't' : ys -> '\t' : f5 ys
-    '\\' : 'u' : a : b : c : d : ys ->
-        -- TODO: handle non-hexadecimal characters
-        Char.chr
-            ( (0x1000 * Char.digitToInt a)
-            + (0x100 * Char.digitToInt b)
-            + (0x10 * Char.digitToInt c)
-            + Char.digitToInt d
-            ) : f5 ys
-    x : ys -> x : f5 ys
+    "" -> pure xs
+    '\\' : x : ys -> case x of
+        '"' -> ('"' :) <$> f5 ys
+        '\\' -> ('\\' :) <$> f5 ys
+        '/' -> ('/' :) <$> f5 ys
+        'b' -> ('\b' :) <$> f5 ys
+        'f' -> ('\f' :) <$> f5 ys
+        'n' -> ('\n' :) <$> f5 ys
+        'r' -> ('\r' :) <$> f5 ys
+        't' -> ('\t' :) <$> f5 ys
+        'u' -> let p = Char.isHexDigit in case ys of
+            a : b : c : d : zs | p a && p b && p c && p d ->
+                let
+                    y = Char.chr
+                        $ (0x1000 * Char.digitToInt a)
+                        + (0x100 * Char.digitToInt b)
+                        + (0x10 * Char.digitToInt c)
+                        + Char.digitToInt d
+                in (y :) <$> f5 zs
+            _ -> fail "invalid long escape"
+        _ -> fail "invalid short escape"
+    x : ys -> (x :) <$> f5 ys
 
 decodeArray :: Decode a -> Decode (Array.Array a)
 decodeArray f = do

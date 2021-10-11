@@ -111,6 +111,8 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
         , Tasty.testGroup "Number"
             [ Tasty.testCase "zero" $ do
                 decode "0" @?= Just (Argo.Number 0 0)
+            , Tasty.testCase "negative zero" $ do
+                decode "-0" @?= Just (Argo.Number 0 0)
             , Tasty.testCase "positive integer" $ do
                 decode "1" @?= Just (Argo.Number 1 0)
             , Tasty.testCase "multiple integer digits" $ do
@@ -139,6 +141,16 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
                 decode "12.34e56" @?= Just (Argo.Number 1234 54)
             , Tasty.testCase "normalized" $ do
                 decode "10" @?= Just (Argo.Number 1 1)
+            , Tasty.testCase "leading zero" $ do
+                decode "01" @?= Nothing
+            , Tasty.testCase "trailing fraction" $ do
+                decode "1." @?= Nothing
+            , Tasty.testCase "leading fraction" $ do
+                decode ".1" @?= Nothing
+            , Tasty.testCase "trailing exponent" $ do
+                decode "1e" @?= Nothing
+            , Tasty.testCase "leading exponent" $ do
+                decode "e1" @?= Nothing
             ]
         , Tasty.testGroup "String"
             [ Tasty.testCase "empty" $ do
@@ -183,6 +195,12 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
                 decode "\"\\ud834\"" @?= Just (Argo.String "\xfffd")
             , Tasty.testCase "unpaired low surrogate" $ do
                 decode "\"\\udd1e\"" @?= Just (Argo.String "\xfffd")
+            , Tasty.testCase "invalid short escape" $ do
+                decode "\"\\z\"" @?= Nothing
+            , Tasty.testCase "invalid long escape" $ do
+                decode "\"\\uwxyz\"" @?= Nothing
+            , Tasty.testCase "incomplete long escape" $ do
+                decode "\"\\u00\"" @?= Nothing
             ]
         , Tasty.testGroup "Array"
             [ Tasty.testCase "empty" $ do
