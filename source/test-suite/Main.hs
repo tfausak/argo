@@ -101,6 +101,12 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
                 decode " null" @?= Just Argo.Null
             , Tasty.testCase "trailing space" $ do
                 decode "null " @?= Just Argo.Null
+            , Tasty.testCase "trailing new line" $ do
+                decode "null\n" @?= Just Argo.Null
+            , Tasty.testCase "trailing carriage return" $ do
+                decode "null\r" @?= Just Argo.Null
+            , Tasty.testCase "trailing horizontal tab" $ do
+                decode "null\t" @?= Just Argo.Null
             ]
         , Tasty.testGroup "Boolean"
             [ Tasty.testCase "false" $ do
@@ -181,6 +187,10 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
                 decode "\"\\u0000\"" @?= Just (Argo.String "\x0")
             , Tasty.testCase "unit separator" $ do
                 decode "\"\\u001f\"" @?= Just (Argo.String "\x1f")
+            , Tasty.testCase "capital long escape" $ do
+                decode "\"\\u001F\"" @?= Just (Argo.String "\x1f")
+            , Tasty.testCase "digits after long escape" $ do
+                decode "\"\\u00205\"" @?= Just (Argo.String " 5")
             , Tasty.testCase "one byte" $ do
                 decode "\"$\"" @?= Just (Argo.String "$")
             , Tasty.testCase "two bytes" $ do
@@ -192,17 +202,25 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
             , Tasty.testCase "surrogate pair" $ do
                 decode "\"\\ud834\\udd1e\"" @?= Just (Argo.String "\x1d11e")
             , Tasty.testCase "unpaired high surrogate" $ do
-                decode "\"\\ud834\"" @?= Just (Argo.String "\xfffd")
+                decode "\"\\ud800\"" @?= Just (Argo.String "\xfffd")
             , Tasty.testCase "unpaired low surrogate" $ do
-                decode "\"\\udd1e\"" @?= Just (Argo.String "\xfffd")
+                decode "\"\\udc00\"" @?= Just (Argo.String "\xfffd")
+            , Tasty.testCase "delete" $ do
+                decode "\"\x7f\"" @?= Just (Argo.String "\x7f")
             , Tasty.testCase "invalid short escape" $ do
                 decode "\"\\z\"" @?= Nothing
+            , Tasty.testCase "capital short escape" $ do
+                decode "\"\\T\"" @?= Nothing
             , Tasty.testCase "invalid long escape" $ do
                 decode "\"\\uwxyz\"" @?= Nothing
             , Tasty.testCase "incomplete long escape" $ do
                 decode "\"\\u00\"" @?= Nothing
             , Tasty.testCase "unescaped control character" $ do
                 decode "\"\n\"" @?= Nothing
+            , Tasty.testCase "unterminated" $ do
+                decode "\"" @?= Nothing
+            , Tasty.testCase "invalid UTF-8 byte" $ do
+                decode "\"\xff\"" @?= Nothing
             ]
         , Tasty.testGroup "Array"
             [ Tasty.testCase "empty" $ do
@@ -211,6 +229,20 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
                 decode "[1]" @?= Just (Argo.Array $ array [Argo.Number 1 0])
             , Tasty.testCase "two elements" $ do
                 decode "[1,2]" @?= Just (Argo.Array $ array [Argo.Number 1 0, Argo.Number 2 0])
+            , Tasty.testCase "nested" $ do
+                decode "[1,[2]]" @?= Just (Argo.Array $ array [Argo.Number 1 0, Argo.Array $ array [Argo.Number 2 0]])
+            , Tasty.testCase "not closed" $ do
+                decode "[" @?= Nothing
+            , Tasty.testCase "not opened" $ do
+                decode "]" @?= Nothing
+            , Tasty.testCase "leading comma" $ do
+                decode "[,1]" @?= Nothing
+            , Tasty.testCase "trailing comma" $ do
+                decode "[1,]" @?= Nothing
+            , Tasty.testCase "consecutive commas" $ do
+                decode "[1,,2]" @?= Nothing
+            , Tasty.testCase "like an object" $ do
+                decode "[\"a\":1]" @?= Nothing
             ]
         , Tasty.testGroup "Object"
             [ Tasty.testCase "empty" $ do
@@ -219,6 +251,30 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
                 decode "{\"a\":1}" @?= Just (Argo.Object $ array [Argo.Pair "a" $ Argo.Number 1 0])
             , Tasty.testCase "two elements" $ do
                 decode "{\"a\":1,\"b\":2}" @?= Just (Argo.Object $ array [Argo.Pair "a" $ Argo.Number 1 0, Argo.Pair "b" $ Argo.Number 2 0])
+            , Tasty.testCase "nested" $ do
+                decode "{\"a\":{\"b\":2}}" @?= Just (Argo.Object $ array [Argo.Pair "a" . Argo.Object $ array [Argo.Pair "b" $ Argo.Number 2 0]])
+            , Tasty.testCase "not closed" $ do
+                decode "{" @?= Nothing
+            , Tasty.testCase "not opened" $ do
+                decode "}" @?= Nothing
+            , Tasty.testCase "leading comma" $ do
+                decode "{,\"a\":1}" @?= Nothing
+            , Tasty.testCase "trailing comma" $ do
+                decode "{\"a\":1,}" @?= Nothing
+            , Tasty.testCase "consecutive commas" $ do
+                decode "{\"a\":1,,\"b\":2}" @?= Nothing
+            , Tasty.testCase "missing key" $ do
+                decode "{:1}" @?= Nothing
+            , Tasty.testCase "missing value" $ do
+                decode "{\"a\":}" @?= Nothing
+            , Tasty.testCase "missing separator" $ do
+                decode "{\"a\"1}" @?= Nothing
+            , Tasty.testCase "duplicate separator" $ do
+                decode "{\"a\"::1}" @?= Nothing
+            , Tasty.testCase "like an array" $ do
+                decode "{1}" @?= Nothing
+            , Tasty.testCase "non-string key" $ do
+                decode "{1:2}" @?= Nothing
             ]
         ]
     , Tasty.testGroup "property"
