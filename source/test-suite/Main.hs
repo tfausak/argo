@@ -1,14 +1,17 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 import Test.Tasty.HUnit ((@?=))
+import Test.Tasty.QuickCheck ((===))
 
 import qualified Argo
 import qualified Data.Array as Array
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Builder as Builder
 import qualified Data.ByteString.Lazy as LazyByteString
+import qualified Data.Text as Text
 import qualified Test.Tasty as Tasty
 import qualified Test.Tasty.HUnit as Tasty
+import qualified Test.Tasty.QuickCheck as Tasty
 
 main :: IO ()
 main = Tasty.defaultMain $ Tasty.testGroup "Argo"
@@ -198,7 +201,47 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
                 decode "{\"a\":1,\"b\":2}" @?= Just (Argo.Object $ array [Argo.Pair "a" $ Argo.Number 1 0, Argo.Pair "b" $ Argo.Number 2 0])
             ]
         ]
+    , Tasty.testGroup "property"
+        [ Tasty.testProperty "round trip" . Tasty.forAll genValue $ \ x -> Tasty.shrinking shrinkValue x $ \ y ->
+            (Argo.decode . LazyByteString.toStrict . Builder.toLazyByteString $ Argo.encode y) === Just y
+        ]
     ]
 
 array :: [a] -> Array.Array Int a
 array xs = Array.listArray (0, length xs - 1) xs
+
+genValue :: Tasty.Gen Argo.Value
+genValue = Tasty.sized genValueSized
+
+genValueSized :: Int -> Tasty.Gen Argo.Value
+genValueSized size = let newSize = div size 3 in Tasty.oneof
+    [ pure Argo.Null
+    , Argo.Boolean <$> Tasty.arbitrary
+    , Argo.Number <$> Tasty.arbitrary <*> Tasty.arbitrary
+    , Argo.String <$> genText
+    , Argo.Array <$> genArray size (genValueSized newSize)
+    , Argo.Object <$> genArray size (Argo.Pair <$> genText <*> genValueSized newSize)
+    ]
+
+genText :: Tasty.Gen Text.Text
+genText = Text.pack <$> Tasty.arbitrary
+
+genArray :: Int -> Tasty.Gen a -> Tasty.Gen (Array.Array Int a)
+genArray n = fmap (Array.listArray (0, n - 1)) . Tasty.vectorOf n
+
+type Shrink a = a -> [a]
+
+shrinkValue :: Shrink Argo.Value
+shrinkValue x = case x of
+    Argo.Null -> []
+    Argo.Boolean y -> Argo.Boolean <$> Tasty.shrink y
+    Argo.Number y z -> uncurry Argo.Number <$> Tasty.shrink (y, z)
+    Argo.String y -> Argo.String <$> shrinkText y
+    Argo.Array y -> Argo.Array <$> shrinkArray shrinkValue y
+    Argo.Object y -> Argo.Object <$> shrinkArray (\ (Argo.Pair k v) -> Argo.Pair <$> shrinkText k <*> shrinkValue v) y
+
+shrinkText :: Shrink Text.Text
+shrinkText = Tasty.shrinkMap Text.pack Text.unpack
+
+shrinkArray :: Shrink a -> Shrink (Array.Array Int a)
+shrinkArray = Tasty.shrinkMapBy array Array.elems . Tasty.shrinkList
