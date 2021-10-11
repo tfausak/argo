@@ -2,6 +2,9 @@
 
 module Argo
     ( Value.Value
+    , Array
+    , Pair
+    , Object
     , pattern Null
     , pattern Boolean
     , pattern Number
@@ -32,6 +35,12 @@ import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Builder as Builder
 import qualified Data.Text as Text
 
+type Array = Data.Array.Array Int Value.Value
+
+type Pair = Pair.Pair String.String Value.Value
+
+type Object = Data.Array.Array Int Pair
+
 pattern Null :: Value.Value
 pattern Null = Value.Null (Null.Null ())
 
@@ -45,15 +54,15 @@ pattern Number x y <- Value.Number (Number.Number x y) where
 pattern String :: Text.Text -> Value.Value
 pattern String x = Value.String (String.String x)
 
-pattern Array :: Data.Array.Array Int Value.Value -> Value.Value
+pattern Array :: Array -> Value.Value
 pattern Array x = Value.Array (Array.Array x)
 
-pattern Object :: Data.Array.Array Int (Pair.Pair String.String Value.Value) -> Value.Value
+pattern Object :: Object -> Value.Value
 pattern Object x = Value.Object (Object.Object x)
 
 {-# COMPLETE Null, Boolean, Number, String, Array, Object #-}
 
-pattern Pair :: Text.Text -> Value.Value -> Pair.Pair String.String Value.Value
+pattern Pair :: Text.Text -> Value.Value -> Pair
 pattern Pair k v = Pair.Pair (String.String k, v)
 
 {-# COMPLETE Pair #-}
