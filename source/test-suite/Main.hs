@@ -193,10 +193,16 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
                 decode "\"\\u00205\"" @?= Just (Argo.String " 5")
             , Tasty.testCase "one byte" $ do
                 decode "\"$\"" @?= Just (Argo.String "$")
+            , Tasty.testCase "one byte escaped" $ do
+                decode "\"\\u0024\"" @?= Just (Argo.String "$")
             , Tasty.testCase "two bytes" $ do
                 decode "\"\xc2\xa2\"" @?= Just (Argo.String "\xa2")
+            , Tasty.testCase "two bytes escaped" $ do
+                decode "\"\\u00a2\"" @?= Just (Argo.String "\xa2")
             , Tasty.testCase "three bytes" $ do
                 decode "\"\xe2\x82\xac\"" @?= Just (Argo.String "\x20ac")
+            , Tasty.testCase "three bytes escaped" $ do
+                decode "\"\\u20ac\"" @?= Just (Argo.String "\x20ac")
             , Tasty.testCase "four bytes" $ do
                 decode "\"\xf0\x90\x8d\x88\"" @?= Just (Argo.String "\x10348")
             , Tasty.testCase "surrogate pair" $ do
