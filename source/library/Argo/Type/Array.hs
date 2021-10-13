@@ -1,5 +1,6 @@
 module Argo.Type.Array where
 
+import qualified Argo.Decoder as Decoder
 import qualified Argo.Literal as Literal
 import qualified Control.DeepSeq as DeepSeq
 import qualified Data.Array as Array
@@ -20,3 +21,12 @@ encode f (Array x) =
             <> f e)
         (Array.assocs x)
     <> Builder.word8 Literal.rightSquareBracket
+
+decode :: Decoder.Decoder a -> Decoder.Decoder (Array a)
+decode f = do
+    Decoder.word8 Literal.leftSquareBracket
+    Decoder.spaces
+    xs <- Decoder.array f
+    Decoder.word8 Literal.rightSquareBracket
+    Decoder.spaces
+    pure $ Array xs

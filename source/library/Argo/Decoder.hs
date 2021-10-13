@@ -1,10 +1,9 @@
 module Argo.Decoder where
 
-import Control.Applicative ((<|>))
-
 import qualified Argo.Literal as Literal
 import qualified Control.Applicative as Applicative
 import qualified Control.Monad as Monad
+import qualified Data.Array as Array
 import qualified Data.ByteString as ByteString
 import qualified Data.Word as Word
 
@@ -38,6 +37,20 @@ instance Applicative.Alternative Decoder where
     dx <|> dy = Decoder $ \ b1 -> case run dx b1 of
         Nothing -> run dy b1
         Just (b2, x) -> Just (b2, x)
+
+array :: Decoder a -> Decoder (Array.Array Int a)
+array f = arrayWith f 0 []
+
+arrayWith :: Decoder a -> Int -> [(Int, a)] -> Decoder (Array.Array Int a)
+arrayWith f n xs = do
+    m <- Applicative.optional $ do
+        Monad.when (n /= 0) $ do
+            word8 Literal.comma
+            spaces
+        f
+    case m of
+        Nothing -> pure $ Array.array (0, n - 1) xs
+        Just x -> arrayWith f (n + 1) $ (n, x) : xs
 
 byteString :: ByteString.ByteString -> Decoder ()
 byteString x = do

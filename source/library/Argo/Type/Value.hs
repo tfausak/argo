@@ -1,5 +1,8 @@
 module Argo.Type.Value where
 
+import Control.Applicative ((<|>))
+
+import qualified Argo.Decoder as Decoder
 import qualified Argo.Type.Array as Array
 import qualified Argo.Type.Boolean as Boolean
 import qualified Argo.Type.Null as Null
@@ -35,3 +38,12 @@ encode x = case x of
     String y -> String.encode y
     Array y -> Array.encode encode y
     Object y -> Object.encode encode y
+
+decode :: Decoder.Decoder Value
+decode =
+    Null <$> Null.decode
+    <|> Boolean <$> Boolean.decode
+    <|> Number <$> Number.decode
+    <|> String <$> String.decode
+    <|> Array <$> Array.decode decode
+    <|> Object <$> Object.decode decode

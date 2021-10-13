@@ -1,9 +1,13 @@
 module Argo.Type.String where
 
+import qualified Argo.Decoder as Decoder
 import qualified Argo.Literal as Literal
 import qualified Control.DeepSeq as DeepSeq
+import qualified Control.Monad as Monad
+import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Builder as Builder
 import qualified Data.ByteString.Builder.Prim as P
+import qualified Data.Char as Char
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
 import qualified Data.Word as Word
@@ -48,3 +52,80 @@ encodeLongEscape = P.liftFixedToBounded
 
 word8ToWord16 :: Word.Word8 -> Word.Word16
 word8ToWord16 = fromIntegral
+
+decode :: Decoder.Decoder Argo.Type.String.String
+decode = do
+    Decoder.word8 Literal.quotationMark
+    b1 <- Decoder.get
+    i <- case getClose b1 0 of
+        Nothing -> fail "unterminated string"
+        Just i -> pure i
+    let (xs, b2) = ByteString.splitAt i b1
+    Monad.when (ByteString.any (< Literal.space) xs) $ fail "unescaped control character"
+    Decoder.put b2
+    Decoder.word8 Literal.quotationMark
+    Decoder.spaces
+    case Text.decodeUtf8' xs of
+        Left e -> fail $ show e
+        Right x -> case unescapeText x of
+            Nothing -> fail "invalid escape"
+            Just y -> pure $ String y
+
+findAt :: Word.Word8 -> Int -> ByteString.ByteString -> Maybe Int
+findAt x i = fmap (+ i) . ByteString.elemIndex x . ByteString.drop i
+
+countConsecutive :: Word.Word8 -> Int -> ByteString.ByteString -> Int
+countConsecutive x i = ByteString.length . ByteString.takeWhileEnd (== x) . ByteString.take i
+
+getClose :: ByteString.ByteString -> Int -> Maybe Int
+getClose b i = do
+    j <- findAt Literal.quotationMark i b
+    let n = countConsecutive Literal.reverseSolidus j b
+    if even n then Just j else getClose b $ j + 1
+
+unescapeText :: Text.Text -> Maybe Text.Text
+unescapeText = fmap (Text.pack . combineSurrogatePairs) . unescapeString . Text.unpack
+
+combineSurrogatePairs :: Prelude.String -> Prelude.String
+combineSurrogatePairs xs = case xs of
+    "" -> xs
+    x : y : zs | isHighSurrogate x && isLowSurrogate y ->
+        combineSurrogatePair x y : combineSurrogatePairs zs
+    x : ys -> x : combineSurrogatePairs ys
+
+combineSurrogatePair :: Char -> Char -> Char
+combineSurrogatePair hi lo = Char.chr
+    $ 0x10000
+    + ((Char.ord hi - 0xd800) * 0x400)
+    + (Char.ord lo - 0xdc00)
+
+isHighSurrogate :: Char -> Bool
+isHighSurrogate x = '\xd800' <= x && x <= '\xdbff'
+
+isLowSurrogate :: Char -> Bool
+isLowSurrogate x = '\xdc00' <= x && x <= '\xdfff'
+
+unescapeString :: Prelude.String -> Maybe Prelude.String
+unescapeString xs = case xs of
+    "" -> pure xs
+    '\\' : x : ys -> case x of
+        '"' -> ('"' :) <$> unescapeString ys
+        '\\' -> ('\\' :) <$> unescapeString ys
+        '/' -> ('/' :) <$> unescapeString ys
+        'b' -> ('\b' :) <$> unescapeString ys
+        'f' -> ('\f' :) <$> unescapeString ys
+        'n' -> ('\n' :) <$> unescapeString ys
+        'r' -> ('\r' :) <$> unescapeString ys
+        't' -> ('\t' :) <$> unescapeString ys
+        'u' -> let p = Char.isHexDigit in case ys of
+            a : b : c : d : zs | p a && p b && p c && p d ->
+                let
+                    y = Char.chr
+                        $ (0x1000 * Char.digitToInt a)
+                        + (0x100 * Char.digitToInt b)
+                        + (0x10 * Char.digitToInt c)
+                        + Char.digitToInt d
+                in (y :) <$> unescapeString zs
+            _ -> fail "invalid long escape"
+        _ -> fail "invalid short escape"
+    x : ys -> (x :) <$> unescapeString ys

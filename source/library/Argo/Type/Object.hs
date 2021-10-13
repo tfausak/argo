@@ -1,5 +1,6 @@
 module Argo.Type.Object where
 
+import qualified Argo.Decoder as Decoder
 import qualified Argo.Literal as Literal
 import qualified Argo.Type.Pair as Pair
 import qualified Argo.Type.String as String
@@ -22,3 +23,12 @@ encode f (Object x) =
             <> Pair.encode String.encode f e)
         (Array.assocs x)
     <> Builder.word8 Literal.rightCurlyBracket
+
+decode :: Decoder.Decoder a -> Decoder.Decoder (Object a)
+decode f = do
+    Decoder.word8 Literal.leftCurlyBracket
+    Decoder.spaces
+    xs <- Decoder.array $ Pair.decode String.decode f
+    Decoder.word8 Literal.rightCurlyBracket
+    Decoder.spaces
+    pure $ Object xs

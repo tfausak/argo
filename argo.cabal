@@ -58,7 +58,6 @@ library
         Argo
         Argo.Class.FromValue
         Argo.Class.ToValue
-        Argo.Decode
         Argo.Decoder
         Argo.Literal
         Argo.Type.Array
