@@ -1,7 +1,7 @@
 {-# LANGUAGE PatternSynonyms #-}
 
 module Argo
-    ( Value.Value
+    ( Value
     , Array
     , Pair
     , Object
@@ -34,34 +34,36 @@ import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Builder as Builder
 import qualified Data.Text as Text
 
-type Array = Data.Array.Array Int Value.Value
+type Value = Value.Value
 
-type Pair = Pair.Pair String.String Value.Value
+type Array = Data.Array.Array Int Value
+
+type Pair = Pair.Pair String.String Value
 
 type Object = Data.Array.Array Int Pair
 
-pattern Null :: Value.Value
+pattern Null :: Value
 pattern Null = Value.Null (Null.Null ())
 
-pattern Boolean :: Bool -> Value.Value
+pattern Boolean :: Bool -> Value
 pattern Boolean x = Value.Boolean (Boolean.Boolean x)
 
-pattern Number :: Integer -> Integer -> Value.Value
+pattern Number :: Integer -> Integer -> Value
 pattern Number x y <- Value.Number (Number.Number x y) where
     Number x y = Value.Number . Number.normalize $ Number.Number x y
 
-pattern String :: Text.Text -> Value.Value
+pattern String :: Text.Text -> Value
 pattern String x = Value.String (String.String x)
 
-pattern Array :: Array -> Value.Value
+pattern Array :: Array -> Value
 pattern Array x = Value.Array (Array.Array x)
 
-pattern Object :: Object -> Value.Value
+pattern Object :: Object -> Value
 pattern Object x = Value.Object (Object.Object x)
 
 {-# COMPLETE Null, Boolean, Number, String, Array, Object #-}
 
-pattern Pair :: Text.Text -> Value.Value -> Pair
+pattern Pair :: Text.Text -> Value -> Pair
 pattern Pair k v = Pair.Pair (String.String k, v)
 
 {-# COMPLETE Pair #-}
