@@ -1,0 +1,106 @@
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+  release:
+    types:
+      - created
+jobs:
+  ci:
+    strategy:
+      matrix:
+        include:
+          - { os: ubuntu-20.04, ghc: 9.0.1 }
+          - { os: macos-11, ghc: 9.0.1 }
+          - { os: windows-2019, ghc: 9.0.1, ext: .exe }
+    runs-on: ${{ matrix.os }}
+    steps:
+
+      - uses: actions/checkout@v2
+
+      - run: mkdir artifact
+
+      - run: mkdir artifact/${{ matrix.os }}
+
+      - id: setup-haskell
+        uses: haskell/actions/setup@v1
+        with:
+          ghc-version: ${{ matrix.ghc }}
+
+      - run: cabal configure --enable-benchmarks --enable-tests --flags pedantic --jobs
+
+      - run: cabal freeze
+
+      - run: cat cabal.project.freeze
+
+      - run: cp cabal.project.freeze artifact/${{ matrix.os }}
+
+      - uses: actions/cache@v2
+        with:
+          path: ${{ steps.setup-haskell.outputs.cabal-store }}
+          key: ${{ matrix.os }}-${{ matrix.ghc }}-${{ hashFiles('cabal.project.freeze') }}
+          restore-keys: ${{ matrix.os }}-${{ matrix.ghc }}-
+
+      - run: cabal build
+
+      - run: cabal install --install-method copy --installdir artifact/${{ matrix.os }} .
+
+      - run: cabal test --test-show-details direct
+
+      - run: cabal bench --benchmark-options '--csv artifact/${{ matrix.os }}/benchmark.csv +RTS -T -RTS'
+
+      - run: cabal check
+
+      - run: cabal sdist --output-dir artifact/${{ matrix.os }}
+
+      - uses: svenstaro/upx-action@v2
+        with:
+          file: artifact/${{ matrix.os }}/argo${{ matrix.ext }}
+          args: --best
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: argo-${{ github.sha }}
+          path: artifact
+
+  release:
+    needs: ci
+    if: github.event_name == 'release'
+    runs-on: ubuntu-20.04
+    steps:
+
+      - uses: actions/checkout@v2
+
+      - uses: actions/download-artifact@v2
+
+      - uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          asset_content_type: application/octet-stream
+          asset_name: argo-${{ github.event.release.tag_name }}-ubuntu
+          asset_path: artifact/ubuntu-20.04/argo
+          upload_url: ${{ github.event.release.upload_url }}
+
+      - uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          asset_content_type: application/octet-stream
+          asset_name: argo-${{ github.event.release.tag_name }}-macos
+          asset_path: artifact/macos-11/argo
+          upload_url: ${{ github.event.release.upload_url }}
+
+      - uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          asset_content_type: application/octet-stream
+          asset_name: argo-${{ github.event.release.tag_name }}-windows.exe
+          asset_path: artifact/windows-2019/argo
+          upload_url: ${{ github.event.release.upload_url }}
+
+      - run: cabal upload --publish --username '${{ secrets.HACKAGE_USERNAME }}' --password '${{ secrets.HACKAGE_PASSWORD }}' artifact/ubuntu-20.04/argo-${{ github.event.release.tag_name }}.tar.gz
