@@ -2,6 +2,7 @@ module Argo.Decode where
 
 import Control.Applicative ((<|>))
 
+import qualified Argo.Decoder as Decoder
 import qualified Argo.Literal as Literal
 import qualified Argo.Type.Array as Array
 import qualified Argo.Type.Boolean as Boolean
@@ -21,7 +22,7 @@ import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
 import qualified Data.Word as Word
 
-decodeValue :: Decode Value.Value
+decodeValue :: Decoder.Decoder Value.Value
 decodeValue =
     Value.Null <$> decodeNull
     <|> Value.Boolean <$> decodeBoolean
@@ -30,32 +31,32 @@ decodeValue =
     <|> Value.Array <$> decodeArray decodeValue
     <|> Value.Object <$> decodeObject decodeValue
 
-decodeNull :: Decode Null.Null
-decodeNull = Null.Null () <$ byteString Literal.null <* spaces
+decodeNull :: Decoder.Decoder Null.Null
+decodeNull = Null.Null () <$ Decoder.byteString Literal.null <* Decoder.spaces
 
-decodeBoolean :: Decode Boolean.Boolean
+decodeBoolean :: Decoder.Decoder Boolean.Boolean
 decodeBoolean = decodeFalse <|> decodeTrue
 
-decodeNumber :: Decode Number.Number
+decodeNumber :: Decoder.Decoder Number.Number
 decodeNumber = do
-    ni <- fmap Maybe.isJust . Applicative.optional $ word8 Literal.hyphenMinus
-    i <- takeWhile1 isDigit
+    ni <- fmap Maybe.isJust . Applicative.optional $ Decoder.word8 Literal.hyphenMinus
+    i <- Decoder.takeWhile1 Decoder.isDigit
     Monad.when (ByteString.length i > 1 && ByteString.elemIndex Literal.digitZero i == Just 0)
         $ fail "leading zero"
     f <- fmap (Maybe.fromMaybe ByteString.empty) . Applicative.optional $ do
-        word8 Literal.fullStop
-        takeWhile1 isDigit
+        Decoder.word8 Literal.fullStop
+        Decoder.takeWhile1 Decoder.isDigit
     (ne, e) <- fmap (Maybe.fromMaybe (False, ByteString.empty)) . Applicative.optional $ do
         Monad.void
-            . satisfy
+            . Decoder.satisfy
             $ \ x -> x == Literal.latinSmallLetterE || x == Literal.latinCapitalLetterE
         ne <- fmap (== Just Literal.hyphenMinus)
             . Applicative.optional
-            . satisfy
+            . Decoder.satisfy
             $ \ x -> x == Literal.hyphenMinus || x == Literal.plusSign
-        e <- takeWhile1 isDigit
+        e <- Decoder.takeWhile1 Decoder.isDigit
         pure (ne, e)
-    spaces
+    Decoder.spaces
     pure . Number.normalize $ Number.Number
         ((if ni then negate else id) $ (f7 i * 10 ^ ByteString.length f) + f7 f)
         ((if ne then negate else id) (f7 e) - intToInteger (ByteString.length f))
@@ -69,18 +70,18 @@ intToInteger = fromIntegral
 word8ToInteger :: Word.Word8 -> Integer
 word8ToInteger = fromIntegral
 
-decodeString :: Decode String.String
+decodeString :: Decoder.Decoder String.String
 decodeString = do
-    word8 Literal.quotationMark
-    b1 <- get
+    Decoder.word8 Literal.quotationMark
+    b1 <- Decoder.get
     i <- case f3 b1 0 of
         Nothing -> fail "unterminated string"
         Just i -> pure i
     let (xs, b2) = ByteString.splitAt i b1
     Monad.when (ByteString.any (< Literal.space) xs) $ fail "unescaped control character"
-    put b2
-    word8 Literal.quotationMark
-    spaces
+    Decoder.put b2
+    Decoder.word8 Literal.quotationMark
+    Decoder.spaces
     case Text.decodeUtf8' xs of
         Left e -> fail $ show e
         Right x -> case f4 x of
@@ -151,137 +152,45 @@ f5 xs = case xs of
         _ -> fail "invalid short escape"
     x : ys -> (x :) <$> f5 ys
 
-decodeArray :: Decode a -> Decode (Array.Array a)
+decodeArray :: Decoder.Decoder a -> Decoder.Decoder (Array.Array a)
 decodeArray f = do
-    word8 Literal.leftSquareBracket
-    spaces
+    Decoder.word8 Literal.leftSquareBracket
+    Decoder.spaces
     xs <- decodeArrayWith f 0 []
-    word8 Literal.rightSquareBracket
-    spaces
+    Decoder.word8 Literal.rightSquareBracket
+    Decoder.spaces
     pure $ Array.Array xs
 
-decodeObject :: Decode a -> Decode (Object.Object a)
+decodeObject :: Decoder.Decoder a -> Decoder.Decoder (Object.Object a)
 decodeObject f = do
-    word8 Literal.leftCurlyBracket
-    spaces
+    Decoder.word8 Literal.leftCurlyBracket
+    Decoder.spaces
     xs <- decodeArrayWith (decodePair decodeString f) 0 []
-    word8 Literal.rightCurlyBracket
-    spaces
+    Decoder.word8 Literal.rightCurlyBracket
+    Decoder.spaces
     pure $ Object.Object xs
 
-decodePair :: Decode k -> Decode v -> Decode (Pair.Pair k v)
+decodePair :: Decoder.Decoder k -> Decoder.Decoder v -> Decoder.Decoder (Pair.Pair k v)
 decodePair f g = do
     k <- f
-    word8 Literal.colon
-    spaces
+    Decoder.word8 Literal.colon
+    Decoder.spaces
     v <- g
     pure $ Pair.Pair (k, v)
 
-decodeArrayWith :: Decode a -> Int -> [(Int, a)] -> Decode (Data.Array.Array Int a)
+decodeArrayWith :: Decoder.Decoder a -> Int -> [(Int, a)] -> Decoder.Decoder (Data.Array.Array Int a)
 decodeArrayWith f n xs = do
     m <- Applicative.optional $ do
         Monad.when (n /= 0) $ do
-            word8 Literal.comma
-            spaces
+            Decoder.word8 Literal.comma
+            Decoder.spaces
         f
     case m of
         Nothing -> pure $ Data.Array.array (0, n - 1) xs
         Just x -> decodeArrayWith f (n + 1) $ (n, x) : xs
 
-decodeFalse :: Decode Boolean.Boolean
-decodeFalse = Boolean.Boolean False <$ byteString Literal.false <* spaces
+decodeFalse :: Decoder.Decoder Boolean.Boolean
+decodeFalse = Boolean.Boolean False <$ Decoder.byteString Literal.false <* Decoder.spaces
 
-decodeTrue :: Decode Boolean.Boolean
-decodeTrue = Boolean.Boolean True <$ byteString Literal.true <* spaces
-
-newtype Decode a = Decode
-    { run :: ByteString.ByteString -> Maybe (ByteString.ByteString, a)
-    }
-
-instance Functor Decode where
-    fmap f d = Decode $ \ b1 -> case run d b1 of
-        Nothing -> Nothing
-        Just (b2, x) -> Just (b2, f x)
-
-instance Applicative Decode where
-    pure x = Decode $ \ b -> Just (b, x)
-    df <*> dx = Decode $ \ b1 -> case run df b1 of
-        Nothing -> Nothing
-        Just (b2, f) -> case run dx b2 of
-            Nothing -> Nothing
-            Just (b3, x) -> Just (b3, f x)
-
-instance Monad Decode where
-    d >>= f = Decode $ \ b1 -> case run d b1 of
-        Nothing -> Nothing
-        Just (b2, x) -> run (f x) b2
-
-instance MonadFail Decode where
-    fail _ = Decode $ const Nothing
-
-instance Applicative.Alternative Decode where
-    empty = fail "empty"
-    dx <|> dy = Decode $ \ b1 -> case run dx b1 of
-        Nothing -> run dy b1
-        Just (b2, x) -> Just (b2, x)
-
-byteString :: ByteString.ByteString -> Decode ()
-byteString x = do
-    b1 <- get
-    case ByteString.stripPrefix x b1 of
-        Nothing -> fail $ "byteString: " <> show x
-        Just b2 -> put b2
-
-dropWhile :: (Word.Word8 -> Bool) -> Decode ()
-dropWhile f = do
-    b <- get
-    put $ ByteString.dropWhile f b
-
-eof :: Decode ()
-eof = do
-    b <- get
-    Monad.unless (ByteString.null b) $ fail "eof"
-
-get :: Decode ByteString.ByteString
-get = Decode $ \ b -> Just (b, b)
-
-isDigit :: Word.Word8 -> Bool
-isDigit x = Literal.digitZero <= x && x <= Literal.digitNine
-
-isSpace :: Word.Word8 -> Bool
-isSpace x =
-    x == Literal.space
-    || x == Literal.horizontalTabulation
-    || x == Literal.newLine
-    || x == Literal.carriageReturn
-
-put :: ByteString.ByteString -> Decode ()
-put b = Decode $ \ _ -> Just (b, ())
-
-satisfy :: (Word.Word8 -> Bool) -> Decode Word.Word8
-satisfy f = do
-    b1 <- get
-    case ByteString.uncons b1 of
-        Just (x, b2) | f x -> do
-            put b2
-            pure x
-        _ -> fail "satisfy"
-
-spaces :: Decode ()
-spaces = Argo.Decode.dropWhile isSpace
-
-takeWhile :: (Word.Word8 -> Bool) -> Decode ByteString.ByteString
-takeWhile f = do
-    b1 <- get
-    let (x, b2) = ByteString.span f b1
-    put b2
-    pure x
-
-takeWhile1 :: (Word.Word8 -> Bool) -> Decode ByteString.ByteString
-takeWhile1 f = do
-    x <- Argo.Decode.takeWhile f
-    Monad.when (ByteString.null x) $ fail "takeWhile1"
-    pure x
-
-word8 :: Word.Word8 -> Decode ()
-word8 = Monad.void . satisfy . (==)
+decodeTrue :: Decoder.Decoder Boolean.Boolean
+decodeTrue = Boolean.Boolean True <$ Decoder.byteString Literal.true <* Decoder.spaces

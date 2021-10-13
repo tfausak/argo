@@ -21,6 +21,7 @@ module Argo
 import qualified Argo.Class.FromValue as FromValue
 import qualified Argo.Class.ToValue as ToValue
 import qualified Argo.Decode as Decode
+import qualified Argo.Decoder as Decoder
 import qualified Argo.Type.Array as Array
 import qualified Argo.Type.Boolean as Boolean
 import qualified Argo.Type.Null as Null
@@ -71,5 +72,5 @@ encode = Value.encode . ToValue.toValue
 
 decode :: FromValue.FromValue a => ByteString.ByteString -> Maybe a
 decode x = do
-    (_, y) <- Decode.run (Decode.spaces *> Decode.decodeValue <* Decode.eof) x
+    (_, y) <- Decoder.run (Decoder.spaces *> Decode.decodeValue <* Decoder.eof) x
     FromValue.fromValue y
