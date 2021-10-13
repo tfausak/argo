@@ -103,7 +103,7 @@ jobs:
         with:
           asset_content_type: application/octet-stream
           asset_name: argo-${{ github.event.release.tag_name }}-windows.exe
-          asset_path: artifact/windows-2019/argo
+          asset_path: artifact/windows-2019/argo.exe
           upload_url: ${{ github.event.release.upload_url }}
 
       - run: cabal upload --publish --username '${{ secrets.HACKAGE_USERNAME }}' --password '${{ secrets.HACKAGE_PASSWORD }}' artifact/ubuntu-20.04/argo-${{ github.event.release.tag_name }}.tar.gz
