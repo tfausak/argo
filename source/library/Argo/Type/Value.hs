@@ -7,6 +7,7 @@ import qualified Argo.Type.Number as Number
 import qualified Argo.Type.Object as Object
 import qualified Argo.Type.String as String
 import qualified Control.DeepSeq as DeepSeq
+import qualified Data.ByteString.Builder as Builder
 
 data Value
     = Null Null.Null
@@ -25,3 +26,12 @@ instance DeepSeq.NFData Value where
         String y -> DeepSeq.rnf y
         Array y -> DeepSeq.rnf y
         Object y -> DeepSeq.rnf y
+
+encode :: Value -> Builder.Builder
+encode x = case x of
+    Null y -> Null.encode y
+    Boolean y -> Boolean.encode y
+    Number y -> Number.encode y
+    String y -> String.encode y
+    Array y -> Array.encode encode y
+    Object y -> Object.encode encode y

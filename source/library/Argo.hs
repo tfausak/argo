@@ -21,7 +21,6 @@ module Argo
 import qualified Argo.Class.FromValue as FromValue
 import qualified Argo.Class.ToValue as ToValue
 import qualified Argo.Decode as Decode
-import qualified Argo.Encode as Encode
 import qualified Argo.Type.Array as Array
 import qualified Argo.Type.Boolean as Boolean
 import qualified Argo.Type.Null as Null
@@ -68,7 +67,7 @@ pattern Pair k v = Pair.Pair (String.String k, v)
 {-# COMPLETE Pair #-}
 
 encode :: ToValue.ToValue a => a -> Builder.Builder
-encode = Encode.encodeValue . ToValue.toValue
+encode = Value.encode . ToValue.toValue
 
 decode :: FromValue.FromValue a => ByteString.ByteString -> Maybe a
 decode x = do
