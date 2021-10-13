@@ -108,24 +108,32 @@ isLowSurrogate x = '\xdc00' <= x && x <= '\xdfff'
 unescapeString :: Prelude.String -> Maybe Prelude.String
 unescapeString xs = case xs of
     "" -> pure xs
-    '\\' : x : ys -> case x of
-        '"' -> ('"' :) <$> unescapeString ys
-        '\\' -> ('\\' :) <$> unescapeString ys
-        '/' -> ('/' :) <$> unescapeString ys
-        'b' -> ('\b' :) <$> unescapeString ys
-        'f' -> ('\f' :) <$> unescapeString ys
-        'n' -> ('\n' :) <$> unescapeString ys
-        'r' -> ('\r' :) <$> unescapeString ys
-        't' -> ('\t' :) <$> unescapeString ys
-        'u' -> let p = Char.isHexDigit in case ys of
-            a : b : c : d : zs | p a && p b && p c && p d ->
-                let
-                    y = Char.chr
-                        $ (0x1000 * Char.digitToInt a)
-                        + (0x100 * Char.digitToInt b)
-                        + (0x10 * Char.digitToInt c)
-                        + Char.digitToInt d
-                in (y :) <$> unescapeString zs
-            _ -> fail "invalid long escape"
-        _ -> fail "invalid short escape"
+    '\\' : ys -> case ys of
+        "" -> fail "empty escape"
+        x : zs -> case x of
+            '"' -> ('"' :) <$> unescapeString zs
+            '\\' -> ('\\' :) <$> unescapeString zs
+            '/' -> ('/' :) <$> unescapeString zs
+            'b' -> ('\b' :) <$> unescapeString zs
+            'f' -> ('\f' :) <$> unescapeString zs
+            'n' -> ('\n' :) <$> unescapeString zs
+            'r' -> ('\r' :) <$> unescapeString zs
+            't' -> ('\t' :) <$> unescapeString zs
+            'u' -> case zs of
+                a : b : c : d : es | Just y <- fromLongEscape a b c d ->
+                    (y :) <$> unescapeString es
+                _ -> fail "invalid long escape"
+            _ -> fail "invalid short escape"
     x : ys -> (x :) <$> unescapeString ys
+
+fromLongEscape :: Char -> Char -> Char -> Char -> Maybe Char
+fromLongEscape a b c d = do
+    w <- fromHexadecimalDigit a
+    x <- fromHexadecimalDigit b
+    y <- fromHexadecimalDigit c
+    z <- fromHexadecimalDigit d
+    pure . Char.chr $ (0x1000 * w) + (0x100 * x) + (0x10 * y) + z
+
+fromHexadecimalDigit :: Char -> Maybe Int
+fromHexadecimalDigit x =
+    if Char.isHexDigit x then Just $ Char.digitToInt x else Nothing
