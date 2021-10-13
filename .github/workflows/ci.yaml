@@ -5,6 +5,9 @@ on:
   push:
     branches:
       - main
+  release:
+    types:
+      - created
 jobs:
   ci:
     strategy:
@@ -62,3 +65,42 @@ jobs:
         with:
           name: argo-${{ github.sha }}
           path: artifact
+
+  release:
+    needs: ci
+    if: github.event_name == 'release'
+    runs-on: ubuntu-20.04
+    steps:
+
+      - uses: actions/checkout@v2
+
+      - uses: actions/download-artifact@v2
+
+      - uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          asset_content_type: application/octet-stream
+          asset_name: argo-${{ github.event.release.tag_name }}-ubuntu
+          asset_path: artifact/ubuntu-20.04/argo
+          upload_url: ${{ github.event.release.upload_url }}
+
+      - uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          asset_content_type: application/octet-stream
+          asset_name: argo-${{ github.event.release.tag_name }}-macos
+          asset_path: artifact/macos-11/argo
+          upload_url: ${{ github.event.release.upload_url }}
+
+      - uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          asset_content_type: application/octet-stream
+          asset_name: argo-${{ github.event.release.tag_name }}-windows.exe
+          asset_path: artifact/windows-2019/argo
+          upload_url: ${{ github.event.release.upload_url }}
+
+      - run: cabal upload --publish --username '${{ secrets.HACKAGE_USERNAME }}' --password '${{ secrets.HACKAGE_PASSWORD }}' artifact/ubuntu-20.04/argo-${{ github.event.release.tag_name }}.tar.gz
