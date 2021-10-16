@@ -1,3 +1,5 @@
+{-# LANGUAGE TemplateHaskellQuotes #-}
+
 module Argo.Type.Number where
 
 import qualified Argo.Decoder as Decoder
@@ -10,10 +12,14 @@ import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Builder as Builder
 import qualified Data.Maybe as Maybe
 import qualified Data.Word as Word
+import qualified Language.Haskell.TH.Syntax as TH
 
 data Number
     = Number Integer Integer
     deriving (Eq, Show)
+
+instance TH.Lift Number where
+    liftTyped (Number x y) = [|| Number x y ||]
 
 instance DeepSeq.NFData Number where
     rnf (Number x y) = DeepSeq.deepseq x $ DeepSeq.rnf y

@@ -1,3 +1,5 @@
+{-# LANGUAGE TemplateHaskellQuotes #-}
+
 module Argo.Type.Object where
 
 import qualified Argo.Decoder as Decoder
@@ -7,10 +9,18 @@ import qualified Argo.Type.String as String
 import qualified Control.DeepSeq as DeepSeq
 import qualified Data.Array as Array
 import qualified Data.ByteString.Builder as Builder
+import qualified Language.Haskell.TH.Syntax as TH
 
 newtype Object a
     = Object (Array.Array Int (Pair.Pair String.String a))
     deriving (Eq, Show)
+
+instance TH.Lift a => TH.Lift (Object a) where
+    liftTyped (Object x) =
+        let
+            bounds = Array.bounds x
+            elems = Array.elems x
+        in [|| Object $ Array.listArray bounds elems ||]
 
 instance DeepSeq.NFData a => DeepSeq.NFData (Object a) where
     rnf (Object x) = DeepSeq.rnf x

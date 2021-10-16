@@ -1,3 +1,5 @@
+{-# LANGUAGE TemplateHaskellQuotes #-}
+
 module Argo.Type.Value where
 
 import Control.Applicative ((<|>))
@@ -11,6 +13,7 @@ import qualified Argo.Type.Object as Object
 import qualified Argo.Type.String as String
 import qualified Control.DeepSeq as DeepSeq
 import qualified Data.ByteString.Builder as Builder
+import qualified Language.Haskell.TH.Syntax as TH
 
 data Value
     = Null Null.Null
@@ -20,6 +23,15 @@ data Value
     | Array (Array.Array Value)
     | Object (Object.Object Value)
     deriving (Eq, Show)
+
+instance TH.Lift Value where
+    liftTyped x = case x of
+        Null y -> [|| Null y ||]
+        Boolean y -> [|| Boolean y ||]
+        Number y -> [|| Number y ||]
+        String y -> [|| String y ||]
+        Array y -> [|| Array y ||]
+        Object y -> [|| Object y ||]
 
 instance DeepSeq.NFData Value where
     rnf x = case x of
