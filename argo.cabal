@@ -58,8 +58,12 @@ library
         Argo
         Argo.Class.FromValue
         Argo.Class.ToValue
+        Argo.Decode
         Argo.Decoder
+        Argo.Encode
         Argo.Literal
+        Argo.Pattern
+        Argo.Type
         Argo.Type.Array
         Argo.Type.Boolean
         Argo.Type.Null
