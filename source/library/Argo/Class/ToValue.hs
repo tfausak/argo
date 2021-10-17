@@ -9,6 +9,7 @@ import qualified Argo.Type.String as String
 import qualified Argo.Type.Value as Value
 import qualified Data.Array
 import qualified Data.Int as Int
+import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Text as Text
 import qualified Data.Text.Lazy as LazyText
 import qualified Data.Word as Word
@@ -76,3 +77,6 @@ instance ToValue a => ToValue [a] where
             listToArray :: [b] -> Data.Array.Array Int b
             listToArray xs = Data.Array.listArray (0, length xs - 1) xs
         in toValue . listToArray
+
+instance ToValue a => ToValue (NonEmpty.NonEmpty a) where
+    toValue = toValue . NonEmpty.toList

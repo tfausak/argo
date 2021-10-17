@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 
+import Data.List.NonEmpty (NonEmpty((:|)))
 import Test.Tasty.HUnit ((@?=))
 import Test.Tasty.QuickCheck ((===))
 
@@ -326,6 +327,8 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
             Argo.fromValue (Argo.Array $ array []) @?= Just (array [] :: Array.Array Int Bool)
         , Tasty.testCase "[a]" $ do
             Argo.fromValue (Argo.Array $ array []) @?= Just ([] :: [Bool])
+        , Tasty.testCase "NonEmpty a" $ do
+            Argo.fromValue (Argo.Array $ array [Argo.Boolean False]) @?= Just (False :| [])
         ]
     , Tasty.testGroup "toValue"
         [ Tasty.testCase "Value" $ do
@@ -366,6 +369,8 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
             Argo.toValue (array [] :: Array.Array Int Bool) @?= Argo.Array (array [])
         , Tasty.testCase "[a]" $ do
             Argo.toValue ([] :: [Bool]) @?= Argo.Array (array [])
+        , Tasty.testCase "NonEmpty a" $ do
+            Argo.toValue (False :| []) @?= Argo.Array (array [Argo.Boolean False])
         ]
     , Tasty.testGroup "quasi quoter"
         [ Tasty.testCase "Null" $ do

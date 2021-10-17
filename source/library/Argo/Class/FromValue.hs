@@ -14,6 +14,7 @@ import qualified Argo.Type.Value as Value
 import qualified Data.Array
 import qualified Data.Bits as Bits
 import qualified Data.Int as Int
+import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Text as Text
 import qualified Data.Text.Lazy as LazyText
 import qualified Data.Word as Word
@@ -124,6 +125,9 @@ instance FromValue a => FromValue [a] where
             arrayToList :: Data.Array.Array Int b -> [b]
             arrayToList = Data.Array.elems
         in fmap arrayToList . fromValue
+
+instance FromValue a => FromValue (NonEmpty.NonEmpty a) where
+    fromValue = NonEmpty.nonEmpty <=< fromValue
 
 withBoolean :: String -> (Bool -> Maybe a) -> Value.Value -> Maybe a
 withBoolean s f x = case x of
