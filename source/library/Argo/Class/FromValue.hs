@@ -13,8 +13,10 @@ import qualified Argo.Type.String as String
 import qualified Argo.Type.Value as Value
 import qualified Data.Array
 import qualified Data.Bits as Bits
+import qualified Data.Int as Int
 import qualified Data.Text as Text
 import qualified Data.Text.Lazy as LazyText
+import qualified Data.Word as Word
 
 class FromValue a where
     fromValue :: Value.Value -> Maybe a
@@ -37,12 +39,68 @@ instance FromValue Int where
             integerToInt = Bits.toIntegralSized
         in integerToInt <=< fromValue
 
+instance FromValue Int.Int8 where
+    fromValue =
+        let
+            integerToInt8 :: Integer -> Maybe Int.Int8
+            integerToInt8 = Bits.toIntegralSized
+        in integerToInt8 <=< fromValue
+
+instance FromValue Int.Int16 where
+    fromValue =
+        let
+            integerToInt16 :: Integer -> Maybe Int.Int16
+            integerToInt16 = Bits.toIntegralSized
+        in integerToInt16 <=< fromValue
+
+instance FromValue Int.Int32 where
+    fromValue =
+        let
+            integerToInt32 :: Integer -> Maybe Int.Int32
+            integerToInt32 = Bits.toIntegralSized
+        in integerToInt32 <=< fromValue
+
+instance FromValue Int.Int64 where
+    fromValue =
+        let
+            integerToInt64 :: Integer -> Maybe Int.Int64
+            integerToInt64 = Bits.toIntegralSized
+        in integerToInt64 <=< fromValue
+
 instance FromValue Word where
     fromValue =
         let
             integerToWord :: Integer -> Maybe Word
             integerToWord = Bits.toIntegralSized
         in integerToWord <=< fromValue
+
+instance FromValue Word.Word8 where
+    fromValue =
+        let
+            integerToWord8 :: Integer -> Maybe Word.Word8
+            integerToWord8 = Bits.toIntegralSized
+        in integerToWord8 <=< fromValue
+
+instance FromValue Word.Word16 where
+    fromValue =
+        let
+            integerToWord16 :: Integer -> Maybe Word.Word16
+            integerToWord16 = Bits.toIntegralSized
+        in integerToWord16 <=< fromValue
+
+instance FromValue Word.Word32 where
+    fromValue =
+        let
+            integerToWord32 :: Integer -> Maybe Word.Word32
+            integerToWord32 = Bits.toIntegralSized
+        in integerToWord32 <=< fromValue
+
+instance FromValue Word.Word64 where
+    fromValue =
+        let
+            integerToWord64 :: Integer -> Maybe Word.Word64
+            integerToWord64 = Bits.toIntegralSized
+        in integerToWord64 <=< fromValue
 
 instance FromValue Integer where
     fromValue = withNumber "Integer" $ \ x y ->

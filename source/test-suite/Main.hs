@@ -9,8 +9,10 @@ import qualified Data.Array as Array
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Builder as Builder
 import qualified Data.ByteString.Lazy as LazyByteString
+import qualified Data.Int as Int
 import qualified Data.Text as Text
 import qualified Data.Text.Lazy as LazyText
+import qualified Data.Word as Word
 import qualified Test.Tasty as Tasty
 import qualified Test.Tasty.HUnit as Tasty
 import qualified Test.Tasty.QuickCheck as Tasty
@@ -294,8 +296,24 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
             Argo.fromValue (Argo.String "a") @?= Just 'a'
         , Tasty.testCase "Int" $ do
             Argo.fromValue (Argo.Number 0 0) @?= Just (0 :: Int)
+        , Tasty.testCase "Int8" $ do
+            Argo.fromValue (Argo.Number 0 0) @?= Just (0 :: Int.Int8)
+        , Tasty.testCase "Int16" $ do
+            Argo.fromValue (Argo.Number 0 0) @?= Just (0 :: Int.Int16)
+        , Tasty.testCase "Int32" $ do
+            Argo.fromValue (Argo.Number 0 0) @?= Just (0 :: Int.Int32)
+        , Tasty.testCase "Int64" $ do
+            Argo.fromValue (Argo.Number 0 0) @?= Just (0 :: Int.Int64)
         , Tasty.testCase "Word" $ do
             Argo.fromValue (Argo.Number 0 0) @?= Just (0 :: Word)
+        , Tasty.testCase "Word8" $ do
+            Argo.fromValue (Argo.Number 0 0) @?= Just (0 :: Word.Word8)
+        , Tasty.testCase "Word16" $ do
+            Argo.fromValue (Argo.Number 0 0) @?= Just (0 :: Word.Word16)
+        , Tasty.testCase "Word32" $ do
+            Argo.fromValue (Argo.Number 0 0) @?= Just (0 :: Word.Word32)
+        , Tasty.testCase "Word64" $ do
+            Argo.fromValue (Argo.Number 0 0) @?= Just (0 :: Word.Word64)
         , Tasty.testCase "Integer" $ do
             Argo.fromValue (Argo.Number 0 0) @?= Just (0 :: Integer)
         , Tasty.testCase "String" $ do
@@ -318,8 +336,24 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
             Argo.toValue 'a' @?= Argo.String "a"
         , Tasty.testCase "Int" $ do
             Argo.toValue (0 :: Int) @?= Argo.Number 0 0
+        , Tasty.testCase "Int8" $ do
+            Argo.toValue (0 :: Int.Int8) @?= Argo.Number 0 0
+        , Tasty.testCase "Int16" $ do
+            Argo.toValue (0 :: Int.Int16) @?= Argo.Number 0 0
+        , Tasty.testCase "Int32" $ do
+            Argo.toValue (0 :: Int.Int32) @?= Argo.Number 0 0
+        , Tasty.testCase "Int64" $ do
+            Argo.toValue (0 :: Int.Int64) @?= Argo.Number 0 0
         , Tasty.testCase "Word" $ do
             Argo.toValue (0 :: Word) @?= Argo.Number 0 0
+        , Tasty.testCase "Word8" $ do
+            Argo.toValue (0 :: Word.Word8) @?= Argo.Number 0 0
+        , Tasty.testCase "Word16" $ do
+            Argo.toValue (0 :: Word.Word16) @?= Argo.Number 0 0
+        , Tasty.testCase "Word32" $ do
+            Argo.toValue (0 :: Word.Word32) @?= Argo.Number 0 0
+        , Tasty.testCase "Word64" $ do
+            Argo.toValue (0 :: Word.Word64) @?= Argo.Number 0 0
         , Tasty.testCase "Integer" $ do
             Argo.toValue (0 :: Integer) @?= Argo.Number 0 0
         , Tasty.testCase "String" $ do
