@@ -323,8 +323,10 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
             [Argo.value| {} |] @?= Argo.Object (array [])
         ]
     , Tasty.testGroup "property"
-        [ Tasty.testProperty "round trip" . Tasty.forAll genValue $ \ x -> Tasty.shrinking shrinkValue x $ \ y ->
+        [ Tasty.testProperty "decode . encode" . Tasty.forAll genValue $ \ x -> Tasty.shrinking shrinkValue x $ \ y ->
             (Argo.decode . LazyByteString.toStrict . Builder.toLazyByteString $ Argo.encode y) === Just y
+        , Tasty.testProperty "fromValue . toValue" . Tasty.forAll genValue $ \ x -> Tasty.shrinking shrinkValue x $ \ y ->
+            Argo.fromValue (Argo.toValue y) === Just y
         ]
     ]
 
