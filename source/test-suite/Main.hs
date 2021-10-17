@@ -1,5 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes #-}
 
+import Data.List.NonEmpty (NonEmpty((:|)))
 import Test.Tasty.HUnit ((@?=))
 import Test.Tasty.QuickCheck ((===))
 
@@ -8,7 +10,11 @@ import qualified Data.Array as Array
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Builder as Builder
 import qualified Data.ByteString.Lazy as LazyByteString
+import qualified Data.Int as Int
+import qualified Data.Map as Map
 import qualified Data.Text as Text
+import qualified Data.Text.Lazy as LazyText
+import qualified Data.Word as Word
 import qualified Test.Tasty as Tasty
 import qualified Test.Tasty.HUnit as Tasty
 import qualified Test.Tasty.QuickCheck as Tasty
@@ -283,9 +289,133 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
                 decode "{1:2}" @?= Nothing
             ]
         ]
+    , Tasty.testGroup "fromValue"
+        [ Tasty.testCase "Value" $ do
+            Argo.fromValue Argo.Null @?= Just Argo.Null
+        , Tasty.testCase "Bool" $ do
+            Argo.fromValue (Argo.Boolean False) @?= Just False
+        , Tasty.testCase "Char" $ do
+            Argo.fromValue (Argo.String "a") @?= Just 'a'
+        , Tasty.testCase "Int" $ do
+            Argo.fromValue (Argo.Number 0 0) @?= Just (0 :: Int)
+        , Tasty.testCase "Int8" $ do
+            Argo.fromValue (Argo.Number 0 0) @?= Just (0 :: Int.Int8)
+        , Tasty.testCase "Int16" $ do
+            Argo.fromValue (Argo.Number 0 0) @?= Just (0 :: Int.Int16)
+        , Tasty.testCase "Int32" $ do
+            Argo.fromValue (Argo.Number 0 0) @?= Just (0 :: Int.Int32)
+        , Tasty.testCase "Int64" $ do
+            Argo.fromValue (Argo.Number 0 0) @?= Just (0 :: Int.Int64)
+        , Tasty.testCase "Word" $ do
+            Argo.fromValue (Argo.Number 0 0) @?= Just (0 :: Word)
+        , Tasty.testCase "Word8" $ do
+            Argo.fromValue (Argo.Number 0 0) @?= Just (0 :: Word.Word8)
+        , Tasty.testCase "Word16" $ do
+            Argo.fromValue (Argo.Number 0 0) @?= Just (0 :: Word.Word16)
+        , Tasty.testCase "Word32" $ do
+            Argo.fromValue (Argo.Number 0 0) @?= Just (0 :: Word.Word32)
+        , Tasty.testCase "Word64" $ do
+            Argo.fromValue (Argo.Number 0 0) @?= Just (0 :: Word.Word64)
+        , Tasty.testCase "Integer" $ do
+            Argo.fromValue (Argo.Number 0 0) @?= Just (0 :: Integer)
+        , Tasty.testCase "Float" $ do
+            Argo.fromValue (Argo.Number 0 0) @?= Just (0 :: Float)
+        , Tasty.testCase "Double" $ do
+            Argo.fromValue (Argo.Number 0 0) @?= Just (0 :: Double)
+        , Tasty.testCase "String" $ do
+            Argo.fromValue (Argo.String "") @?= Just ("" :: String)
+        , Tasty.testCase "Text" $ do
+            Argo.fromValue (Argo.String "") @?= Just ("" :: Text.Text)
+        , Tasty.testCase "LazyText" $ do
+            Argo.fromValue (Argo.String "") @?= Just ("" :: LazyText.Text)
+        , Tasty.testCase "Maybe a" $ do
+            Argo.fromValue (Argo.Boolean False) @?= Just (Just False)
+        , Tasty.testCase "()" $ do
+            Argo.fromValue (Argo.Array $ array []) @?= Just ()
+        , Tasty.testCase "(a, b)" $ do
+            Argo.fromValue (Argo.Array $ array [Argo.Boolean False, Argo.String "a"]) @?= Just (False, 'a')
+        , Tasty.testCase "Array Int a" $ do
+            Argo.fromValue (Argo.Array $ array []) @?= Just (array [] :: Array.Array Int Bool)
+        , Tasty.testCase "[a]" $ do
+            Argo.fromValue (Argo.Array $ array []) @?= Just ([] :: [Bool])
+        , Tasty.testCase "NonEmpty a" $ do
+            Argo.fromValue (Argo.Array $ array [Argo.Boolean False]) @?= Just (False :| [])
+        , Tasty.testCase "Map Text a" $ do
+            Argo.fromValue (Argo.Object $ array [Argo.Pair "a" $ Argo.Boolean False]) @?= Just (Map.fromList [("a" :: Text.Text, False)])
+        ]
+    , Tasty.testGroup "toValue"
+        [ Tasty.testCase "Value" $ do
+            Argo.toValue Argo.Null @?= Argo.Null
+        , Tasty.testCase "Bool" $ do
+            Argo.toValue False @?= Argo.Boolean False
+        , Tasty.testCase "Char" $ do
+            Argo.toValue 'a' @?= Argo.String "a"
+        , Tasty.testCase "Int" $ do
+            Argo.toValue (0 :: Int) @?= Argo.Number 0 0
+        , Tasty.testCase "Int8" $ do
+            Argo.toValue (0 :: Int.Int8) @?= Argo.Number 0 0
+        , Tasty.testCase "Int16" $ do
+            Argo.toValue (0 :: Int.Int16) @?= Argo.Number 0 0
+        , Tasty.testCase "Int32" $ do
+            Argo.toValue (0 :: Int.Int32) @?= Argo.Number 0 0
+        , Tasty.testCase "Int64" $ do
+            Argo.toValue (0 :: Int.Int64) @?= Argo.Number 0 0
+        , Tasty.testCase "Word" $ do
+            Argo.toValue (0 :: Word) @?= Argo.Number 0 0
+        , Tasty.testCase "Word8" $ do
+            Argo.toValue (0 :: Word.Word8) @?= Argo.Number 0 0
+        , Tasty.testCase "Word16" $ do
+            Argo.toValue (0 :: Word.Word16) @?= Argo.Number 0 0
+        , Tasty.testCase "Word32" $ do
+            Argo.toValue (0 :: Word.Word32) @?= Argo.Number 0 0
+        , Tasty.testCase "Word64" $ do
+            Argo.toValue (0 :: Word.Word64) @?= Argo.Number 0 0
+        , Tasty.testCase "Integer" $ do
+            Argo.toValue (0 :: Integer) @?= Argo.Number 0 0
+        , Tasty.testCase "Float" $ do
+            Argo.toValue (0 :: Float) @?= Argo.Number 0 0
+        , Tasty.testCase "Double" $ do
+            Argo.toValue (0 :: Double) @?= Argo.Number 0 0
+        , Tasty.testCase "String" $ do
+            Argo.toValue ("" :: String) @?= Argo.String ""
+        , Tasty.testCase "Text" $ do
+            Argo.toValue ("" :: Text.Text) @?= Argo.String ""
+        , Tasty.testCase "LazyText" $ do
+            Argo.toValue ("" :: LazyText.Text) @?= Argo.String ""
+        , Tasty.testCase "Maybe a" $ do
+            Argo.toValue (Just False) @?= Argo.Boolean False
+        , Tasty.testCase "()" $ do
+            Argo.toValue () @?= Argo.Array (array [])
+        , Tasty.testCase "(a, b)" $ do
+            Argo.toValue (False, 'a') @?= Argo.Array (array [Argo.Boolean False, Argo.String "a"])
+        , Tasty.testCase "Array Int a" $ do
+            Argo.toValue (array [] :: Array.Array Int Bool) @?= Argo.Array (array [])
+        , Tasty.testCase "[a]" $ do
+            Argo.toValue ([] :: [Bool]) @?= Argo.Array (array [])
+        , Tasty.testCase "NonEmpty a" $ do
+            Argo.toValue (False :| []) @?= Argo.Array (array [Argo.Boolean False])
+        , Tasty.testCase "Map Text a" $ do
+            Argo.toValue (Map.fromList [("a" :: Text.Text, False)]) @?= Argo.Object (array [Argo.Pair "a" $ Argo.Boolean False])
+        ]
+    , Tasty.testGroup "quasi quoter"
+        [ Tasty.testCase "Null" $ do
+            [Argo.value| null |] @?= Argo.Null
+        , Tasty.testCase "Boolean" $ do
+            [Argo.value| false |] @?= Argo.Boolean False
+        , Tasty.testCase "Number" $ do
+            [Argo.value| 0 |] @?= Argo.Number 0 0
+        , Tasty.testCase "String" $ do
+            [Argo.value| "" |] @?= Argo.String ""
+        , Tasty.testCase "Array" $ do
+            [Argo.value| [] |] @?= Argo.Array (array [])
+        , Tasty.testCase "Object" $ do
+            [Argo.value| {} |] @?= Argo.Object (array [])
+        ]
     , Tasty.testGroup "property"
-        [ Tasty.testProperty "round trip" . Tasty.forAll genValue $ \ x -> Tasty.shrinking shrinkValue x $ \ y ->
+        [ Tasty.testProperty "decode . encode" . Tasty.forAll genValue $ \ x -> Tasty.shrinking shrinkValue x $ \ y ->
             (Argo.decode . LazyByteString.toStrict . Builder.toLazyByteString $ Argo.encode y) === Just y
+        , Tasty.testProperty "fromValue . toValue" . Tasty.forAll genValue $ \ x -> Tasty.shrinking shrinkValue x $ \ y ->
+            Argo.fromValue (Argo.toValue y) === Just y
         ]
     ]
 
