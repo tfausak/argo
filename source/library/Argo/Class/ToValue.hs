@@ -26,6 +26,9 @@ instance ToValue Char where
 instance ToValue Integer where
     toValue = Value.Number . Number.normalize . flip Number.Number 0
 
+instance {-# OVERLAPPING #-} ToValue String where
+    toValue = toValue . Text.pack
+
 instance ToValue Text.Text where
     toValue = Value.String . String.String
 

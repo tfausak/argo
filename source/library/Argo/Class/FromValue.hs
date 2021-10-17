@@ -31,6 +31,9 @@ instance FromValue Integer where
     fromValue = withNumber "Integer" $ \ x y ->
         if y < 0 then fail "fractional" else pure $ x * 10 ^ y
 
+instance {-# OVERLAPPING #-} FromValue String where
+    fromValue = fmap Text.unpack . fromValue
+
 instance FromValue Text.Text where
     fromValue = withString "Text" pure
 
