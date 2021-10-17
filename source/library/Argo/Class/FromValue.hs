@@ -16,6 +16,7 @@ import qualified Data.Array
 import qualified Data.Bits as Bits
 import qualified Data.Int as Int
 import qualified Data.List.NonEmpty as NonEmpty
+import qualified Data.Map as Map
 import qualified Data.Text as Text
 import qualified Data.Text.Lazy as LazyText
 import qualified Data.Word as Word
@@ -152,6 +153,12 @@ instance FromValue a => FromValue [a] where
 
 instance FromValue a => FromValue (NonEmpty.NonEmpty a) where
     fromValue = NonEmpty.nonEmpty <=< fromValue
+
+instance FromValue a => FromValue (Map.Map Text.Text a) where
+    fromValue = withObject "Map"
+        $ fmap Map.fromList
+        . traverse (\ (Pair.Pair (String.String k, v)) -> (,) k <$> fromValue v)
+        . Data.Array.elems
 
 withBoolean :: String -> (Bool -> Maybe a) -> Type.Value -> Maybe a
 withBoolean s f x = case x of

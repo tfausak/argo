@@ -11,6 +11,7 @@ import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Builder as Builder
 import qualified Data.ByteString.Lazy as LazyByteString
 import qualified Data.Int as Int
+import qualified Data.Map as Map
 import qualified Data.Text as Text
 import qualified Data.Text.Lazy as LazyText
 import qualified Data.Word as Word
@@ -339,6 +340,8 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
             Argo.fromValue (Argo.Array $ array []) @?= Just ([] :: [Bool])
         , Tasty.testCase "NonEmpty a" $ do
             Argo.fromValue (Argo.Array $ array [Argo.Boolean False]) @?= Just (False :| [])
+        , Tasty.testCase "Map Text a" $ do
+            Argo.fromValue (Argo.Object $ array [Argo.Pair "a" $ Argo.Boolean False]) @?= Just (Map.fromList [("a" :: Text.Text, False)])
         ]
     , Tasty.testGroup "toValue"
         [ Tasty.testCase "Value" $ do
@@ -391,6 +394,8 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
             Argo.toValue ([] :: [Bool]) @?= Argo.Array (array [])
         , Tasty.testCase "NonEmpty a" $ do
             Argo.toValue (False :| []) @?= Argo.Array (array [Argo.Boolean False])
+        , Tasty.testCase "Map Text a" $ do
+            Argo.toValue (Map.fromList [("a" :: Text.Text, False)]) @?= Argo.Object (array [Argo.Pair "a" $ Argo.Boolean False])
         ]
     , Tasty.testGroup "quasi quoter"
         [ Tasty.testCase "Null" $ do

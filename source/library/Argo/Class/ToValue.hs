@@ -7,12 +7,15 @@ import qualified Argo.Type.Array as Array
 import qualified Argo.Type.Boolean as Boolean
 import qualified Argo.Type.Null as Null
 import qualified Argo.Type.Number as Number
+import qualified Argo.Type.Object as Object
+import qualified Argo.Type.Pair as Pair
 import qualified Argo.Type.String as String
 import qualified Argo.Type.Value as Value
 import qualified Data.Array
 import qualified Data.Int as Int
 import qualified Data.List as List
 import qualified Data.List.NonEmpty as NonEmpty
+import qualified Data.Map as Map
 import qualified Data.Text as Text
 import qualified Data.Text.Lazy as LazyText
 import qualified Data.Word as Word
@@ -99,6 +102,13 @@ instance ToValue a => ToValue [a] where
 
 instance ToValue a => ToValue (NonEmpty.NonEmpty a) where
     toValue = toValue . NonEmpty.toList
+
+instance ToValue a => ToValue (Map.Map Text.Text a) where
+    toValue x = Value.Object
+        . Object.Object
+        . Data.Array.listArray (0, Map.size x - 1)
+        . fmap (\ (k, v) -> Pair.Pair (String.String k, toValue v))
+        $ Map.toAscList x
 
 realFloatToValue :: RealFloat a => a -> Value.Value
 realFloatToValue x
