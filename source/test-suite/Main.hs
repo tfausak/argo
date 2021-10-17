@@ -10,6 +10,7 @@ import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Builder as Builder
 import qualified Data.ByteString.Lazy as LazyByteString
 import qualified Data.Text as Text
+import qualified Data.Text.Lazy as LazyText
 import qualified Test.Tasty as Tasty
 import qualified Test.Tasty.HUnit as Tasty
 import qualified Test.Tasty.QuickCheck as Tasty
@@ -295,6 +296,8 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
             Argo.fromValue (Argo.Number 0 0) @?= Just (0 :: Integer)
         , Tasty.testCase "Text" $ do
             Argo.fromValue (Argo.String "") @?= Just ("" :: Text.Text)
+        , Tasty.testCase "LazyText" $ do
+            Argo.fromValue (Argo.String "") @?= Just ("" :: LazyText.Text)
         , Tasty.testCase "Array Int a" $ do
             Argo.fromValue (Argo.Array $ array []) @?= Just (array [] :: Array.Array Int Bool)
         , Tasty.testCase "[a]" $ do
@@ -311,6 +314,8 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
             Argo.toValue (0 :: Integer) @?= Argo.Number 0 0
         , Tasty.testCase "Text" $ do
             Argo.toValue ("" :: Text.Text) @?= Argo.String ""
+        , Tasty.testCase "LazyText" $ do
+            Argo.toValue ("" :: LazyText.Text) @?= Argo.String ""
         , Tasty.testCase "Array Int a" $ do
             Argo.toValue (array [] :: Array.Array Int Bool) @?= Argo.Array (array [])
         , Tasty.testCase "[a]" $ do

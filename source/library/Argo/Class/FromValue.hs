@@ -11,6 +11,7 @@ import qualified Argo.Type.String as String
 import qualified Argo.Type.Value as Value
 import qualified Data.Array
 import qualified Data.Text as Text
+import qualified Data.Text.Lazy as LazyText
 
 class FromValue a where
     fromValue :: Value.Value -> Maybe a
@@ -32,6 +33,9 @@ instance FromValue Integer where
 
 instance FromValue Text.Text where
     fromValue = withString "Text" pure
+
+instance FromValue LazyText.Text where
+    fromValue = fmap LazyText.fromStrict . fromValue
 
 instance FromValue a => FromValue (Data.Array.Array Int a) where
     fromValue = withArray "Array" $ traverse fromValue

@@ -9,6 +9,7 @@ import qualified Argo.Type.String as String
 import qualified Argo.Type.Value as Value
 import qualified Data.Array
 import qualified Data.Text as Text
+import qualified Data.Text.Lazy as LazyText
 
 class ToValue a where
     toValue :: a -> Value.Value
@@ -27,6 +28,9 @@ instance ToValue Integer where
 
 instance ToValue Text.Text where
     toValue = Value.String . String.String
+
+instance ToValue LazyText.Text where
+    toValue = toValue . LazyText.toStrict
 
 instance ToValue a => ToValue (Data.Array.Array Int a) where
     toValue = Value.Array . Array.Array . fmap toValue
