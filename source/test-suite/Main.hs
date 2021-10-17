@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes #-}
 
 import Test.Tasty.HUnit ((@?=))
 import Test.Tasty.QuickCheck ((===))
@@ -282,6 +283,20 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
             , Tasty.testCase "non-string key" $ do
                 decode "{1:2}" @?= Nothing
             ]
+        ]
+    , Tasty.testGroup "quasi quoter"
+        [ Tasty.testCase "Null" $ do
+            [Argo.value| null |] @?= Argo.Null
+        , Tasty.testCase "Boolean" $ do
+            [Argo.value| false |] @?= Argo.Boolean False
+        , Tasty.testCase "Number" $ do
+            [Argo.value| 0 |] @?= Argo.Number 0 0
+        , Tasty.testCase "String" $ do
+            [Argo.value| "" |] @?= Argo.String ""
+        , Tasty.testCase "Array" $ do
+            [Argo.value| [] |] @?= Argo.Array (array [])
+        , Tasty.testCase "Object" $ do
+            [Argo.value| {} |] @?= Argo.Object (array [])
         ]
     , Tasty.testGroup "property"
         [ Tasty.testProperty "round trip" . Tasty.forAll genValue $ \ x -> Tasty.shrinking shrinkValue x $ \ y ->
