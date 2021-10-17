@@ -4,6 +4,7 @@ module Argo.Class.FromValue where
 
 import Control.Monad ((<=<))
 
+import qualified Argo.Type as Type
 import qualified Argo.Type.Array as Array
 import qualified Argo.Type.Boolean as Boolean
 import qualified Argo.Type.Number as Number
@@ -20,9 +21,9 @@ import qualified Data.Text.Lazy as LazyText
 import qualified Data.Word as Word
 
 class FromValue a where
-    fromValue :: Value.Value -> Maybe a
+    fromValue :: Type.Value -> Maybe a
 
-instance FromValue Value.Value where
+instance FromValue Type.Value where
     fromValue = Just
 
 instance FromValue Bool where
@@ -143,27 +144,27 @@ instance FromValue a => FromValue [a] where
 instance FromValue a => FromValue (NonEmpty.NonEmpty a) where
     fromValue = NonEmpty.nonEmpty <=< fromValue
 
-withBoolean :: String -> (Bool -> Maybe a) -> Value.Value -> Maybe a
+withBoolean :: String -> (Bool -> Maybe a) -> Type.Value -> Maybe a
 withBoolean s f x = case x of
     Value.Boolean (Boolean.Boolean y) -> f y
     _ -> fail s
 
-withNumber :: String -> (Integer -> Integer -> Maybe a) -> Value.Value -> Maybe a
+withNumber :: String -> (Integer -> Integer -> Maybe a) -> Type.Value -> Maybe a
 withNumber s f x = case x of
     Value.Number (Number.Number y z) -> f y z
     _ -> fail s
 
-withString :: String -> (Text.Text -> Maybe a) -> Value.Value -> Maybe a
+withString :: String -> (Text.Text -> Maybe a) -> Type.Value -> Maybe a
 withString s f x = case x of
     Value.String (String.String y) -> f y
     _ -> fail s
 
-withArray :: String -> (Data.Array.Array Int Value.Value -> Maybe a) -> Value.Value -> Maybe a
+withArray :: String -> (Data.Array.Array Int Type.Value -> Maybe a) -> Type.Value -> Maybe a
 withArray s f x = case x of
     Value.Array (Array.Array y) -> f y
     _ -> fail s
 
-withObject :: String -> (Data.Array.Array Int (Pair.Pair String.String Value.Value) -> Maybe a) -> Value.Value -> Maybe a
+withObject :: String -> (Data.Array.Array Int (Pair.Pair String.String Type.Value) -> Maybe a) -> Type.Value -> Maybe a
 withObject s f x = case x of
     Value.Object (Object.Object y) -> f y
     _ -> fail s

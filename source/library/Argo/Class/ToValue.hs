@@ -2,6 +2,7 @@
 
 module Argo.Class.ToValue where
 
+import qualified Argo.Type as Type
 import qualified Argo.Type.Array as Array
 import qualified Argo.Type.Boolean as Boolean
 import qualified Argo.Type.Null as Null
@@ -16,9 +17,9 @@ import qualified Data.Text.Lazy as LazyText
 import qualified Data.Word as Word
 
 class ToValue a where
-    toValue :: a -> Value.Value
+    toValue :: a -> Type.Value
 
-instance ToValue Value.Value where
+instance ToValue Type.Value where
     toValue = id
 
 instance ToValue Bool where
