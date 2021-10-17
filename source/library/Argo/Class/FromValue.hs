@@ -2,6 +2,8 @@
 
 module Argo.Class.FromValue where
 
+import Control.Monad ((<=<))
+
 import qualified Argo.Type.Array as Array
 import qualified Argo.Type.Boolean as Boolean
 import qualified Argo.Type.Number as Number
@@ -10,6 +12,7 @@ import qualified Argo.Type.Pair as Pair
 import qualified Argo.Type.String as String
 import qualified Argo.Type.Value as Value
 import qualified Data.Array
+import qualified Data.Bits as Bits
 import qualified Data.Text as Text
 import qualified Data.Text.Lazy as LazyText
 
@@ -26,6 +29,13 @@ instance FromValue Char where
     fromValue = withString "Char" $ \ x -> case Text.uncons x of
         Just (y, z) | Text.null z -> pure y
         _ -> fail "not singleton"
+
+instance FromValue Int where
+    fromValue =
+        let
+            integerToInt :: Integer -> Maybe Int
+            integerToInt = Bits.toIntegralSized
+        in integerToInt <=< fromValue
 
 instance FromValue Integer where
     fromValue = withNumber "Integer" $ \ x y ->

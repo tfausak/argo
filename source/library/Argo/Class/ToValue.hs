@@ -23,6 +23,9 @@ instance ToValue Bool where
 instance ToValue Char where
     toValue = toValue . Text.singleton
 
+instance ToValue Int where
+    toValue = toValue . toInteger
+
 instance ToValue Integer where
     toValue = Value.Number . Number.normalize . flip Number.Number 0
 
