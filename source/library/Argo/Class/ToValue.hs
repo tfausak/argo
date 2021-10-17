@@ -79,6 +79,9 @@ instance ToValue LazyText.Text where
 instance ToValue a => ToValue (Maybe a) where
     toValue = maybe (Value.Null $ Null.Null ()) toValue
 
+instance ToValue () where
+    toValue = const $ toValue ([] :: [Type.Value])
+
 instance (ToValue a, ToValue b) => ToValue (a, b) where
     toValue (x, y) = toValue [toValue x, toValue y]
 

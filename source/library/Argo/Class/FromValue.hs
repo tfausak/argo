@@ -130,6 +130,11 @@ instance FromValue a => FromValue (Maybe a) where
         Value.Null _ -> pure Nothing
         _ -> Just <$> fromValue x
 
+instance FromValue () where
+    fromValue x = do
+        [] <- fromValue x :: Maybe [Type.Value]
+        pure ()
+
 instance (FromValue a, FromValue b) => FromValue (a, b) where
     fromValue x = do
         [y, z] <- fromValue x
