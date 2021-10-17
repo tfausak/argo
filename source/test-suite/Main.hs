@@ -289,6 +289,8 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
             Argo.fromValue Argo.Null @?= Just Argo.Null
         , Tasty.testCase "Bool" $ do
             Argo.fromValue (Argo.Boolean False) @?= Just False
+        , Tasty.testCase "Char" $ do
+            Argo.fromValue (Argo.String "a") @?= Just 'a'
         , Tasty.testCase "Integer" $ do
             Argo.fromValue (Argo.Number 0 0) @?= Just (0 :: Integer)
         , Tasty.testCase "Text" $ do
@@ -301,6 +303,8 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
             Argo.toValue Argo.Null @?= Argo.Null
         , Tasty.testCase "Bool" $ do
             Argo.toValue False @?= Argo.Boolean False
+        , Tasty.testCase "Char" $ do
+            Argo.toValue 'a' @?= Argo.String "a"
         , Tasty.testCase "Integer" $ do
             Argo.toValue (0 :: Integer) @?= Argo.Number 0 0
         , Tasty.testCase "Text" $ do

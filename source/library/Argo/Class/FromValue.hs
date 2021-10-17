@@ -21,6 +21,11 @@ instance FromValue Value.Value where
 instance FromValue Bool where
     fromValue = withBoolean "Bool" pure
 
+instance FromValue Char where
+    fromValue = withString "Char" $ \ x -> case Text.uncons x of
+        Just (y, z) | Text.null z -> pure y
+        _ -> fail "not singleton"
+
 instance FromValue Integer where
     fromValue = withNumber "Integer" $ \ x y ->
         if y < 0 then fail "fractional" else pure $ x * 10 ^ y
