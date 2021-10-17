@@ -31,9 +31,6 @@ instance FromValue Text.Text where
 instance FromValue a => FromValue (Data.Array.Array Int a) where
     fromValue = withArray "Array" $ traverse fromValue
 
-instance FromValue a => FromValue (Data.Array.Array Int (Pair.Pair String.String a)) where
-    fromValue = withObject "Object" $ traverse $ \ (Pair.Pair (k, v)) -> Pair.Pair . (,) k <$> fromValue v
-
 withBoolean :: String -> (Bool -> Maybe a) -> Value.Value -> Maybe a
 withBoolean s f x = case x of
     Value.Boolean (Boolean.Boolean y) -> f y
