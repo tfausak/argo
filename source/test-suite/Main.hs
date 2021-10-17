@@ -284,6 +284,18 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
                 decode "{1:2}" @?= Nothing
             ]
         ]
+    , Tasty.testGroup "fromValue"
+        [ Tasty.testCase "Value" $ do
+            Argo.fromValue Argo.Null @?= Just Argo.Null
+        , Tasty.testCase "Bool" $ do
+            Argo.fromValue (Argo.Boolean False) @?= Just False
+        , Tasty.testCase "Integer" $ do
+            Argo.fromValue (Argo.Number 0 0) @?= Just (0 :: Integer)
+        , Tasty.testCase "Text" $ do
+            Argo.fromValue (Argo.String "") @?= Just ("" :: Text.Text)
+        , Tasty.testCase "Array Int a" $ do
+            Argo.fromValue (Argo.Array (array [])) @?= Just (array [] :: Array.Array Int Bool)
+        ]
     , Tasty.testGroup "quasi quoter"
         [ Tasty.testCase "Null" $ do
             [Argo.value| null |] @?= Argo.Null
