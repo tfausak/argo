@@ -14,6 +14,7 @@ jobs:
       matrix:
         include:
           - { os: ubuntu-20.04, ghc: 9.0.1 }
+          - { os: ubuntu-20.04, ghc: 8.10.7 }
           - { os: macos-11, ghc: 9.0.1 }
           - { os: windows-2019, ghc: 9.0.1, ext: .exe }
     runs-on: ${{ matrix.os }}
