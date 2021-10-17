@@ -11,10 +11,12 @@ import qualified Argo.Type.String as String
 import qualified Argo.Type.Value as Value
 import qualified Data.Array
 import qualified Data.Int as Int
+import qualified Data.List as List
 import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Text as Text
 import qualified Data.Text.Lazy as LazyText
 import qualified Data.Word as Word
+import qualified Numeric
 
 class ToValue a where
     toValue :: a -> Type.Value
@@ -59,21 +61,13 @@ instance ToValue Word.Word64 where
     toValue = toValue . toInteger
 
 instance ToValue Integer where
-    toValue = Value.Number . Number.normalize . flip Number.Number 0
+    toValue = Value.Number . flip Number.number 0
 
 instance ToValue Float where
-    toValue x
-        | isNaN x = nullValue
-        | isInfinite x = nullValue
-        | otherwise = maybe nullValue Value.Number . Number.fromRational $ toRational x
-        where nullValue = Value.Null $ Null.Null ()
+    toValue = realFloatToValue
 
 instance ToValue Double where
-    toValue x
-        | isNaN x = nullValue
-        | isInfinite x = nullValue
-        | otherwise = maybe nullValue Value.Number . Number.fromRational $ toRational x
-        where nullValue = Value.Null $ Null.Null ()
+    toValue = realFloatToValue
 
 instance {-# OVERLAPPING #-} ToValue String where
     toValue = toValue . Text.pack
@@ -105,3 +99,15 @@ instance ToValue a => ToValue [a] where
 
 instance ToValue a => ToValue (NonEmpty.NonEmpty a) where
     toValue = toValue . NonEmpty.toList
+
+realFloatToValue :: RealFloat a => a -> Value.Value
+realFloatToValue x
+    | isNaN x = Value.Null $ Null.Null ()
+    | isInfinite x = Value.Null $ Null.Null ()
+    | otherwise = Value.Number . uncurry digitsToNumber $ Numeric.floatToDigits 10 x
+
+digitsToNumber :: [Int] -> Int -> Number.Number
+digitsToNumber ds e = uncurry Number.number $ List.foldl'
+    (\ (a, n) d -> (a * 10 + toInteger d, n - 1))
+    (0, toInteger e)
+    ds

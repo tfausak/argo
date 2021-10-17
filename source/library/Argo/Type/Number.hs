@@ -27,6 +27,9 @@ instance TH.Lift Number where
 instance DeepSeq.NFData Number where
     rnf (Number x y) = DeepSeq.deepseq x $ DeepSeq.rnf y
 
+number :: Integer -> Integer -> Number
+number x = normalize . Number x
+
 normalize :: Number -> Number
 normalize (Number x y) =
     if x == 0
@@ -63,7 +66,7 @@ decode = do
         e <- Decoder.takeWhile1 Decoder.isDigit
         pure (ne, e)
     Decoder.spaces
-    pure . normalize $ Number
+    pure $ number
         (negateIf ni $ (fromDigits i * 10 ^ ByteString.length f) + fromDigits f)
         (negateIf ne (fromDigits e) - intToInteger (ByteString.length f))
 
@@ -94,7 +97,7 @@ fromRational r =
         (f, d3) = factor 5 (0 :: Integer) d2
         p = max t f
     in if d3 == 1
-    then Just . normalize $ Number (n * 2 ^ (p - t) * 5 ^ (p - f)) (-p)
+    then Just $ number (n * 2 ^ (p - t) * 5 ^ (p - f)) (-p)
     else Nothing
 
 -- factor d 0 x = (p, y) <=> x = (d ^ p) * y
