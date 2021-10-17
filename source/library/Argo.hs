@@ -16,6 +16,7 @@ module Argo
     , Decode.decode
     , FromValue.FromValue(fromValue)
     , ToValue.ToValue(toValue)
+    , QuasiQuoter.value
     ) where
 
 import qualified Argo.Class.FromValue as FromValue
@@ -23,4 +24,5 @@ import qualified Argo.Class.ToValue as ToValue
 import qualified Argo.Decode as Decode
 import qualified Argo.Encode as Encode
 import qualified Argo.Pattern as Pattern
+import qualified Argo.QuasiQuoter as QuasiQuoter
 import qualified Argo.Type as Type
