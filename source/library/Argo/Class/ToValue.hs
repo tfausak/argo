@@ -72,6 +72,9 @@ instance ToValue LazyText.Text where
 instance ToValue a => ToValue (Maybe a) where
     toValue = maybe (Value.Null $ Null.Null ()) toValue
 
+instance (ToValue a, ToValue b) => ToValue (a, b) where
+    toValue (x, y) = toValue [toValue x, toValue y]
+
 instance ToValue a => ToValue (Data.Array.Array Int a) where
     toValue = Value.Array . Array.Array . fmap toValue
 

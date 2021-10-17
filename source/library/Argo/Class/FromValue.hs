@@ -121,6 +121,11 @@ instance FromValue a => FromValue (Maybe a) where
         Value.Null _ -> pure Nothing
         _ -> Just <$> fromValue x
 
+instance (FromValue a, FromValue b) => FromValue (a, b) where
+    fromValue x = do
+        [y, z] <- fromValue x
+        (,) <$> fromValue y <*> fromValue z
+
 instance FromValue a => FromValue (Data.Array.Array Int a) where
     fromValue = withArray "Array" $ traverse fromValue
 
