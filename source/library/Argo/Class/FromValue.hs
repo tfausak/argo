@@ -116,6 +116,11 @@ instance FromValue Text.Text where
 instance FromValue LazyText.Text where
     fromValue = fmap LazyText.fromStrict . fromValue
 
+instance FromValue a => FromValue (Maybe a) where
+    fromValue x = case x of
+        Value.Null _ -> pure Nothing
+        _ -> Just <$> fromValue x
+
 instance FromValue a => FromValue (Data.Array.Array Int a) where
     fromValue = withArray "Array" $ traverse fromValue
 

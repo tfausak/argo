@@ -323,6 +323,8 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
             Argo.fromValue (Argo.String "") @?= Just ("" :: Text.Text)
         , Tasty.testCase "LazyText" $ do
             Argo.fromValue (Argo.String "") @?= Just ("" :: LazyText.Text)
+        , Tasty.testCase "Maybe a" $ do
+            Argo.fromValue (Argo.Boolean False) @?= Just (Just False)
         , Tasty.testCase "Array Int a" $ do
             Argo.fromValue (Argo.Array $ array []) @?= Just (array [] :: Array.Array Int Bool)
         , Tasty.testCase "[a]" $ do
@@ -365,6 +367,8 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
             Argo.toValue ("" :: Text.Text) @?= Argo.String ""
         , Tasty.testCase "LazyText" $ do
             Argo.toValue ("" :: LazyText.Text) @?= Argo.String ""
+        , Tasty.testCase "Maybe a" $ do
+            Argo.toValue (Just False) @?= Argo.Boolean False
         , Tasty.testCase "Array Int a" $ do
             Argo.toValue (array [] :: Array.Array Int Bool) @?= Argo.Array (array [])
         , Tasty.testCase "[a]" $ do

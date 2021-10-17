@@ -4,6 +4,7 @@ module Argo.Class.ToValue where
 
 import qualified Argo.Type.Array as Array
 import qualified Argo.Type.Boolean as Boolean
+import qualified Argo.Type.Null as Null
 import qualified Argo.Type.Number as Number
 import qualified Argo.Type.String as String
 import qualified Argo.Type.Value as Value
@@ -67,6 +68,9 @@ instance ToValue Text.Text where
 
 instance ToValue LazyText.Text where
     toValue = toValue . LazyText.toStrict
+
+instance ToValue a => ToValue (Maybe a) where
+    toValue = maybe (Value.Null $ Null.Null ()) toValue
 
 instance ToValue a => ToValue (Data.Array.Array Int a) where
     toValue = Value.Array . Array.Array . fmap toValue
