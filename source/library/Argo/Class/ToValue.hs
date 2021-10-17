@@ -62,10 +62,18 @@ instance ToValue Integer where
     toValue = Value.Number . Number.normalize . flip Number.Number 0
 
 instance ToValue Float where
-    toValue = maybe (Value.Null $ Null.Null ()) Value.Number . Number.fromRational . toRational
+    toValue x
+        | isNaN x = nullValue
+        | isInfinite x = nullValue
+        | otherwise = maybe nullValue Value.Number . Number.fromRational $ toRational x
+        where nullValue = Value.Null $ Null.Null ()
 
 instance ToValue Double where
-    toValue = maybe (Value.Null $ Null.Null ()) Value.Number . Number.fromRational . toRational
+    toValue x
+        | isNaN x = nullValue
+        | isInfinite x = nullValue
+        | otherwise = maybe nullValue Value.Number . Number.fromRational $ toRational x
+        where nullValue = Value.Null $ Null.Null ()
 
 instance {-# OVERLAPPING #-} ToValue String where
     toValue = toValue . Text.pack
