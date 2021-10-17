@@ -317,6 +317,8 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
             Argo.fromValue (Argo.Number 0 0) @?= Just (0 :: Word.Word64)
         , Tasty.testCase "Integer" $ do
             Argo.fromValue (Argo.Number 0 0) @?= Just (0 :: Integer)
+        , Tasty.testCase "Double" $ do
+            Argo.fromValue (Argo.Number 0 0) @?= Just (0 :: Double)
         , Tasty.testCase "String" $ do
             Argo.fromValue (Argo.String "") @?= Just ("" :: String)
         , Tasty.testCase "Text" $ do
@@ -363,6 +365,8 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
             Argo.toValue (0 :: Word.Word64) @?= Argo.Number 0 0
         , Tasty.testCase "Integer" $ do
             Argo.toValue (0 :: Integer) @?= Argo.Number 0 0
+        , Tasty.testCase "Double" $ do
+            Argo.toValue (0 :: Double) @?= Argo.Number 0 0
         , Tasty.testCase "String" $ do
             Argo.toValue ("" :: String) @?= Argo.String ""
         , Tasty.testCase "Text" $ do

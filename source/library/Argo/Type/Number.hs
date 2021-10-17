@@ -2,6 +2,8 @@
 
 module Argo.Type.Number where
 
+import Data.Ratio ((%))
+
 import qualified Argo.Decoder as Decoder
 import qualified Argo.Literal as Literal
 import qualified Control.Applicative as Applicative
@@ -11,6 +13,7 @@ import qualified Data.Bool as Bool
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Builder as Builder
 import qualified Data.Maybe as Maybe
+import qualified Data.Ratio as Ratio
 import qualified Data.Word as Word
 import qualified Language.Haskell.TH.Syntax as TH
 
@@ -75,3 +78,29 @@ intToInteger = fromIntegral
 
 word8ToInteger :: Word.Word8 -> Integer
 word8ToInteger = fromIntegral
+
+toRational :: Number -> Rational
+toRational (Number x y) =
+    if y < 0
+    then x % (10 ^ (-y))
+    else fromInteger $ x * 10 ^ y
+
+fromRational :: Rational -> Maybe Number
+fromRational r =
+    let
+        n = Ratio.numerator r
+        d1 = Ratio.denominator r
+        (t, d2) = factor 2 (0 :: Integer) d1
+        (f, d3) = factor 5 (0 :: Integer) d2
+        p = max t f
+    in if d3 == 1
+    then Just . normalize $ Number (n * 2 ^ (p - t) * 5 ^ (p - f)) (-p)
+    else Nothing
+
+-- factor d 0 x = (p, y) <=> x = (d ^ p) * y
+factor :: (Num a, Integral b) => b -> a -> b -> (a, b)
+factor d n x =
+    let (q, r) = quotRem x d
+    in if x /= 0 && r == 0
+    then factor d (n + 1) q
+    else (n, x)
