@@ -1,3 +1,5 @@
+{-# LANGUAGE TemplateHaskellQuotes #-}
+
 module Argo.Type.String where
 
 import qualified Argo.Decoder as Decoder
@@ -11,10 +13,14 @@ import qualified Data.Char as Char
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Text
 import qualified Data.Word as Word
+import qualified Language.Haskell.TH.Syntax as TH
 
 newtype String
     = String Text.Text
     deriving (Eq, Show)
+
+instance TH.Lift Argo.Type.String.String where
+    liftTyped (String x) = [|| String x ||]
 
 instance DeepSeq.NFData Argo.Type.String.String where
     rnf (String x) = DeepSeq.rnf x

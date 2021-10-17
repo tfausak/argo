@@ -1,3 +1,5 @@
+{-# LANGUAGE TemplateHaskellQuotes #-}
+
 module Argo.Type.Boolean where
 
 import Control.Applicative ((<|>))
@@ -6,10 +8,14 @@ import qualified Argo.Decoder as Decoder
 import qualified Argo.Literal as Literal
 import qualified Control.DeepSeq as DeepSeq
 import qualified Data.ByteString.Builder as Builder
+import qualified Language.Haskell.TH.Syntax as TH
 
 newtype Boolean
     = Boolean Bool
     deriving (Eq, Show)
+
+instance TH.Lift Boolean where
+    liftTyped (Boolean x) = [|| Boolean x ||]
 
 instance DeepSeq.NFData Boolean where
     rnf (Boolean x) = DeepSeq.rnf x
