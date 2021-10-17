@@ -26,6 +26,9 @@ instance ToValue Char where
 instance ToValue Int where
     toValue = toValue . toInteger
 
+instance ToValue Word where
+    toValue = toValue . toInteger
+
 instance ToValue Integer where
     toValue = Value.Number . Number.normalize . flip Number.Number 0
 

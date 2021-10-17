@@ -37,6 +37,13 @@ instance FromValue Int where
             integerToInt = Bits.toIntegralSized
         in integerToInt <=< fromValue
 
+instance FromValue Word where
+    fromValue =
+        let
+            integerToWord :: Integer -> Maybe Word
+            integerToWord = Bits.toIntegralSized
+        in integerToWord <=< fromValue
+
 instance FromValue Integer where
     fromValue = withNumber "Integer" $ \ x y ->
         if y < 0 then fail "fractional" else pure $ x * 10 ^ y
