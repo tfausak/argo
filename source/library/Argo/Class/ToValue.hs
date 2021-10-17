@@ -61,6 +61,9 @@ instance ToValue Word.Word64 where
 instance ToValue Integer where
     toValue = Value.Number . Number.normalize . flip Number.Number 0
 
+instance ToValue Float where
+    toValue = maybe (Value.Null $ Null.Null ()) Value.Number . Number.fromRational . toRational
+
 instance ToValue Double where
     toValue = maybe (Value.Null $ Null.Null ()) Value.Number . Number.fromRational . toRational
 
