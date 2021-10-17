@@ -36,6 +36,13 @@ instance FromValue Text.Text where
 instance FromValue a => FromValue (Data.Array.Array Int a) where
     fromValue = withArray "Array" $ traverse fromValue
 
+instance FromValue a => FromValue [a] where
+    fromValue =
+        let
+            arrayToList :: Data.Array.Array Int b -> [b]
+            arrayToList = Data.Array.elems
+        in fmap arrayToList . fromValue
+
 withBoolean :: String -> (Bool -> Maybe a) -> Value.Value -> Maybe a
 withBoolean s f x = case x of
     Value.Boolean (Boolean.Boolean y) -> f y

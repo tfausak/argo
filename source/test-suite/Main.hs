@@ -296,7 +296,9 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
         , Tasty.testCase "Text" $ do
             Argo.fromValue (Argo.String "") @?= Just ("" :: Text.Text)
         , Tasty.testCase "Array Int a" $ do
-            Argo.fromValue (Argo.Array (array [])) @?= Just (array [] :: Array.Array Int Bool)
+            Argo.fromValue (Argo.Array $ array []) @?= Just (array [] :: Array.Array Int Bool)
+        , Tasty.testCase "[a]" $ do
+            Argo.fromValue (Argo.Array $ array []) @?= Just ([] :: [Bool])
         ]
     , Tasty.testGroup "toValue"
         [ Tasty.testCase "Value" $ do
@@ -311,6 +313,8 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
             Argo.toValue ("" :: Text.Text) @?= Argo.String ""
         , Tasty.testCase "Array Int a" $ do
             Argo.toValue (array [] :: Array.Array Int Bool) @?= Argo.Array (array [])
+        , Tasty.testCase "[a]" $ do
+            Argo.toValue ([] :: [Bool]) @?= Argo.Array (array [])
         ]
     , Tasty.testGroup "quasi quoter"
         [ Tasty.testCase "Null" $ do

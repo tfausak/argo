@@ -30,3 +30,10 @@ instance ToValue Text.Text where
 
 instance ToValue a => ToValue (Data.Array.Array Int a) where
     toValue = Value.Array . Array.Array . fmap toValue
+
+instance ToValue a => ToValue [a] where
+    toValue =
+        let
+            listToArray :: [b] -> Data.Array.Array Int b
+            listToArray xs = Data.Array.listArray (0, length xs - 1) xs
+        in toValue . listToArray
