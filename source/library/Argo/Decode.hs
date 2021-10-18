@@ -9,6 +9,7 @@ decode :: FromValue.FromValue a => ByteString.ByteString -> Maybe a
 decode = decodeWith FromValue.fromValue
 
 decodeWith :: (Value.Value -> Maybe a) -> ByteString.ByteString -> Maybe a
-decodeWith f x = do
-    (_, y) <- Decoder.run (Decoder.spaces *> Value.decode <* Decoder.eof) x
-    f y
+decodeWith f x =
+    case Decoder.run (Decoder.spaces *> Value.decode <* Decoder.eof) x of
+        Left _ -> Nothing
+        Right (_, y) -> f y

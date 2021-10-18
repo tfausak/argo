@@ -8,35 +8,35 @@ import qualified Data.ByteString as ByteString
 import qualified Data.Word as Word
 
 newtype Decoder a = Decoder
-    { run :: ByteString.ByteString -> Maybe (ByteString.ByteString, a)
+    { run :: ByteString.ByteString -> Either String (ByteString.ByteString, a)
     }
 
 instance Functor Decoder where
     fmap f d = Decoder $ \ b1 -> case run d b1 of
-        Nothing -> Nothing
-        Just (b2, x) -> Just (b2, f x)
+        Left e -> Left e
+        Right (b2, x) -> Right (b2, f x)
 
 instance Applicative Decoder where
-    pure x = Decoder $ \ b -> Just (b, x)
+    pure x = Decoder $ \ b -> Right (b, x)
     df <*> dx = Decoder $ \ b1 -> case run df b1 of
-        Nothing -> Nothing
-        Just (b2, f) -> case run dx b2 of
-            Nothing -> Nothing
-            Just (b3, x) -> Just (b3, f x)
+        Left e -> Left e
+        Right (b2, f) -> case run dx b2 of
+            Left e -> Left e
+            Right (b3, x) -> Right (b3, f x)
 
 instance Monad Decoder where
     d >>= f = Decoder $ \ b1 -> case run d b1 of
-        Nothing -> Nothing
-        Just (b2, x) -> run (f x) b2
+        Left e -> Left e
+        Right (b2, x) -> run (f x) b2
 
 instance MonadFail Decoder where
-    fail _ = Decoder $ const Nothing
+    fail = Decoder . const . Left
 
 instance Applicative.Alternative Decoder where
     empty = fail "empty"
     dx <|> dy = Decoder $ \ b1 -> case run dx b1 of
-        Nothing -> run dy b1
-        Just (b2, x) -> Just (b2, x)
+        Left _ -> run dy b1
+        Right (b2, x) -> Right (b2, x)
 
 array :: Decoder a -> Decoder (Array.Array Int a)
 array f = arrayWith f 0 []
@@ -70,7 +70,7 @@ eof = do
     Monad.unless (ByteString.null b) $ fail "eof"
 
 get :: Decoder ByteString.ByteString
-get = Decoder $ \ b -> Just (b, b)
+get = Decoder $ \ b -> Right (b, b)
 
 isDigit :: Word.Word8 -> Bool
 isDigit x = Literal.digitZero <= x && x <= Literal.digitNine
@@ -83,7 +83,7 @@ isSpace x =
     || x == Literal.carriageReturn
 
 put :: ByteString.ByteString -> Decoder ()
-put b = Decoder $ \ _ -> Just (b, ())
+put b = Decoder $ \ _ -> Right (b, ())
 
 satisfy :: (Word.Word8 -> Bool) -> Decoder Word.Word8
 satisfy f = do
