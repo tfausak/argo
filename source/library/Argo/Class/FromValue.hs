@@ -32,7 +32,7 @@ instance FromValue Bool where
 instance FromValue Char where
     fromValue = withString "Char" $ \ x -> case Text.uncons x of
         Just (y, z) | Text.null z -> pure y
-        _ -> fail "not singleton"
+        _ -> fail $ "expected single character but got " <> show x
 
 instance FromValue Int where
     fromValue = viaInteger
@@ -66,7 +66,9 @@ instance FromValue Word.Word64 where
 
 instance FromValue Integer where
     fromValue = withNumber "Integer" $ \ x y ->
-        if y < 0 then fail "fractional" else pure $ x * 10 ^ y
+        if y < 0
+        then fail $ "expected integer but got " <> show (Number.number x y)
+        else pure $ x * 10 ^ y
 
 instance FromValue Float where
     fromValue = withNumber "Float" $ \ x y ->
@@ -110,11 +112,11 @@ instance FromValue a => FromValue [a] where
             arrayToList = Data.Array.elems
         in fmap arrayToList . fromValue
 
-instance FromValue a => FromValue (NonEmpty.NonEmpty a) where
+instance (FromValue a, Show a) => FromValue (NonEmpty.NonEmpty a) where
     fromValue value = do
         list <- fromValue value
         case NonEmpty.nonEmpty list of
-            Nothing -> fail "empty list"
+            Nothing -> fail $ "expected non-empty list but got " <> show list
             Just nonEmpty -> pure nonEmpty
 
 instance FromValue a => FromValue (Map.Map Text.Text a) where
@@ -126,29 +128,31 @@ instance FromValue a => FromValue (Map.Map Text.Text a) where
 withBoolean :: String -> (Bool -> Result.Result a) -> Type.Value -> Result.Result a
 withBoolean s f x = case x of
     Value.Boolean (Boolean.Boolean y) -> f y
-    _ -> fail s
+    _ -> fail $ "expected " <> s <> " but got " <> show x
 
 withNumber :: String -> (Integer -> Integer -> Result.Result a) -> Type.Value -> Result.Result a
 withNumber s f x = case x of
     Value.Number (Number.Number y z) -> f y z
-    _ -> fail s
+    _ -> fail $ "expected " <> s <> " but got " <> show x
 
 withString :: String -> (Text.Text -> Result.Result a) -> Type.Value -> Result.Result a
 withString s f x = case x of
     Value.String (String.String y) -> f y
-    _ -> fail s
+    _ -> fail $ "expected " <> s <> " but got " <> show x
 
 withArray :: String -> (Data.Array.Array Int Type.Value -> Result.Result a) -> Type.Value -> Result.Result a
 withArray s f x = case x of
     Value.Array (Array.Array y) -> f y
-    _ -> fail s
+    _ -> fail $ "expected " <> s <> " but got " <> show x
 
 withObject :: String -> (Data.Array.Array Int (Pair.Pair String.String Type.Value) -> Result.Result a) -> Type.Value -> Result.Result a
 withObject s f x = case x of
     Value.Object (Object.Object y) -> f y
-    _ -> fail s
+    _ -> fail $ "expected " <> s <> " but got " <> show x
 
 viaInteger :: (Integral a, Bits.Bits a) => Type.Value -> Result.Result a
 viaInteger value = do
     integer <- fromValue value
-    maybe (fail "out of bounds") pure $ Bits.toIntegralSized (integer :: Integer)
+    case Bits.toIntegralSized (integer :: Integer) of
+        Nothing -> fail $ "integer out of bounds " <> show integer
+        Just x -> pure x
