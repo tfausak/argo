@@ -15,7 +15,7 @@ value = QQ.QuasiQuoter
     , QQ.quoteType = const $ fail "quoteType"
     }
 
-quoteExp :: (MonadFail m, TH.Quote m) => String -> m TH.Exp
+quoteExp :: String -> TH.Q TH.Exp
 quoteExp x = case Decode.decodeWith pure . Text.encodeUtf8 $ Text.pack x of
     Result.Failure e -> fail e
     Result.Success y -> TH.lift y
