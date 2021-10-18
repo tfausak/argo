@@ -2,8 +2,6 @@
 
 module Argo.Class.FromValue where
 
-import Control.Monad ((<=<))
-
 import qualified Argo.Result as Result
 import qualified Argo.Type as Type
 import qualified Argo.Type.Array as Array
@@ -37,74 +35,34 @@ instance FromValue Char where
         _ -> fail "not singleton"
 
 instance FromValue Int where
-    fromValue =
-        let
-            integerToInt :: Integer -> Maybe Int
-            integerToInt = Bits.toIntegralSized
-        in Result.fromMaybe . integerToInt <=< fromValue
+    fromValue = viaInteger
 
 instance FromValue Int.Int8 where
-    fromValue =
-        let
-            integerToInt8 :: Integer -> Maybe Int.Int8
-            integerToInt8 = Bits.toIntegralSized
-        in Result.fromMaybe . integerToInt8 <=< fromValue
+    fromValue = viaInteger
 
 instance FromValue Int.Int16 where
-    fromValue =
-        let
-            integerToInt16 :: Integer -> Maybe Int.Int16
-            integerToInt16 = Bits.toIntegralSized
-        in Result.fromMaybe . integerToInt16 <=< fromValue
+    fromValue = viaInteger
 
 instance FromValue Int.Int32 where
-    fromValue =
-        let
-            integerToInt32 :: Integer -> Maybe Int.Int32
-            integerToInt32 = Bits.toIntegralSized
-        in Result.fromMaybe . integerToInt32 <=< fromValue
+    fromValue = viaInteger
 
 instance FromValue Int.Int64 where
-    fromValue =
-        let
-            integerToInt64 :: Integer -> Maybe Int.Int64
-            integerToInt64 = Bits.toIntegralSized
-        in Result.fromMaybe . integerToInt64 <=< fromValue
+    fromValue = viaInteger
 
 instance FromValue Word where
-    fromValue =
-        let
-            integerToWord :: Integer -> Maybe Word
-            integerToWord = Bits.toIntegralSized
-        in Result.fromMaybe . integerToWord <=< fromValue
+    fromValue = viaInteger
 
 instance FromValue Word.Word8 where
-    fromValue =
-        let
-            integerToWord8 :: Integer -> Maybe Word.Word8
-            integerToWord8 = Bits.toIntegralSized
-        in Result.fromMaybe . integerToWord8 <=< fromValue
+    fromValue = viaInteger
 
 instance FromValue Word.Word16 where
-    fromValue =
-        let
-            integerToWord16 :: Integer -> Maybe Word.Word16
-            integerToWord16 = Bits.toIntegralSized
-        in Result.fromMaybe . integerToWord16 <=< fromValue
+    fromValue = viaInteger
 
 instance FromValue Word.Word32 where
-    fromValue =
-        let
-            integerToWord32 :: Integer -> Maybe Word.Word32
-            integerToWord32 = Bits.toIntegralSized
-        in Result.fromMaybe . integerToWord32 <=< fromValue
+    fromValue = viaInteger
 
 instance FromValue Word.Word64 where
-    fromValue =
-        let
-            integerToWord64 :: Integer -> Maybe Word.Word64
-            integerToWord64 = Bits.toIntegralSized
-        in Result.fromMaybe . integerToWord64 <=< fromValue
+    fromValue = viaInteger
 
 instance FromValue Integer where
     fromValue = withNumber "Integer" $ \ x y ->
@@ -153,7 +111,11 @@ instance FromValue a => FromValue [a] where
         in fmap arrayToList . fromValue
 
 instance FromValue a => FromValue (NonEmpty.NonEmpty a) where
-    fromValue = Result.fromMaybe . NonEmpty.nonEmpty <=< fromValue
+    fromValue value = do
+        list <- fromValue value
+        case NonEmpty.nonEmpty list of
+            Nothing -> fail "empty list"
+            Just nonEmpty -> pure nonEmpty
 
 instance FromValue a => FromValue (Map.Map Text.Text a) where
     fromValue = withObject "Map"
@@ -185,3 +147,8 @@ withObject :: String -> (Data.Array.Array Int (Pair.Pair String.String Type.Valu
 withObject s f x = case x of
     Value.Object (Object.Object y) -> f y
     _ -> fail s
+
+viaInteger :: (Integral a, Bits.Bits a) => Type.Value -> Result.Result a
+viaInteger value = do
+    integer <- fromValue value
+    maybe (fail "out of bounds") pure $ Bits.toIntegralSized (integer :: Integer)
