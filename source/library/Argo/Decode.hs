@@ -6,11 +6,11 @@ import qualified Argo.Result as Result
 import qualified Argo.Type.Value as Value
 import qualified Data.ByteString as ByteString
 
-decode :: FromValue.FromValue a => ByteString.ByteString -> Maybe a
+decode :: FromValue.FromValue a => ByteString.ByteString -> Result.Result a
 decode = decodeWith FromValue.fromValue
 
-decodeWith :: (Value.Value -> Maybe a) -> ByteString.ByteString -> Maybe a
+decodeWith :: (Value.Value -> Result.Result a) -> ByteString.ByteString -> Result.Result a
 decodeWith f x =
     case Decoder.run (Decoder.spaces *> Value.decode <* Decoder.eof) x of
-        Result.Failure _ -> Nothing
+        Result.Failure e -> Result.Failure e
         Result.Success (_, y) -> f y

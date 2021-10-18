@@ -45,7 +45,7 @@ main = Tasty.defaultMain
             , Tasty.bench "10000 elements" . Tasty.nf encode . Argo.Object . array . replicate 10000 $ Argo.Pair "" Argo.Null
             ]
         ]
-    , Tasty.bgroup "decode" $ let decode = Argo.decode :: ByteString.ByteString -> Maybe Argo.Value in
+    , Tasty.bgroup "decode" $ let decode = resultToMaybe . Argo.decode :: ByteString.ByteString -> Maybe Argo.Value in
         [ Tasty.bgroup "Null"
             [ Tasty.bench "null" $ Tasty.nf decode "null"
             ]
@@ -76,3 +76,8 @@ main = Tasty.defaultMain
 
 array :: [a] -> Data.Array.Array Int a
 array xs = Data.Array.listArray (0, length xs - 1) xs
+
+resultToMaybe :: Argo.Result a -> Maybe a
+resultToMaybe r = case r of
+    Argo.Failure _ -> Nothing
+    Argo.Success x -> Just x

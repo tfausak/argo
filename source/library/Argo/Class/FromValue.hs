@@ -4,6 +4,7 @@ module Argo.Class.FromValue where
 
 import Control.Monad ((<=<))
 
+import qualified Argo.Result as Result
 import qualified Argo.Type as Type
 import qualified Argo.Type.Array as Array
 import qualified Argo.Type.Boolean as Boolean
@@ -22,10 +23,10 @@ import qualified Data.Text.Lazy as LazyText
 import qualified Data.Word as Word
 
 class FromValue a where
-    fromValue :: Type.Value -> Maybe a
+    fromValue :: Type.Value -> Result.Result a
 
 instance FromValue Type.Value where
-    fromValue = Just
+    fromValue = Result.Success
 
 instance FromValue Bool where
     fromValue = withBoolean "Bool" pure
@@ -40,70 +41,70 @@ instance FromValue Int where
         let
             integerToInt :: Integer -> Maybe Int
             integerToInt = Bits.toIntegralSized
-        in integerToInt <=< fromValue
+        in Result.fromMaybe . integerToInt <=< fromValue
 
 instance FromValue Int.Int8 where
     fromValue =
         let
             integerToInt8 :: Integer -> Maybe Int.Int8
             integerToInt8 = Bits.toIntegralSized
-        in integerToInt8 <=< fromValue
+        in Result.fromMaybe . integerToInt8 <=< fromValue
 
 instance FromValue Int.Int16 where
     fromValue =
         let
             integerToInt16 :: Integer -> Maybe Int.Int16
             integerToInt16 = Bits.toIntegralSized
-        in integerToInt16 <=< fromValue
+        in Result.fromMaybe . integerToInt16 <=< fromValue
 
 instance FromValue Int.Int32 where
     fromValue =
         let
             integerToInt32 :: Integer -> Maybe Int.Int32
             integerToInt32 = Bits.toIntegralSized
-        in integerToInt32 <=< fromValue
+        in Result.fromMaybe . integerToInt32 <=< fromValue
 
 instance FromValue Int.Int64 where
     fromValue =
         let
             integerToInt64 :: Integer -> Maybe Int.Int64
             integerToInt64 = Bits.toIntegralSized
-        in integerToInt64 <=< fromValue
+        in Result.fromMaybe . integerToInt64 <=< fromValue
 
 instance FromValue Word where
     fromValue =
         let
             integerToWord :: Integer -> Maybe Word
             integerToWord = Bits.toIntegralSized
-        in integerToWord <=< fromValue
+        in Result.fromMaybe . integerToWord <=< fromValue
 
 instance FromValue Word.Word8 where
     fromValue =
         let
             integerToWord8 :: Integer -> Maybe Word.Word8
             integerToWord8 = Bits.toIntegralSized
-        in integerToWord8 <=< fromValue
+        in Result.fromMaybe . integerToWord8 <=< fromValue
 
 instance FromValue Word.Word16 where
     fromValue =
         let
             integerToWord16 :: Integer -> Maybe Word.Word16
             integerToWord16 = Bits.toIntegralSized
-        in integerToWord16 <=< fromValue
+        in Result.fromMaybe . integerToWord16 <=< fromValue
 
 instance FromValue Word.Word32 where
     fromValue =
         let
             integerToWord32 :: Integer -> Maybe Word.Word32
             integerToWord32 = Bits.toIntegralSized
-        in integerToWord32 <=< fromValue
+        in Result.fromMaybe . integerToWord32 <=< fromValue
 
 instance FromValue Word.Word64 where
     fromValue =
         let
             integerToWord64 :: Integer -> Maybe Word.Word64
             integerToWord64 = Bits.toIntegralSized
-        in integerToWord64 <=< fromValue
+        in Result.fromMaybe . integerToWord64 <=< fromValue
 
 instance FromValue Integer where
     fromValue = withNumber "Integer" $ \ x y ->
@@ -133,7 +134,7 @@ instance FromValue a => FromValue (Maybe a) where
 
 instance FromValue () where
     fromValue x = do
-        [] <- fromValue x :: Maybe [Type.Value]
+        [] <- fromValue x :: Result.Result [Type.Value]
         pure ()
 
 instance (FromValue a, FromValue b) => FromValue (a, b) where
@@ -152,7 +153,7 @@ instance FromValue a => FromValue [a] where
         in fmap arrayToList . fromValue
 
 instance FromValue a => FromValue (NonEmpty.NonEmpty a) where
-    fromValue = NonEmpty.nonEmpty <=< fromValue
+    fromValue = Result.fromMaybe . NonEmpty.nonEmpty <=< fromValue
 
 instance FromValue a => FromValue (Map.Map Text.Text a) where
     fromValue = withObject "Map"
@@ -160,27 +161,27 @@ instance FromValue a => FromValue (Map.Map Text.Text a) where
         . traverse (\ (Pair.Pair (String.String k, v)) -> (,) k <$> fromValue v)
         . Data.Array.elems
 
-withBoolean :: String -> (Bool -> Maybe a) -> Type.Value -> Maybe a
+withBoolean :: String -> (Bool -> Result.Result a) -> Type.Value -> Result.Result a
 withBoolean s f x = case x of
     Value.Boolean (Boolean.Boolean y) -> f y
     _ -> fail s
 
-withNumber :: String -> (Integer -> Integer -> Maybe a) -> Type.Value -> Maybe a
+withNumber :: String -> (Integer -> Integer -> Result.Result a) -> Type.Value -> Result.Result a
 withNumber s f x = case x of
     Value.Number (Number.Number y z) -> f y z
     _ -> fail s
 
-withString :: String -> (Text.Text -> Maybe a) -> Type.Value -> Maybe a
+withString :: String -> (Text.Text -> Result.Result a) -> Type.Value -> Result.Result a
 withString s f x = case x of
     Value.String (String.String y) -> f y
     _ -> fail s
 
-withArray :: String -> (Data.Array.Array Int Type.Value -> Maybe a) -> Type.Value -> Maybe a
+withArray :: String -> (Data.Array.Array Int Type.Value -> Result.Result a) -> Type.Value -> Result.Result a
 withArray s f x = case x of
     Value.Array (Array.Array y) -> f y
     _ -> fail s
 
-withObject :: String -> (Data.Array.Array Int (Pair.Pair String.String Type.Value) -> Maybe a) -> Type.Value -> Maybe a
+withObject :: String -> (Data.Array.Array Int (Pair.Pair String.String Type.Value) -> Result.Result a) -> Type.Value -> Result.Result a
 withObject s f x = case x of
     Value.Object (Object.Object y) -> f y
     _ -> fail s

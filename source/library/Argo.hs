@@ -17,6 +17,7 @@ module Argo
     , FromValue.FromValue(fromValue)
     , ToValue.ToValue(toValue)
     , QuasiQuoter.value
+    , Result.Result(Failure, Success)
     ) where
 
 import qualified Argo.Class.FromValue as FromValue
@@ -25,4 +26,5 @@ import qualified Argo.Decode as Decode
 import qualified Argo.Encode as Encode
 import qualified Argo.Pattern as Pattern
 import qualified Argo.QuasiQuoter as QuasiQuoter
+import qualified Argo.Result as Result
 import qualified Argo.Type as Type
