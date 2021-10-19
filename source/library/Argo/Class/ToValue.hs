@@ -2,7 +2,6 @@
 
 module Argo.Class.ToValue where
 
-import qualified Argo.Type as Type
 import qualified Argo.Type.Array as Array
 import qualified Argo.Type.Boolean as Boolean
 import qualified Argo.Type.Null as Null
@@ -22,9 +21,9 @@ import qualified Data.Word as Word
 import qualified Numeric
 
 class ToValue a where
-    toValue :: a -> Type.Value
+    toValue :: a -> Value.Value
 
-instance ToValue Type.Value where
+instance ToValue Value.Value where
     toValue = id
 
 instance ToValue Bool where
@@ -85,7 +84,7 @@ instance ToValue a => ToValue (Maybe a) where
     toValue = maybe (Value.Null $ Null.Null ()) toValue
 
 instance ToValue () where
-    toValue = const $ toValue ([] :: [Type.Value])
+    toValue = const $ toValue ([] :: [Value.Value])
 
 instance (ToValue a, ToValue b) => ToValue (a, b) where
     toValue (x, y) = toValue [toValue x, toValue y]

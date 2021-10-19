@@ -3,7 +3,6 @@
 module Argo.Class.FromValue where
 
 import qualified Argo.Result as Result
-import qualified Argo.Type as Type
 import qualified Argo.Type.Array as Array
 import qualified Argo.Type.Boolean as Boolean
 import qualified Argo.Type.Number as Number
@@ -21,9 +20,9 @@ import qualified Data.Text.Lazy as LazyText
 import qualified Data.Word as Word
 
 class FromValue a where
-    fromValue :: Type.Value -> Result.Result a
+    fromValue :: Value.Value -> Result.Result a
 
-instance FromValue Type.Value where
+instance FromValue Value.Value where
     fromValue = Result.Success
 
 instance FromValue Bool where
@@ -94,7 +93,7 @@ instance FromValue a => FromValue (Maybe a) where
 
 instance FromValue () where
     fromValue x = do
-        [] <- fromValue x :: Result.Result [Type.Value]
+        [] <- fromValue x :: Result.Result [Value.Value]
         pure ()
 
 instance (FromValue a, FromValue b) => FromValue (a, b) where
@@ -125,32 +124,32 @@ instance FromValue a => FromValue (Map.Map Text.Text a) where
         . traverse (\ (Pair.Pair (String.String k, v)) -> (,) k <$> fromValue v)
         . Data.Array.elems
 
-withBoolean :: String -> (Bool -> Result.Result a) -> Type.Value -> Result.Result a
+withBoolean :: String -> (Bool -> Result.Result a) -> Value.Value -> Result.Result a
 withBoolean s f x = case x of
     Value.Boolean (Boolean.Boolean y) -> f y
     _ -> fail $ "expected " <> s <> " but got " <> show x
 
-withNumber :: String -> (Integer -> Integer -> Result.Result a) -> Type.Value -> Result.Result a
+withNumber :: String -> (Integer -> Integer -> Result.Result a) -> Value.Value -> Result.Result a
 withNumber s f x = case x of
     Value.Number (Number.Number y z) -> f y z
     _ -> fail $ "expected " <> s <> " but got " <> show x
 
-withString :: String -> (Text.Text -> Result.Result a) -> Type.Value -> Result.Result a
+withString :: String -> (Text.Text -> Result.Result a) -> Value.Value -> Result.Result a
 withString s f x = case x of
     Value.String (String.String y) -> f y
     _ -> fail $ "expected " <> s <> " but got " <> show x
 
-withArray :: String -> (Data.Array.Array Int Type.Value -> Result.Result a) -> Type.Value -> Result.Result a
+withArray :: String -> (Data.Array.Array Int Value.Value -> Result.Result a) -> Value.Value -> Result.Result a
 withArray s f x = case x of
     Value.Array (Array.Array y) -> f y
     _ -> fail $ "expected " <> s <> " but got " <> show x
 
-withObject :: String -> (Data.Array.Array Int (Pair.Pair String.String Type.Value) -> Result.Result a) -> Type.Value -> Result.Result a
+withObject :: String -> (Data.Array.Array Int (Pair.Pair String.String Value.Value) -> Result.Result a) -> Value.Value -> Result.Result a
 withObject s f x = case x of
     Value.Object (Object.Object y) -> f y
     _ -> fail $ "expected " <> s <> " but got " <> show x
 
-viaInteger :: (Integral a, Bits.Bits a) => Type.Value -> Result.Result a
+viaInteger :: (Integral a, Bits.Bits a) => Value.Value -> Result.Result a
 viaInteger value = do
     integer <- fromValue value
     case Bits.toIntegralSized (integer :: Integer) of
