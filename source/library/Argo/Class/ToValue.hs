@@ -113,7 +113,16 @@ realFloatToValue :: RealFloat a => a -> Value.Value
 realFloatToValue x
     | isNaN x = Value.Null $ Null.Null ()
     | isInfinite x = Value.Null $ Null.Null ()
-    | otherwise = Value.Number . uncurry digitsToNumber $ Numeric.floatToDigits 10 x
+    | otherwise =
+        let isNegative = x < 0
+        in Value.Number
+        . (if isNegative then negateNumber else id)
+        . uncurry digitsToNumber
+        . Numeric.floatToDigits 10
+        $ abs x
+
+negateNumber :: Number.Number -> Number.Number
+negateNumber (Number.Number x y) = Number.Number (-x) y
 
 digitsToNumber :: [Int] -> Int -> Number.Number
 digitsToNumber ds e = uncurry Number.number $ List.foldl'
