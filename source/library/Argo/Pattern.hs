@@ -13,28 +13,28 @@ import qualified Argo.Type.String as String
 import qualified Argo.Type.Value as Value
 import qualified Data.Text as Text
 
-pattern Null :: Type.Value
+pattern Null :: Value.Value
 pattern Null = Value.Null (Null.Null ())
 
-pattern Boolean :: Bool -> Type.Value
+pattern Boolean :: Bool -> Value.Value
 pattern Boolean x = Value.Boolean (Boolean.Boolean x)
 
-pattern Number :: Integer -> Integer -> Type.Value
+pattern Number :: Integer -> Integer -> Value.Value
 pattern Number x y <- Value.Number (Number.Number x y) where
     Number x y = Value.Number $ Number.number x y
 
-pattern String :: Text.Text -> Type.Value
+pattern String :: Text.Text -> Value.Value
 pattern String x = Value.String (String.String x)
 
-pattern Array :: Type.Array -> Type.Value
+pattern Array :: Type.Array -> Value.Value
 pattern Array x = Value.Array (Array.Array x)
 
-pattern Object :: Type.Object -> Type.Value
+pattern Object :: Type.Object -> Value.Value
 pattern Object x = Value.Object (Object.Object x)
 
 {-# COMPLETE Null, Boolean, Number, String, Array, Object #-}
 
-pattern Pair :: Text.Text -> Type.Value -> Type.Pair
+pattern Pair :: Text.Text -> Value.Value -> Pair.Pair String.String Value.Value
 pattern Pair k v = Pair.Pair (String.String k, v)
 
 {-# COMPLETE Pair #-}

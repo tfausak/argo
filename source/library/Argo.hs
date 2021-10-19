@@ -1,17 +1,17 @@
 {-# LANGUAGE PatternSynonyms #-}
 
 module Argo
-    ( Type.Value
+    ( Value.Value
+        ( Pattern.Null
+        , Pattern.Boolean
+        , Pattern.Number
+        , Pattern.String
+        , Pattern.Array
+        , Pattern.Object
+        )
     , Type.Array
-    , Type.Pair
+    , Pair.Pair(Pattern.Pair)
     , Type.Object
-    , pattern Pattern.Null
-    , pattern Pattern.Boolean
-    , pattern Pattern.Number
-    , pattern Pattern.String
-    , pattern Pattern.Array
-    , pattern Pattern.Object
-    , pattern Pattern.Pair
     , Encode.encode
     , Decode.decode
     , FromValue.FromValue(fromValue)
@@ -28,3 +28,5 @@ import qualified Argo.Pattern as Pattern
 import qualified Argo.QuasiQuoter as QuasiQuoter
 import qualified Argo.Result as Result
 import qualified Argo.Type as Type
+import qualified Argo.Type.Pair as Pair
+import qualified Argo.Type.Value as Value
