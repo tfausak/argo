@@ -67,6 +67,7 @@ library
         Argo.Literal
         Argo.Pattern
         Argo.QuasiQuoter
+        Argo.Result
         Argo.Type
         Argo.Type.Array
         Argo.Type.Boolean
