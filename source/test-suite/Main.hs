@@ -430,8 +430,10 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
                 (resultToMaybe . Argo.fromValue $ Argo.toValue x) === Just (x :: Argo.Value)
             , property "Bool" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: Bool)
-            -- , property "Char" $ \ x ->
-            --     Argo.fromValue (Argo.toValue x) === Argo.Success (x :: Char)
+            , property "Char" $ \ x ->
+                Argo.fromValue (Argo.toValue x) === if '\xd800' <= x && x <= '\xdfff'
+                    then Argo.Success '\xfffd'
+                    else Argo.Success x
             , property "Int" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: Int)
             , property "Int8" $ \ x ->
