@@ -73,6 +73,7 @@ library
         Argo.Type.Array
         Argo.Type.Boolean
         Argo.Type.Member
+        Argo.Type.Name
         Argo.Type.Null
         Argo.Type.Number
         Argo.Type.Object
