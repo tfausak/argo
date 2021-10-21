@@ -464,8 +464,8 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
                 Argo.fromValue (Argo.toValue x) === if isNaN x || isInfinite x
                     then Argo.Failure "expected Double but got Null (Null ())"
                     else Argo.Success (x :: Double)
-            -- , property "String" $ \ x ->
-            --     Argo.fromValue (Argo.toValue x) === Argo.Success (x :: String)
+            , property "String" $ \ x ->
+                Argo.fromValue (Argo.toValue x) === Argo.Success (Text.unpack $ Text.pack x)
             , property "Text" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: Text.Text)
             , property "LazyText" $ \ x ->
