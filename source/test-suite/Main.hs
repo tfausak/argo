@@ -419,64 +419,82 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
             [Argo.value| {} |] @?= Argo.Object (array [])
         ]
     , Tasty.testGroup "property"
-        [ Tasty.testProperty "decode . encode" . Tasty.forAll genValue $ \ x -> Tasty.shrinking shrinkValue x $ \ y ->
-            (resultToMaybe . Argo.decode . LazyByteString.toStrict . Builder.toLazyByteString $ Argo.encode y) === Just y
+        [ propertyWith "decode . encode" genValue shrinkValue $ \ x ->
+            (resultToMaybe . Argo.decode . LazyByteString.toStrict . Builder.toLazyByteString $ Argo.encode x) === Just x
         , Tasty.testGroup "fromValue . toValue"
-            [ Tasty.testProperty "Value" . Tasty.forAll genValue $ \ x -> Tasty.shrinking shrinkValue x $ \ y ->
-                (resultToMaybe . Argo.fromValue $ Argo.toValue y) === Just y
-            , Tasty.testProperty "Bool" $ \ x ->
+            [ propertyWith "Value" genValue shrinkValue $ \ x ->
+                (resultToMaybe . Argo.fromValue $ Argo.toValue x) === Just x
+            , property "Bool" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: Bool)
-            , Tasty.testProperty "Char" $ \ x ->
+            , property "Char" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: Char)
-            , Tasty.testProperty "Int" $ \ x ->
+            , property "Int" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: Int)
-            , Tasty.testProperty "Int8" $ \ x ->
+            , property "Int8" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: Int.Int8)
-            , Tasty.testProperty "Int16" $ \ x ->
+            , property "Int16" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: Int.Int16)
-            , Tasty.testProperty "Int32" $ \ x ->
+            , property "Int32" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: Int.Int32)
-            , Tasty.testProperty "Int64" $ \ x ->
+            , property "Int64" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: Int.Int64)
-            , Tasty.testProperty "Word" $ \ x ->
+            , property "Word" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: Word)
-            , Tasty.testProperty "Word8" $ \ x ->
+            , property "Word8" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: Word.Word8)
-            , Tasty.testProperty "Word16" $ \ x ->
+            , property "Word16" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: Word.Word16)
-            , Tasty.testProperty "Word32" $ \ x ->
+            , property "Word32" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: Word.Word32)
-            , Tasty.testProperty "Word64" $ \ x ->
+            , property "Word64" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: Word.Word64)
-            , Tasty.testProperty "Integer" $ \ x ->
+            , property "Integer" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: Integer)
-            , Tasty.testProperty "Float" $ \ x ->
+            , property "Float" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: Float)
-            , Tasty.testProperty "Double" $ \ x ->
+            , property "Double" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: Double)
-            , Tasty.testProperty "String" $ \ x ->
+            , property "String" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: String)
-            , Tasty.testProperty "Text" $ \ x ->
+            , property "Text" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: Text.Text)
-            , Tasty.testProperty "LazyText" $ \ x ->
+            , property "LazyText" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: LazyText.Text)
-            , Tasty.testProperty "Maybe a" $ \ x ->
+            , property "Maybe a" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: Maybe Bool)
-            , Tasty.testProperty "()" $ \ x ->
+            , property "()" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: ())
-            , Tasty.testProperty "(a, b)" $ \ x ->
+            , property "(a, b)" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: (Bool, Int.Int8))
-            , Tasty.testProperty "Array Int a" $ \ x ->
+            , property "Array Int a" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: Array.Array Int Bool)
-            , Tasty.testProperty "[a]" $ \ x ->
+            , property "[a]" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: [Bool])
-            , Tasty.testProperty "NonEmpty a" $ \ x ->
+            , property "NonEmpty a" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: NonEmpty Bool)
-            , Tasty.testProperty "Map Text a" $ \ x ->
+            , property "Map Text a" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: Map.Map Text.Text Bool)
             ]
         ]
     ]
+
+property
+    :: (Show t, Tasty.Testable prop, Tasty.Arbitrary t)
+    => Tasty.TestName
+    -> (t -> prop)
+    -> Tasty.TestTree
+property n = propertyWith n Tasty.arbitrary Tasty.shrink
+
+propertyWith
+    :: (Show t, Tasty.Testable prop)
+    => Tasty.TestName
+    -> Tasty.Gen t
+    -> (t -> [t])
+    -> (t -> prop)
+    -> Tasty.TestTree
+propertyWith n g s f = Tasty.testProperty n
+    . Tasty.forAll g
+    $ \ x -> Tasty.shrinking s x f
 
 array :: [a] -> Array.Array Int a
 array xs = Array.listArray (0, length xs - 1) xs
