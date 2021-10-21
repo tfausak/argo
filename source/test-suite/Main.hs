@@ -504,14 +504,20 @@ array :: [a] -> Array.Array Int a
 array xs = Array.listArray (0, length xs - 1) xs
 
 instance GenValidity.Validity (Argo.Pair String.String Argo.Value) where
-    validate = GenValidity.trivialValidation
+    validate (Argo.Pair k v) = GenValidity.validate (k, v)
 
 instance GenValidity.GenValid (Argo.Pair String.String Argo.Value) where
     genValid = Argo.Pair <$> GenValidity.genValid <*> GenValidity.genValid
     shrinkValid (Argo.Pair k v) = uncurry Argo.Pair <$> GenValidity.shrinkValid (k, v)
 
 instance GenValidity.Validity Argo.Value where
-    validate = GenValidity.trivialValidation
+    validate x = case x of
+        Argo.Null -> GenValidity.valid
+        Argo.Boolean y -> GenValidity.annotate y "Boolean"
+        Argo.Number y z -> GenValidity.validate (y, z)
+        Argo.String y -> GenValidity.annotate y "String"
+        Argo.Array y -> GenValidity.annotate y "Array"
+        Argo.Object y -> GenValidity.annotate y "Object"
 
 instance GenValidity.GenValid Argo.Value where
     genValid = Tasty.sized genValueSized
