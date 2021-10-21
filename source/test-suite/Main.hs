@@ -520,7 +520,7 @@ instance GenValidity.Validity Argo.Value where
     validate x = case x of
         Argo.Null -> GenValidity.valid
         Argo.Boolean y -> GenValidity.annotate y "Boolean"
-        Argo.Number y z -> GenValidity.validate (y, z)
+        Argo.Number y z -> GenValidity.annotate (y, z) "Number"
         Argo.String y -> GenValidity.annotate y "String"
         Argo.Array y -> GenValidity.annotate y "Array"
         Argo.Object y -> GenValidity.annotate y "Object"
