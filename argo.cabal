@@ -90,6 +90,9 @@ test-suite argo-test-suite
     import: executable
 
     build-depends:
+        , genvalidity >= 0.11.0 && < 0.12
+        , genvalidity-containers >= 0.9.0 && < 0.10
+        , genvalidity-text >= 0.7.0 && < 0.8
         , tasty >= 1.4.2 && < 1.5
         , tasty-hunit >= 0.10.0 && < 0.11
         , tasty-quickcheck >= 0.10.1 && < 0.11

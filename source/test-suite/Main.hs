@@ -4,15 +4,19 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 
+import Data.GenValidity.Map ()
+import Data.GenValidity.Text ()
 import Data.List.NonEmpty (NonEmpty((:|)))
 import Test.Tasty.HUnit ((@?=))
 import Test.Tasty.QuickCheck ((===))
 
 import qualified Argo
+import qualified Argo.Type.String as String
 import qualified Data.Array as Array
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Builder as Builder
 import qualified Data.ByteString.Lazy as LazyByteString
+import qualified Data.GenValidity as GenValidity
 import qualified Data.Int as Int
 import qualified Data.Map as Map
 import qualified Data.Text as Text
@@ -419,115 +423,139 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
             [Argo.value| {} |] @?= Argo.Object (array [])
         ]
     , Tasty.testGroup "property"
-        [ Tasty.testProperty "decode . encode" . Tasty.forAll genValue $ \ x -> Tasty.shrinking shrinkValue x $ \ y ->
-            (resultToMaybe . Argo.decode . LazyByteString.toStrict . Builder.toLazyByteString $ Argo.encode y) === Just y
+        [ property "decode . encode" $ \ x ->
+            (resultToMaybe . Argo.decode . LazyByteString.toStrict . Builder.toLazyByteString $ Argo.encode x) === Just (x :: Argo.Value)
         , Tasty.testGroup "fromValue . toValue"
-            [ Tasty.testProperty "Value" . Tasty.forAll genValue $ \ x -> Tasty.shrinking shrinkValue x $ \ y ->
-                (resultToMaybe . Argo.fromValue $ Argo.toValue y) === Just y
-            , Tasty.testProperty "Bool" $ \ x ->
+            [ property "Value" $ \ x ->
+                (resultToMaybe . Argo.fromValue $ Argo.toValue x) === Just (x :: Argo.Value)
+            , property "Bool" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: Bool)
-            , Tasty.testProperty "Char" $ \ x ->
-                Argo.fromValue (Argo.toValue x) === Argo.Success (x :: Char)
-            , Tasty.testProperty "Int" $ \ x ->
+            , property "Char" $ \ x ->
+                Argo.fromValue (Argo.toValue x) === if '\xd800' <= x && x <= '\xdfff'
+                    then Argo.Success '\xfffd'
+                    else Argo.Success x
+            , property "Int" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: Int)
-            , Tasty.testProperty "Int8" $ \ x ->
+            , property "Int8" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: Int.Int8)
-            , Tasty.testProperty "Int16" $ \ x ->
+            , property "Int16" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: Int.Int16)
-            , Tasty.testProperty "Int32" $ \ x ->
+            , property "Int32" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: Int.Int32)
-            , Tasty.testProperty "Int64" $ \ x ->
+            , property "Int64" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: Int.Int64)
-            , Tasty.testProperty "Word" $ \ x ->
+            , property "Word" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: Word)
-            , Tasty.testProperty "Word8" $ \ x ->
+            , property "Word8" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: Word.Word8)
-            , Tasty.testProperty "Word16" $ \ x ->
+            , property "Word16" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: Word.Word16)
-            , Tasty.testProperty "Word32" $ \ x ->
+            , property "Word32" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: Word.Word32)
-            , Tasty.testProperty "Word64" $ \ x ->
+            , property "Word64" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: Word.Word64)
-            , Tasty.testProperty "Integer" $ \ x ->
+            , property "Integer" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: Integer)
-            , Tasty.testProperty "Float" $ \ x ->
-                Argo.fromValue (Argo.toValue x) === Argo.Success (x :: Float)
-            , Tasty.testProperty "Double" $ \ x ->
-                Argo.fromValue (Argo.toValue x) === Argo.Success (x :: Double)
-            , Tasty.testProperty "String" $ \ x ->
-                Argo.fromValue (Argo.toValue x) === Argo.Success (x :: String)
-            , Tasty.testProperty "Text" $ \ x ->
+            , property "Float" $ \ x ->
+                Argo.fromValue (Argo.toValue x) === if isNaN x || isInfinite x
+                    then Argo.Failure "expected Float but got Null (Null ())"
+                    else Argo.Success (x :: Float)
+            , property "Double" $ \ x ->
+                Argo.fromValue (Argo.toValue x) === if isNaN x || isInfinite x
+                    then Argo.Failure "expected Double but got Null (Null ())"
+                    else Argo.Success (x :: Double)
+            , property "String" $ \ x ->
+                Argo.fromValue (Argo.toValue x) === Argo.Success (Text.unpack $ Text.pack x)
+            , property "Text" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: Text.Text)
-            , Tasty.testProperty "LazyText" $ \ x ->
+            , property "LazyText" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: LazyText.Text)
-            , Tasty.testProperty "Maybe a" $ \ x ->
+            , property "Maybe a" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: Maybe Bool)
-            , Tasty.testProperty "()" $ \ x ->
+            , property "()" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: ())
-            , Tasty.testProperty "(a, b)" $ \ x ->
+            , property "(a, b)" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: (Bool, Int.Int8))
-            , Tasty.testProperty "Array Int a" $ \ x ->
+            , property "Array Int a" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: Array.Array Int Bool)
-            , Tasty.testProperty "[a]" $ \ x ->
+            , property "[a]" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: [Bool])
-            , Tasty.testProperty "NonEmpty a" $ \ x ->
+            , property "NonEmpty a" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: NonEmpty Bool)
-            , Tasty.testProperty "Map Text a" $ \ x ->
+            , property "Map Text a" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: Map.Map Text.Text Bool)
             ]
         ]
     ]
 
+property
+    :: (Show t, Tasty.Testable prop, GenValidity.GenValid t)
+    => Tasty.TestName
+    -> (t -> prop)
+    -> Tasty.TestTree
+property n = propertyWith n GenValidity.genValid GenValidity.shrinkValid
+
+propertyWith
+    :: (Show t, Tasty.Testable prop)
+    => Tasty.TestName
+    -> Tasty.Gen t
+    -> (t -> [t])
+    -> (t -> prop)
+    -> Tasty.TestTree
+propertyWith n g s f = Tasty.testProperty n
+    . Tasty.forAll g
+    $ \ x -> Tasty.shrinking s x f
+
 array :: [a] -> Array.Array Int a
 array xs = Array.listArray (0, length xs - 1) xs
 
-genValue :: Tasty.Gen Argo.Value
-genValue = Tasty.sized genValueSized
+instance GenValidity.Validity (Argo.Pair String.String Argo.Value) where
+    validate (Argo.Pair k v) = GenValidity.validate (k, v)
+
+instance GenValidity.GenValid (Argo.Pair String.String Argo.Value) where
+    genValid = Argo.Pair <$> GenValidity.genValid <*> GenValidity.genValid
+    shrinkValid (Argo.Pair k v) = uncurry Argo.Pair <$> GenValidity.shrinkValid (k, v)
+
+instance GenValidity.Validity Argo.Value where
+    validate x = case x of
+        Argo.Null -> GenValidity.valid
+        Argo.Boolean y -> GenValidity.annotate y "Boolean"
+        Argo.Number y z -> GenValidity.annotate (y, z) "Number"
+        Argo.String y -> GenValidity.annotate y "String"
+        Argo.Array y -> GenValidity.annotate y "Array"
+        Argo.Object y -> GenValidity.annotate y "Object"
+
+instance GenValidity.GenValid Argo.Value where
+    genValid = Tasty.sized genValueSized
+    shrinkValid x = case x of
+        Argo.Null -> []
+        Argo.Boolean y -> Argo.Boolean <$> GenValidity.shrinkValid y
+        Argo.Number y z -> uncurry Argo.Number <$> GenValidity.shrinkValid (y, z)
+        Argo.String y -> Argo.String <$> GenValidity.shrinkValid y
+        Argo.Array y -> Argo.Array <$> GenValidity.shrinkValid y
+        Argo.Object y -> Argo.Object <$> GenValidity.shrinkValid y
 
 genValueSized :: Int -> Tasty.Gen Argo.Value
 genValueSized size = let newSize = div size 3 in Tasty.oneof
     [ pure Argo.Null
-    , Argo.Boolean <$> Tasty.arbitrary
-    , Argo.Number <$> Tasty.arbitrary <*> Tasty.arbitrary
-    , Argo.String <$> Tasty.arbitrary
+    , Argo.Boolean <$> GenValidity.genValid
+    , Argo.Number <$> GenValidity.genValid <*> GenValidity.genValid
+    , Argo.String <$> GenValidity.genValid
     , Argo.Array <$> genArray size (genValueSized newSize)
-    , Argo.Object <$> genArray size (Argo.Pair <$> Tasty.arbitrary <*> genValueSized newSize)
+    , Argo.Object <$> genArray size (Argo.Pair <$> GenValidity.genValid <*> genValueSized newSize)
     ]
 
 genArray :: Int -> Tasty.Gen a -> Tasty.Gen (Array.Array Int a)
 genArray n = fmap (Array.listArray (0, n - 1)) . Tasty.vectorOf n
-
-type Shrink a = a -> [a]
-
-shrinkValue :: Shrink Argo.Value
-shrinkValue x = case x of
-    Argo.Null -> []
-    Argo.Boolean y -> Argo.Boolean <$> Tasty.shrink y
-    Argo.Number y z -> uncurry Argo.Number <$> Tasty.shrink (y, z)
-    Argo.String y -> Argo.String <$> Tasty.shrink y
-    Argo.Array y -> Argo.Array <$> shrinkArray shrinkValue y
-    Argo.Object y -> Argo.Object <$> shrinkArray (\ (Argo.Pair k v) -> Argo.Pair <$> Tasty.shrink k <*> shrinkValue v) y
-
-shrinkArray :: Shrink a -> Shrink (Array.Array Int a)
-shrinkArray = Tasty.shrinkMapBy array Array.elems . Tasty.shrinkList
 
 resultToMaybe :: Argo.Result a -> Maybe a
 resultToMaybe r = case r of
     Argo.Failure _ -> Nothing
     Argo.Success x -> Just x
 
-instance Tasty.Arbitrary Text.Text where
-    arbitrary = Text.pack <$> Tasty.arbitrary
-    shrink = Tasty.shrinkMap Text.pack Text.unpack
+instance GenValidity.Validity a => GenValidity.Validity (Array.Array Int a) where
+    validate = GenValidity.validate . Array.elems
 
-instance Tasty.Arbitrary LazyText.Text where
-    arbitrary = LazyText.pack <$> Tasty.arbitrary
-    shrink = Tasty.shrinkMap LazyText.pack LazyText.unpack
-
-instance Tasty.Arbitrary a => Tasty.Arbitrary (NonEmpty a) where
-    arbitrary = (:|) <$> Tasty.arbitrary <*> Tasty.arbitrary
-    shrink (x :| xs) = uncurry (:|) <$> Tasty.shrink (x, xs)
-
-instance Tasty.Arbitrary a => Tasty.Arbitrary (Array.Array Int a) where
-    arbitrary = array <$> Tasty.arbitrary
-    shrink = Tasty.shrinkMap array Array.elems
+instance GenValidity.GenValid a => GenValidity.GenValid (Array.Array Int a) where
+    genValid = array <$> GenValidity.genValid
+    shrinkValid = Tasty.shrinkMapBy array Array.elems GenValidity.shrinkValid
