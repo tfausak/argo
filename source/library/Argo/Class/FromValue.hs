@@ -121,7 +121,7 @@ instance (FromValue a, Show a) => FromValue (NonEmpty.NonEmpty a) where
 instance FromValue a => FromValue (Map.Map Text.Text a) where
     fromValue = withObject "Map"
         $ fmap Map.fromList
-        . traverse (\ (Member.Member (String.String k, v)) -> (,) k <$> fromValue v)
+        . traverse (\ (Member.Member (String.String k) v) -> (,) k <$> fromValue v)
         . Data.Array.elems
 
 withBoolean :: String -> (Bool -> Result.Result a) -> Value.Value -> Result.Result a

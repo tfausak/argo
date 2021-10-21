@@ -106,7 +106,7 @@ instance ToValue a => ToValue (Map.Map Text.Text a) where
     toValue x = Value.Object
         . Object.Object
         . Data.Array.listArray (0, Map.size x - 1)
-        . fmap (\ (k, v) -> Member.Member (String.String k, toValue v))
+        . fmap (\ (k, v) -> Member.Member (String.String k) (toValue v))
         $ Map.toAscList x
 
 realFloatToValue :: RealFloat a => a -> Value.Value
