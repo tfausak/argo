@@ -456,10 +456,14 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: Word.Word64)
             , property "Integer" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: Integer)
-            -- , property "Float" $ \ x ->
-            --     Argo.fromValue (Argo.toValue x) === Argo.Success (x :: Float)
-            -- , property "Double" $ \ x ->
-            --     Argo.fromValue (Argo.toValue x) === Argo.Success (x :: Double)
+            , property "Float" $ \ x ->
+                Argo.fromValue (Argo.toValue x) === if isNaN x || isInfinite x
+                    then Argo.Failure "expected Float but got Null (Null ())"
+                    else Argo.Success (x :: Float)
+            , property "Double" $ \ x ->
+                Argo.fromValue (Argo.toValue x) === if isNaN x || isInfinite x
+                    then Argo.Failure "expected Double but got Null (Null ())"
+                    else Argo.Success (x :: Double)
             -- , property "String" $ \ x ->
             --     Argo.fromValue (Argo.toValue x) === Argo.Success (x :: String)
             , property "Text" $ \ x ->
