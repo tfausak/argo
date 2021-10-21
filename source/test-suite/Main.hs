@@ -11,7 +11,7 @@ import Test.Tasty.HUnit ((@?=))
 import Test.Tasty.QuickCheck ((===))
 
 import qualified Argo
-import qualified Argo.Type.String as String
+import qualified Argo.Type.Name as Name
 import qualified Data.Array as Array
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Builder as Builder
@@ -509,10 +509,10 @@ propertyWith n g s f = Tasty.testProperty n
 array :: [a] -> Array.Array Int a
 array xs = Array.listArray (0, length xs - 1) xs
 
-instance GenValidity.Validity (Argo.Member String.String Argo.Value) where
+instance GenValidity.Validity (Argo.Member Name.Name Argo.Value) where
     validate (Argo.Member k v) = GenValidity.validate (k, v)
 
-instance GenValidity.GenValid (Argo.Member String.String Argo.Value) where
+instance GenValidity.GenValid (Argo.Member Name.Name Argo.Value) where
     genValid = Argo.Member <$> GenValidity.genValid <*> GenValidity.genValid
     shrinkValid (Argo.Member k v) = uncurry Argo.Member <$> GenValidity.shrinkValid (k, v)
 
