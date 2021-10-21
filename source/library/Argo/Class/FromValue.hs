@@ -7,7 +7,7 @@ import qualified Argo.Type.Array as Array
 import qualified Argo.Type.Boolean as Boolean
 import qualified Argo.Type.Number as Number
 import qualified Argo.Type.Object as Object
-import qualified Argo.Type.Pair as Pair
+import qualified Argo.Type.Member as Member
 import qualified Argo.Type.String as String
 import qualified Argo.Type.Value as Value
 import qualified Data.Array
@@ -121,7 +121,7 @@ instance (FromValue a, Show a) => FromValue (NonEmpty.NonEmpty a) where
 instance FromValue a => FromValue (Map.Map Text.Text a) where
     fromValue = withObject "Map"
         $ fmap Map.fromList
-        . traverse (\ (Pair.Pair (String.String k, v)) -> (,) k <$> fromValue v)
+        . traverse (\ (Member.Member (String.String k, v)) -> (,) k <$> fromValue v)
         . Data.Array.elems
 
 withBoolean :: String -> (Bool -> Result.Result a) -> Value.Value -> Result.Result a
@@ -144,7 +144,7 @@ withArray s f x = case x of
     Value.Array (Array.Array y) -> f y
     _ -> fail $ "expected " <> s <> " but got " <> show x
 
-withObject :: String -> (Data.Array.Array Int (Pair.Pair String.String Value.Value) -> Result.Result a) -> Value.Value -> Result.Result a
+withObject :: String -> (Data.Array.Array Int (Member.Member String.String Value.Value) -> Result.Result a) -> Value.Value -> Result.Result a
 withObject s f x = case x of
     Value.Object (Object.Object y) -> f y
     _ -> fail $ "expected " <> s <> " but got " <> show x

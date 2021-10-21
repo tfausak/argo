@@ -72,10 +72,10 @@ library
         Argo.Type
         Argo.Type.Array
         Argo.Type.Boolean
+        Argo.Type.Member
         Argo.Type.Null
         Argo.Type.Number
         Argo.Type.Object
-        Argo.Type.Pair
         Argo.Type.String
         Argo.Type.Value
     hs-source-dirs: source/library

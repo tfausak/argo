@@ -38,11 +38,11 @@ main = Tasty.defaultMain
             ]
         , Tasty.bgroup "Object"
             [ Tasty.bench "empty" . Tasty.nf encode . Argo.Object $ array []
-            , Tasty.bench "1 element" . Tasty.nf encode . Argo.Object . array . replicate 1 $ Argo.Pair "" Argo.Null
-            , Tasty.bench "10 elements" . Tasty.nf encode . Argo.Object . array . replicate 10 $ Argo.Pair "" Argo.Null
-            , Tasty.bench "100 elements" . Tasty.nf encode . Argo.Object . array . replicate 100 $ Argo.Pair "" Argo.Null
-            , Tasty.bench "1000 elements" . Tasty.nf encode . Argo.Object . array . replicate 1000 $ Argo.Pair "" Argo.Null
-            , Tasty.bench "10000 elements" . Tasty.nf encode . Argo.Object . array . replicate 10000 $ Argo.Pair "" Argo.Null
+            , Tasty.bench "1 element" . Tasty.nf encode . Argo.Object . array . replicate 1 $ Argo.Member "" Argo.Null
+            , Tasty.bench "10 elements" . Tasty.nf encode . Argo.Object . array . replicate 10 $ Argo.Member "" Argo.Null
+            , Tasty.bench "100 elements" . Tasty.nf encode . Argo.Object . array . replicate 100 $ Argo.Member "" Argo.Null
+            , Tasty.bench "1000 elements" . Tasty.nf encode . Argo.Object . array . replicate 1000 $ Argo.Member "" Argo.Null
+            , Tasty.bench "10000 elements" . Tasty.nf encode . Argo.Object . array . replicate 10000 $ Argo.Member "" Argo.Null
             ]
         ]
     , Tasty.bgroup "decode" $ let decode = resultToMaybe . Argo.decode :: ByteString.ByteString -> Maybe Argo.Value in

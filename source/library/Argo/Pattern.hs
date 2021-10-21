@@ -8,7 +8,7 @@ import qualified Argo.Type.Boolean as Boolean
 import qualified Argo.Type.Null as Null
 import qualified Argo.Type.Number as Number
 import qualified Argo.Type.Object as Object
-import qualified Argo.Type.Pair as Pair
+import qualified Argo.Type.Member as Member
 import qualified Argo.Type.String as String
 import qualified Argo.Type.Value as Value
 import qualified Data.Text as Text
@@ -34,7 +34,7 @@ pattern Object x = Value.Object (Object.Object x)
 
 {-# COMPLETE Null, Boolean, Number, String, Array, Object #-}
 
-pattern Pair :: Text.Text -> Value.Value -> Pair.Pair String.String Value.Value
-pattern Pair k v = Pair.Pair (String.String k, v)
+pattern Member :: Text.Text -> Value.Value -> Member.Member String.String Value.Value
+pattern Member k v = Member.Member (String.String k, v)
 
-{-# COMPLETE Pair #-}
+{-# COMPLETE Member #-}
