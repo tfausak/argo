@@ -558,4 +558,4 @@ instance GenValidity.Validity a => GenValidity.Validity (Array.Array Int a) wher
 
 instance GenValidity.GenValid a => GenValidity.GenValid (Array.Array Int a) where
     genValid = array <$> GenValidity.genValid
-    shrinkValid = fmap array . GenValidity.shrinkValid . Array.elems
+    shrinkValid = Tasty.shrinkMapBy array Array.elems GenValidity.shrinkValid
