@@ -4,9 +4,9 @@ module Argo.Type.String where
 
 import qualified Argo.Decoder as Decoder
 import qualified Argo.Literal as Literal
+import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.TemplateHaskell as TH
 import qualified Argo.Vendor.Text as Text
-import qualified Control.DeepSeq as DeepSeq
 import qualified Control.Monad as Monad
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Builder as Builder

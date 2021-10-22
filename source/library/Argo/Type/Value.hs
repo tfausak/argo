@@ -11,8 +11,8 @@ import qualified Argo.Type.Null as Null
 import qualified Argo.Type.Number as Number
 import qualified Argo.Type.Object as Object
 import qualified Argo.Type.String as String
+import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.TemplateHaskell as TH
-import qualified Control.DeepSeq as DeepSeq
 import qualified Data.ByteString.Builder as Builder
 
 data Value

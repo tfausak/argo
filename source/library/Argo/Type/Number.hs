@@ -6,9 +6,9 @@ import Data.Ratio ((%))
 
 import qualified Argo.Decoder as Decoder
 import qualified Argo.Literal as Literal
+import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.TemplateHaskell as TH
 import qualified Control.Applicative as Applicative
-import qualified Control.DeepSeq as DeepSeq
 import qualified Control.Monad as Monad
 import qualified Data.Bool as Bool
 import qualified Data.ByteString as ByteString
