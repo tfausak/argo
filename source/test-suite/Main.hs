@@ -11,7 +11,6 @@ import Test.Tasty.HUnit ((@?=))
 import Test.Tasty.QuickCheck ((===))
 
 import qualified Argo
-import qualified Argo.Type.String as String
 import qualified Data.Array as Array
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Builder as Builder
@@ -101,9 +100,9 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
             [ Tasty.testCase "empty" $ do
                 encode (Argo.Object (array [])) @?= "{}"
             , Tasty.testCase "one element" $ do
-                encode (Argo.Object (array [Argo.Pair "a" $ Argo.Number 1 0])) @?= "{\"a\":1}"
+                encode (Argo.Object (array [Argo.Member (Argo.Name "a") $ Argo.Number 1 0])) @?= "{\"a\":1}"
             , Tasty.testCase "two elements" $ do
-                encode (Argo.Object (array [Argo.Pair "a" $ Argo.Number 1 0, Argo.Pair "b" $ Argo.Number 2 0])) @?= "{\"a\":1,\"b\":2}"
+                encode (Argo.Object (array [Argo.Member (Argo.Name "a") $ Argo.Number 1 0, Argo.Member (Argo.Name "b") $ Argo.Number 2 0])) @?= "{\"a\":1,\"b\":2}"
             ]
         ]
     , Tasty.testGroup "decode" $ let decode = resultToMaybe . Argo.decode :: ByteString.ByteString -> Maybe Argo.Value in
@@ -267,11 +266,11 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
             [ Tasty.testCase "empty" $ do
                 decode "{}" @?= Just (Argo.Object $ array [])
             , Tasty.testCase "one element" $ do
-                decode "{\"a\":1}" @?= Just (Argo.Object $ array [Argo.Pair "a" $ Argo.Number 1 0])
+                decode "{\"a\":1}" @?= Just (Argo.Object $ array [Argo.Member (Argo.Name "a") $ Argo.Number 1 0])
             , Tasty.testCase "two elements" $ do
-                decode "{\"a\":1,\"b\":2}" @?= Just (Argo.Object $ array [Argo.Pair "a" $ Argo.Number 1 0, Argo.Pair "b" $ Argo.Number 2 0])
+                decode "{\"a\":1,\"b\":2}" @?= Just (Argo.Object $ array [Argo.Member (Argo.Name "a") $ Argo.Number 1 0, Argo.Member (Argo.Name "b") $ Argo.Number 2 0])
             , Tasty.testCase "nested" $ do
-                decode "{\"a\":{\"b\":2}}" @?= Just (Argo.Object $ array [Argo.Pair "a" . Argo.Object $ array [Argo.Pair "b" $ Argo.Number 2 0]])
+                decode "{\"a\":{\"b\":2}}" @?= Just (Argo.Object $ array [Argo.Member (Argo.Name "a") . Argo.Object $ array [Argo.Member (Argo.Name "b") $ Argo.Number 2 0]])
             , Tasty.testCase "not closed" $ do
                 decode "{" @?= Nothing
             , Tasty.testCase "not opened" $ do
@@ -352,7 +351,7 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
         , Tasty.testCase "NonEmpty a" $ do
             fromValue (Argo.Array $ array [Argo.Boolean False]) @?= Just (False :| [])
         , Tasty.testCase "Map Text a" $ do
-            fromValue (Argo.Object $ array [Argo.Pair "a" $ Argo.Boolean False]) @?= Just (Map.fromList [("a" :: Text.Text, False)])
+            fromValue (Argo.Object $ array [Argo.Member (Argo.Name "a") $ Argo.Boolean False]) @?= Just (Map.fromList [("a" :: Text.Text, False)])
         ]
     , Tasty.testGroup "toValue"
         [ Tasty.testCase "Value" $ do
@@ -406,7 +405,7 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
         , Tasty.testCase "NonEmpty a" $ do
             Argo.toValue (False :| []) @?= Argo.Array (array [Argo.Boolean False])
         , Tasty.testCase "Map Text a" $ do
-            Argo.toValue (Map.fromList [("a" :: Text.Text, False)]) @?= Argo.Object (array [Argo.Pair "a" $ Argo.Boolean False])
+            Argo.toValue (Map.fromList [("a" :: Text.Text, False)]) @?= Argo.Object (array [Argo.Member (Argo.Name "a") $ Argo.Boolean False])
         ]
     , Tasty.testGroup "quasi quoter"
         [ Tasty.testCase "Null" $ do
@@ -509,12 +508,19 @@ propertyWith n g s f = Tasty.testProperty n
 array :: [a] -> Array.Array Int a
 array xs = Array.listArray (0, length xs - 1) xs
 
-instance GenValidity.Validity (Argo.Pair String.String Argo.Value) where
-    validate (Argo.Pair k v) = GenValidity.validate (k, v)
+instance GenValidity.Validity Argo.Name where
+    validate (Argo.Name x) = GenValidity.validate x
 
-instance GenValidity.GenValid (Argo.Pair String.String Argo.Value) where
-    genValid = Argo.Pair <$> GenValidity.genValid <*> GenValidity.genValid
-    shrinkValid (Argo.Pair k v) = uncurry Argo.Pair <$> GenValidity.shrinkValid (k, v)
+instance GenValidity.GenValid Argo.Name where
+    genValid = Argo.Name <$> GenValidity.genValid
+    shrinkValid (Argo.Name x) = Argo.Name <$> GenValidity.shrinkValid x
+
+instance GenValidity.Validity (Argo.Member Argo.Value) where
+    validate (Argo.Member k v) = GenValidity.validate (k, v)
+
+instance GenValidity.GenValid (Argo.Member Argo.Value) where
+    genValid = Argo.Member <$> GenValidity.genValid <*> GenValidity.genValid
+    shrinkValid (Argo.Member k v) = uncurry Argo.Member <$> GenValidity.shrinkValid (k, v)
 
 instance GenValidity.Validity Argo.Value where
     validate x = case x of
@@ -542,7 +548,7 @@ genValueSized size = let newSize = div size 3 in Tasty.oneof
     , Argo.Number <$> GenValidity.genValid <*> GenValidity.genValid
     , Argo.String <$> GenValidity.genValid
     , Argo.Array <$> genArray size (genValueSized newSize)
-    , Argo.Object <$> genArray size (Argo.Pair <$> GenValidity.genValid <*> genValueSized newSize)
+    , Argo.Object <$> genArray size (Argo.Member <$> GenValidity.genValid <*> genValueSized newSize)
     ]
 
 genArray :: Int -> Tasty.Gen a -> Tasty.Gen (Array.Array Int a)

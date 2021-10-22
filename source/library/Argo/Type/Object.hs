@@ -4,15 +4,14 @@ module Argo.Type.Object where
 
 import qualified Argo.Decoder as Decoder
 import qualified Argo.Literal as Literal
-import qualified Argo.Type.Pair as Pair
-import qualified Argo.Type.String as String
+import qualified Argo.Type.Member as Member
 import qualified Control.DeepSeq as DeepSeq
 import qualified Data.Array as Array
 import qualified Data.ByteString.Builder as Builder
 import qualified Language.Haskell.TH.Syntax as TH
 
 newtype Object a
-    = Object (Array.Array Int (Pair.Pair String.String a))
+    = Object (Array.Array Int (Member.Member a))
     deriving (Eq, Show)
 
 instance TH.Lift a => TH.Lift (Object a) where
@@ -30,7 +29,7 @@ encode f (Object x) =
     Builder.word8 Literal.leftCurlyBracket
     <> foldMap
         (\ (i, e) -> (if i /= 0 then Builder.word8 Literal.comma else mempty)
-            <> Pair.encode String.encode f e)
+            <> Member.encode f e)
         (Array.assocs x)
     <> Builder.word8 Literal.rightCurlyBracket
 
@@ -38,7 +37,7 @@ decode :: Decoder.Decoder a -> Decoder.Decoder (Object a)
 decode f = do
     Decoder.word8 Literal.leftCurlyBracket
     Decoder.spaces
-    xs <- Decoder.array $ Pair.decode String.decode f
+    xs <- Decoder.array $ Member.decode f
     Decoder.word8 Literal.rightCurlyBracket
     Decoder.spaces
     pure $ Object xs

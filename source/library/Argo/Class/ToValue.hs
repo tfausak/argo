@@ -7,7 +7,8 @@ import qualified Argo.Type.Boolean as Boolean
 import qualified Argo.Type.Null as Null
 import qualified Argo.Type.Number as Number
 import qualified Argo.Type.Object as Object
-import qualified Argo.Type.Pair as Pair
+import qualified Argo.Type.Member as Member
+import qualified Argo.Type.Name as Name
 import qualified Argo.Type.String as String
 import qualified Argo.Type.Value as Value
 import qualified Data.Array
@@ -106,7 +107,7 @@ instance ToValue a => ToValue (Map.Map Text.Text a) where
     toValue x = Value.Object
         . Object.Object
         . Data.Array.listArray (0, Map.size x - 1)
-        . fmap (\ (k, v) -> Pair.Pair (String.String k, toValue v))
+        . fmap (\ (k, v) -> Member.Member (Name.Name (String.String k)) (toValue v))
         $ Map.toAscList x
 
 realFloatToValue :: RealFloat a => a -> Value.Value

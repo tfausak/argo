@@ -10,7 +10,8 @@ module Argo
         , Pattern.Object
         )
     , Type.Array
-    , Pair.Pair(Pattern.Pair)
+    , Name.Name(Pattern.Name)
+    , Member.Member(Pattern.Member)
     , Type.Object
     , Encode.encode
     , Decode.decode
@@ -28,5 +29,6 @@ import qualified Argo.Pattern as Pattern
 import qualified Argo.QuasiQuoter as QuasiQuoter
 import qualified Argo.Result as Result
 import qualified Argo.Type as Type
-import qualified Argo.Type.Pair as Pair
+import qualified Argo.Type.Name as Name
+import qualified Argo.Type.Member as Member
 import qualified Argo.Type.Value as Value

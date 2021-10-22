@@ -5,10 +5,11 @@ module Argo.Pattern where
 import qualified Argo.Type as Type
 import qualified Argo.Type.Array as Array
 import qualified Argo.Type.Boolean as Boolean
+import qualified Argo.Type.Name as Name
 import qualified Argo.Type.Null as Null
 import qualified Argo.Type.Number as Number
 import qualified Argo.Type.Object as Object
-import qualified Argo.Type.Pair as Pair
+import qualified Argo.Type.Member as Member
 import qualified Argo.Type.String as String
 import qualified Argo.Type.Value as Value
 import qualified Data.Text as Text
@@ -34,7 +35,12 @@ pattern Object x = Value.Object (Object.Object x)
 
 {-# COMPLETE Null, Boolean, Number, String, Array, Object #-}
 
-pattern Pair :: Text.Text -> Value.Value -> Pair.Pair String.String Value.Value
-pattern Pair k v = Pair.Pair (String.String k, v)
+pattern Member :: Name.Name -> Value.Value -> Type.Member
+pattern Member k v = Member.Member k v
 
-{-# COMPLETE Pair #-}
+{-# COMPLETE Member #-}
+
+pattern Name :: Text.Text -> Name.Name
+pattern Name x = Name.Name (String.String x)
+
+{-# COMPLETE Name #-}
