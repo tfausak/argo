@@ -3,9 +3,9 @@ module Argo.Decoder where
 import qualified Argo.Literal as Literal
 import qualified Argo.Result as Result
 import qualified Argo.Vendor.Array as Array
+import qualified Argo.Vendor.ByteString as ByteString
 import qualified Control.Applicative as Applicative
 import qualified Control.Monad as Monad
-import qualified Data.ByteString as ByteString
 import qualified Data.Word as Word
 
 newtype Decoder a = Decoder

@@ -82,6 +82,7 @@ library
     hs-source-dirs: source/library
     other-modules:
         Argo.Vendor.Array
+        Argo.Vendor.ByteString
         Argo.Vendor.DeepSeq
         Argo.Vendor.TemplateHaskell
         Argo.Vendor.Text
