@@ -3,7 +3,7 @@
 module Argo.Class.FromValue where
 
 import qualified Argo.Result as Result
-import qualified Argo.Type.Array as Array
+import qualified Argo.Type.Array as Type.Array
 import qualified Argo.Type.Boolean as Boolean
 import qualified Argo.Type.Member as Member
 import qualified Argo.Type.Name as Name
@@ -11,8 +11,8 @@ import qualified Argo.Type.Number as Number
 import qualified Argo.Type.Object as Object
 import qualified Argo.Type.String as String
 import qualified Argo.Type.Value as Value
+import qualified Argo.Vendor.Array as Array
 import qualified Argo.Vendor.Text as Text
-import qualified Data.Array
 import qualified Data.Bits as Bits
 import qualified Data.Int as Int
 import qualified Data.List.NonEmpty as NonEmpty
@@ -101,14 +101,14 @@ instance (FromValue a, FromValue b) => FromValue (a, b) where
         [y, z] <- fromValue x
         (,) <$> fromValue y <*> fromValue z
 
-instance FromValue a => FromValue (Data.Array.Array Int a) where
+instance FromValue a => FromValue (Array.Array Int a) where
     fromValue = withArray "Array" $ traverse fromValue
 
 instance FromValue a => FromValue [a] where
     fromValue =
         let
-            arrayToList :: Data.Array.Array Int b -> [b]
-            arrayToList = Data.Array.elems
+            arrayToList :: Array.Array Int b -> [b]
+            arrayToList = Array.elems
         in fmap arrayToList . fromValue
 
 instance (FromValue a, Show a) => FromValue (NonEmpty.NonEmpty a) where
@@ -122,7 +122,7 @@ instance FromValue a => FromValue (Map.Map Text.Text a) where
     fromValue = withObject "Map"
         $ fmap Map.fromList
         . traverse (\ (Member.Member (Name.Name (String.String k)) v) -> (,) k <$> fromValue v)
-        . Data.Array.elems
+        . Array.elems
 
 withBoolean :: String -> (Bool -> Result.Result a) -> Value.Value -> Result.Result a
 withBoolean s f x = case x of
@@ -139,12 +139,12 @@ withString s f x = case x of
     Value.String (String.String y) -> f y
     _ -> fail $ "expected " <> s <> " but got " <> show x
 
-withArray :: String -> (Data.Array.Array Int Value.Value -> Result.Result a) -> Value.Value -> Result.Result a
+withArray :: String -> (Array.Array Int Value.Value -> Result.Result a) -> Value.Value -> Result.Result a
 withArray s f x = case x of
-    Value.Array (Array.Array y) -> f y
+    Value.Array (Type.Array.Array y) -> f y
     _ -> fail $ "expected " <> s <> " but got " <> show x
 
-withObject :: String -> (Data.Array.Array Int (Member.Member Value.Value) -> Result.Result a) -> Value.Value -> Result.Result a
+withObject :: String -> (Array.Array Int (Member.Member Value.Value) -> Result.Result a) -> Value.Value -> Result.Result a
 withObject s f x = case x of
     Value.Object (Object.Object y) -> f y
     _ -> fail $ "expected " <> s <> " but got " <> show x

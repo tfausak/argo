@@ -81,6 +81,7 @@ library
         Argo.Type.Value
     hs-source-dirs: source/library
     other-modules:
+        Argo.Vendor.Array
         Argo.Vendor.DeepSeq
         Argo.Vendor.TemplateHaskell
         Argo.Vendor.Text
