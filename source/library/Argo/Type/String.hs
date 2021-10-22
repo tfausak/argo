@@ -10,7 +10,6 @@ import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.TemplateHaskell as TH
 import qualified Argo.Vendor.Text as Text
 import qualified Control.Monad as Monad
-import qualified Data.ByteString.Builder.Prim as P
 import qualified Data.Char as Char
 import qualified Data.Word as Word
 
@@ -30,30 +29,30 @@ encode (String x) =
     <> Text.encodeUtf8BuilderEscaped encodeChar x
     <> Builder.word8 Literal.quotationMark
 
-encodeChar :: P.BoundedPrim Word.Word8
+encodeChar :: Builder.BoundedPrim Word.Word8
 encodeChar =
-    P.condB (== Literal.quotationMark) (encodeShortEscape Literal.quotationMark)
-    . P.condB (== Literal.reverseSolidus) (encodeShortEscape Literal.reverseSolidus)
-    . P.condB (== Literal.backspace) (encodeShortEscape Literal.latinSmallLetterB)
-    . P.condB (== Literal.formFeed) (encodeShortEscape Literal.latinSmallLetterF)
-    . P.condB (== Literal.newLine) (encodeShortEscape Literal.latinSmallLetterN)
-    . P.condB (== Literal.carriageReturn) (encodeShortEscape Literal.latinSmallLetterR)
-    . P.condB (== Literal.horizontalTabulation) (encodeShortEscape Literal.latinSmallLetterT)
-    . P.condB (< Literal.space) encodeLongEscape
-    $ P.liftFixedToBounded P.word8
+    Builder.condB (== Literal.quotationMark) (encodeShortEscape Literal.quotationMark)
+    . Builder.condB (== Literal.reverseSolidus) (encodeShortEscape Literal.reverseSolidus)
+    . Builder.condB (== Literal.backspace) (encodeShortEscape Literal.latinSmallLetterB)
+    . Builder.condB (== Literal.formFeed) (encodeShortEscape Literal.latinSmallLetterF)
+    . Builder.condB (== Literal.newLine) (encodeShortEscape Literal.latinSmallLetterN)
+    . Builder.condB (== Literal.carriageReturn) (encodeShortEscape Literal.latinSmallLetterR)
+    . Builder.condB (== Literal.horizontalTabulation) (encodeShortEscape Literal.latinSmallLetterT)
+    . Builder.condB (< Literal.space) encodeLongEscape
+    $ Builder.liftFixedToBounded Builder.word8F
 
-encodeShortEscape :: Word.Word8 -> P.BoundedPrim a
-encodeShortEscape x = P.liftFixedToBounded
+encodeShortEscape :: Word.Word8 -> Builder.BoundedPrim a
+encodeShortEscape x = Builder.liftFixedToBounded
     $ const (Literal.reverseSolidus, x)
-    P.>$< P.word8
-    P.>*< P.word8
+    Builder.>$< Builder.word8F
+    Builder.>*< Builder.word8F
 
-encodeLongEscape :: P.BoundedPrim Word.Word8
-encodeLongEscape = P.liftFixedToBounded
+encodeLongEscape :: Builder.BoundedPrim Word.Word8
+encodeLongEscape = Builder.liftFixedToBounded
     $ (\ x -> (Literal.reverseSolidus, (Literal.latinSmallLetterU, word8ToWord16 x)))
-    P.>$< P.word8
-    P.>*< P.word8
-    P.>*< P.word16HexFixed
+    Builder.>$< Builder.word8F
+    Builder.>*< Builder.word8F
+    Builder.>*< Builder.word16HexFixed
 
 word8ToWord16 :: Word.Word8 -> Word.Word16
 word8ToWord16 = fromIntegral
