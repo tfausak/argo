@@ -82,6 +82,7 @@ library
     hs-source-dirs: source/library
     other-modules:
         Argo.Vendor.TemplateHaskell
+        Argo.Vendor.Text
 
 executable argo
     import: executable

@@ -11,12 +11,12 @@ import qualified Argo.Type.Number as Number
 import qualified Argo.Type.Object as Object
 import qualified Argo.Type.String as String
 import qualified Argo.Type.Value as Value
+import qualified Argo.Vendor.Text as Text
 import qualified Data.Array
 import qualified Data.Bits as Bits
 import qualified Data.Int as Int
 import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Map as Map
-import qualified Data.Text as Text
 import qualified Data.Text.Lazy as LazyText
 import qualified Data.Word as Word
 
