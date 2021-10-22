@@ -35,7 +35,12 @@ pattern Object x = Value.Object (Object.Object x)
 
 {-# COMPLETE Null, Boolean, Number, String, Array, Object #-}
 
-pattern Member :: Text.Text -> Value.Value -> Type.Member
-pattern Member k v = Member.Member (Name.Name (String.String k)) v
+pattern Member :: Name.Name -> Value.Value -> Type.Member
+pattern Member k v = Member.Member k v
 
 {-# COMPLETE Member #-}
+
+pattern Name :: Text.Text -> Name.Name
+pattern Name x = Name.Name (String.String x)
+
+{-# COMPLETE Name #-}
