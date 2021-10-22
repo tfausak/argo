@@ -12,7 +12,6 @@ import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Builder as Builder
 import qualified Data.ByteString.Builder.Prim as P
 import qualified Data.Char as Char
-import qualified Data.Text.Encoding as Text
 import qualified Data.Word as Word
 
 newtype String

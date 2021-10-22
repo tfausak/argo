@@ -4,7 +4,6 @@ import qualified Argo.Decode as Decode
 import qualified Argo.Result as Result
 import qualified Argo.Vendor.TemplateHaskell as TH
 import qualified Argo.Vendor.Text as Text
-import qualified Data.Text.Encoding as Text
 
 value :: TH.QuasiQuoter
 value = TH.QuasiQuoter
