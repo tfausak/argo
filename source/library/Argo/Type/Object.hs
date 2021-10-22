@@ -5,10 +5,10 @@ module Argo.Type.Object where
 import qualified Argo.Decoder as Decoder
 import qualified Argo.Literal as Literal
 import qualified Argo.Type.Member as Member
+import qualified Argo.Vendor.TemplateHaskell as TH
 import qualified Control.DeepSeq as DeepSeq
 import qualified Data.Array as Array
 import qualified Data.ByteString.Builder as Builder
-import qualified Language.Haskell.TH.Syntax as TH
 
 newtype Object a
     = Object (Array.Array Int (Member.Member a))

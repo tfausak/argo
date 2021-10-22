@@ -4,9 +4,9 @@ module Argo.Type.Name where
 
 import qualified Argo.Decoder as Decoder
 import qualified Argo.Type.String as String
+import qualified Argo.Vendor.TemplateHaskell as TH
 import qualified Control.DeepSeq as DeepSeq
 import qualified Data.ByteString.Builder as Builder
-import qualified Language.Haskell.TH.Syntax as TH
 
 newtype Name
     = Name String.String

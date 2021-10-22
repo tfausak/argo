@@ -4,10 +4,10 @@ module Argo.Type.Array where
 
 import qualified Argo.Decoder as Decoder
 import qualified Argo.Literal as Literal
+import qualified Argo.Vendor.TemplateHaskell as TH
 import qualified Control.DeepSeq as DeepSeq
 import qualified Data.Array as Array
 import qualified Data.ByteString.Builder as Builder
-import qualified Language.Haskell.TH.Syntax as TH
 
 newtype Array a
     = Array (Array.Array Int a)

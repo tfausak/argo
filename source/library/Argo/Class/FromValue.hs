@@ -5,10 +5,10 @@ module Argo.Class.FromValue where
 import qualified Argo.Result as Result
 import qualified Argo.Type.Array as Array
 import qualified Argo.Type.Boolean as Boolean
-import qualified Argo.Type.Number as Number
-import qualified Argo.Type.Object as Object
 import qualified Argo.Type.Member as Member
 import qualified Argo.Type.Name as Name
+import qualified Argo.Type.Number as Number
+import qualified Argo.Type.Object as Object
 import qualified Argo.Type.String as String
 import qualified Argo.Type.Value as Value
 import qualified Data.Array

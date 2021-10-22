@@ -80,6 +80,8 @@ library
         Argo.Type.String
         Argo.Type.Value
     hs-source-dirs: source/library
+    other-modules:
+        Argo.Vendor.TemplateHaskell
 
 executable argo
     import: executable

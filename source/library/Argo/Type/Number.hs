@@ -6,6 +6,7 @@ import Data.Ratio ((%))
 
 import qualified Argo.Decoder as Decoder
 import qualified Argo.Literal as Literal
+import qualified Argo.Vendor.TemplateHaskell as TH
 import qualified Control.Applicative as Applicative
 import qualified Control.DeepSeq as DeepSeq
 import qualified Control.Monad as Monad
@@ -15,7 +16,6 @@ import qualified Data.ByteString.Builder as Builder
 import qualified Data.Maybe as Maybe
 import qualified Data.Ratio as Ratio
 import qualified Data.Word as Word
-import qualified Language.Haskell.TH.Syntax as TH
 
 data Number
     = Number Integer Integer
