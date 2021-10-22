@@ -2,17 +2,15 @@ module Argo.QuasiQuoter where
 
 import qualified Argo.Decode as Decode
 import qualified Argo.Result as Result
-import qualified Data.Text as Text
-import qualified Data.Text.Encoding as Text
-import qualified Language.Haskell.TH.Quote as QQ
-import qualified Language.Haskell.TH.Syntax as TH
+import qualified Argo.Vendor.TemplateHaskell as TH
+import qualified Argo.Vendor.Text as Text
 
-value :: QQ.QuasiQuoter
-value = QQ.QuasiQuoter
-    { QQ.quoteDec = const $ fail "quoteDec"
-    , QQ.quoteExp = quoteExp
-    , QQ.quotePat = const $ fail "quotePat"
-    , QQ.quoteType = const $ fail "quoteType"
+value :: TH.QuasiQuoter
+value = TH.QuasiQuoter
+    { TH.quoteDec = const $ fail "quoteDec"
+    , TH.quoteExp = quoteExp
+    , TH.quotePat = const $ fail "quotePat"
+    , TH.quoteType = const $ fail "quoteType"
     }
 
 quoteExp :: String -> TH.Q TH.Exp

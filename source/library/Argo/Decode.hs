@@ -4,7 +4,7 @@ import qualified Argo.Class.FromValue as FromValue
 import qualified Argo.Decoder as Decoder
 import qualified Argo.Result as Result
 import qualified Argo.Type.Value as Value
-import qualified Data.ByteString as ByteString
+import qualified Argo.Vendor.ByteString as ByteString
 
 decode :: FromValue.FromValue a => ByteString.ByteString -> Result.Result a
 decode = decodeWith FromValue.fromValue

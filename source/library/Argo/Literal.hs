@@ -1,6 +1,6 @@
 module Argo.Literal where
 
-import qualified Data.ByteString as ByteString
+import qualified Argo.Vendor.ByteString as ByteString
 import qualified Data.Word as Word
 
 backspace :: Word.Word8
