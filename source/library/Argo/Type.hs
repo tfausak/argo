@@ -6,4 +6,6 @@ import qualified Data.Array
 
 type Array = Data.Array.Array Int Value.Value
 
-type Object = Data.Array.Array Int (Member.Member Value.Value)
+type Member = Member.Member Value.Value
+
+type Object = Data.Array.Array Int Member
