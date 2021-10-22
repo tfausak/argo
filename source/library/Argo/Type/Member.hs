@@ -5,9 +5,9 @@ module Argo.Type.Member where
 import qualified Argo.Decoder as Decoder
 import qualified Argo.Literal as Literal
 import qualified Argo.Type.Name as Name
+import qualified Argo.Vendor.Builder as Builder
 import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.TemplateHaskell as TH
-import qualified Data.ByteString.Builder as Builder
 
 data Member v
     = Member Name.Name v

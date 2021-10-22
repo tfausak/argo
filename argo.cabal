@@ -83,6 +83,7 @@ library
     other-modules:
         Argo.Vendor.Array
         Argo.Vendor.ByteString
+        Argo.Vendor.Builder
         Argo.Vendor.DeepSeq
         Argo.Vendor.TemplateHaskell
         Argo.Vendor.Text

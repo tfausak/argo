@@ -6,9 +6,9 @@ import Control.Applicative ((<|>))
 
 import qualified Argo.Decoder as Decoder
 import qualified Argo.Literal as Literal
+import qualified Argo.Vendor.Builder as Builder
 import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.TemplateHaskell as TH
-import qualified Data.ByteString.Builder as Builder
 
 newtype Boolean
     = Boolean Bool

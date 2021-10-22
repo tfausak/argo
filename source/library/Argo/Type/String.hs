@@ -5,11 +5,11 @@ module Argo.Type.String where
 import qualified Argo.Decoder as Decoder
 import qualified Argo.Literal as Literal
 import qualified Argo.Vendor.ByteString as ByteString
+import qualified Argo.Vendor.Builder as Builder
 import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.TemplateHaskell as TH
 import qualified Argo.Vendor.Text as Text
 import qualified Control.Monad as Monad
-import qualified Data.ByteString.Builder as Builder
 import qualified Data.ByteString.Builder.Prim as P
 import qualified Data.Char as Char
 import qualified Data.Word as Word

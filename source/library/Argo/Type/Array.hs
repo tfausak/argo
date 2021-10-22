@@ -5,9 +5,9 @@ module Argo.Type.Array where
 import qualified Argo.Decoder as Decoder
 import qualified Argo.Literal as Literal
 import qualified Argo.Vendor.Array as Array
+import qualified Argo.Vendor.Builder as Builder
 import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.TemplateHaskell as TH
-import qualified Data.ByteString.Builder as Builder
 
 newtype Array a
     = Array (Array.Array Int a)

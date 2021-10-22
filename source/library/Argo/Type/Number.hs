@@ -7,12 +7,12 @@ import Data.Ratio ((%))
 import qualified Argo.Decoder as Decoder
 import qualified Argo.Literal as Literal
 import qualified Argo.Vendor.ByteString as ByteString
+import qualified Argo.Vendor.Builder as Builder
 import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.TemplateHaskell as TH
 import qualified Control.Applicative as Applicative
 import qualified Control.Monad as Monad
 import qualified Data.Bool as Bool
-import qualified Data.ByteString.Builder as Builder
 import qualified Data.Maybe as Maybe
 import qualified Data.Ratio as Ratio
 import qualified Data.Word as Word
