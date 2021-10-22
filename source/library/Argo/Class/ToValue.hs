@@ -17,7 +17,6 @@ import qualified Data.Int as Int
 import qualified Data.List as List
 import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Map as Map
-import qualified Data.Text.Lazy as LazyText
 import qualified Data.Word as Word
 import qualified Numeric
 
@@ -78,8 +77,8 @@ instance {-# OVERLAPPING #-} ToValue String where
 instance ToValue Text.Text where
     toValue = Value.String . String.String
 
-instance ToValue LazyText.Text where
-    toValue = toValue . LazyText.toStrict
+instance ToValue Text.LazyText where
+    toValue = toValue . Text.toStrict
 
 instance ToValue a => ToValue (Maybe a) where
     toValue = maybe (Value.Null $ Null.Null ()) toValue

@@ -17,7 +17,6 @@ import qualified Data.Bits as Bits
 import qualified Data.Int as Int
 import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Map as Map
-import qualified Data.Text.Lazy as LazyText
 import qualified Data.Word as Word
 
 class FromValue a where
@@ -84,8 +83,8 @@ instance {-# OVERLAPPING #-} FromValue String where
 instance FromValue Text.Text where
     fromValue = withString "Text" pure
 
-instance FromValue LazyText.Text where
-    fromValue = fmap LazyText.fromStrict . fromValue
+instance FromValue Text.LazyText where
+    fromValue = fmap Text.fromStrict . fromValue
 
 instance FromValue a => FromValue (Maybe a) where
     fromValue x = case x of
