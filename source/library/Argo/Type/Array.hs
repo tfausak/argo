@@ -24,7 +24,7 @@ encode f (Array x) =
     <> foldMap
         (\ (p, e) -> (if p then Builder.word8 Literal.comma else mempty)
             <> f e)
-        (zip (True : repeat False) x)
+        (zip (False : repeat True) x)
     <> Builder.word8 Literal.rightSquareBracket
 
 decode :: Decoder.Decoder a -> Decoder.Decoder (Array a)

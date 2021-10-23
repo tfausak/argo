@@ -25,7 +25,7 @@ encode f (Object x) =
     <> foldMap
         (\ (p, e) -> (if p then Builder.word8 Literal.comma else mempty)
             <> Member.encode f e)
-        (zip (True : repeat False) x)
+        (zip (False : repeat True) x)
     <> Builder.word8 Literal.rightCurlyBracket
 
 decode :: Decoder.Decoder a -> Decoder.Decoder (Object a)
