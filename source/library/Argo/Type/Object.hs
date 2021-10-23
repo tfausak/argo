@@ -12,11 +12,11 @@ import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.TemplateHaskell as TH
 import qualified GHC.Generics as Generics
 
-newtype Object a
-    = Object [Member.Member a]
+newtype Object value
+    = Object [Member.Member value]
     deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
 
-encode :: (a -> Builder.Builder) -> Object a -> Builder.Builder
+encode :: (value -> Builder.Builder) -> Object value -> Builder.Builder
 encode f (Object x) =
     Builder.word8 Literal.leftCurlyBracket
     <> foldMap
@@ -25,7 +25,7 @@ encode f (Object x) =
         (zip (False : repeat True) x)
     <> Builder.word8 Literal.rightCurlyBracket
 
-decode :: Decoder.Decoder a -> Decoder.Decoder (Object a)
+decode :: Decoder.Decoder value -> Decoder.Decoder (Object value)
 decode f = do
     Decoder.word8 Literal.leftCurlyBracket
     Decoder.spaces
