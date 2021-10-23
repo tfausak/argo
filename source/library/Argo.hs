@@ -10,7 +10,8 @@ module Argo
         , Pattern.Object
         )
     , Pattern.Array
-    , Name.Name(Pattern.Name)
+    , Name.Name
+    , pattern Pattern.Name
     , Pattern.Member
     , pattern Pattern.Member
     , Pattern.Object
