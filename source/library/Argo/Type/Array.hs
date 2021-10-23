@@ -1,4 +1,6 @@
-{-# LANGUAGE TemplateHaskellQuotes #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveLift #-}
 
 module Argo.Type.Array where
 
@@ -7,16 +9,11 @@ import qualified Argo.Literal as Literal
 import qualified Argo.Vendor.Builder as Builder
 import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.TemplateHaskell as TH
+import qualified GHC.Generics as Generics
 
 newtype Array a
     = Array [a]
-    deriving (Eq, Show)
-
-instance TH.Lift a => TH.Lift (Array a) where
-    liftTyped (Array x) = [|| Array x ||]
-
-instance DeepSeq.NFData a => DeepSeq.NFData (Array a) where
-    rnf (Array x) = DeepSeq.rnf x
+    deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
 
 encode :: (a -> Builder.Builder) -> Array a -> Builder.Builder
 encode f (Array x) =

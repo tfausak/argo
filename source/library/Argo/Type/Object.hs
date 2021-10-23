@@ -1,4 +1,6 @@
-{-# LANGUAGE TemplateHaskellQuotes #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveLift #-}
 
 module Argo.Type.Object where
 
@@ -8,16 +10,11 @@ import qualified Argo.Type.Member as Member
 import qualified Argo.Vendor.Builder as Builder
 import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.TemplateHaskell as TH
+import qualified GHC.Generics as Generics
 
 newtype Object a
     = Object [Member.Member a]
-    deriving (Eq, Show)
-
-instance TH.Lift a => TH.Lift (Object a) where
-    liftTyped (Object x) = [|| Object x ||]
-
-instance DeepSeq.NFData a => DeepSeq.NFData (Object a) where
-    rnf (Object x) = DeepSeq.rnf x
+    deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
 
 encode :: (a -> Builder.Builder) -> Object a -> Builder.Builder
 encode f (Object x) =

@@ -1,4 +1,6 @@
-{-# LANGUAGE TemplateHaskellQuotes #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveLift #-}
 
 module Argo.Type.String where
 
@@ -12,16 +14,11 @@ import qualified Argo.Vendor.Text as Text
 import qualified Control.Monad as Monad
 import qualified Data.Char as Char
 import qualified Data.Word as Word
+import qualified GHC.Generics as Generics
 
 newtype String
     = String Text.Text
-    deriving (Eq, Show)
-
-instance TH.Lift Argo.Type.String.String where
-    liftTyped (String x) = [|| String x ||]
-
-instance DeepSeq.NFData Argo.Type.String.String where
-    rnf (String x) = DeepSeq.rnf x
+    deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
 
 encode :: Argo.Type.String.String -> Builder.Builder
 encode (String x) =

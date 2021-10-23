@@ -1,4 +1,6 @@
-{-# LANGUAGE TemplateHaskellQuotes #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveLift #-}
 
 module Argo.Type.Value where
 
@@ -14,6 +16,7 @@ import qualified Argo.Type.String as String
 import qualified Argo.Vendor.Builder as Builder
 import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.TemplateHaskell as TH
+import qualified GHC.Generics as Generics
 
 data Value
     = Null Null.Null
@@ -22,25 +25,7 @@ data Value
     | String String.String
     | Array (Array.Array Value)
     | Object (Object.Object Value)
-    deriving (Eq, Show)
-
-instance TH.Lift Value where
-    liftTyped x = case x of
-        Null y -> [|| Null y ||]
-        Boolean y -> [|| Boolean y ||]
-        Number y -> [|| Number y ||]
-        String y -> [|| String y ||]
-        Array y -> [|| Array y ||]
-        Object y -> [|| Object y ||]
-
-instance DeepSeq.NFData Value where
-    rnf x = case x of
-        Null y -> DeepSeq.rnf y
-        Boolean y -> DeepSeq.rnf y
-        Number y -> DeepSeq.rnf y
-        String y -> DeepSeq.rnf y
-        Array y -> DeepSeq.rnf y
-        Object y -> DeepSeq.rnf y
+    deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
 
 encode :: Value -> Builder.Builder
 encode x = case x of
