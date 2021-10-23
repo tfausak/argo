@@ -11,7 +11,7 @@ module Argo
         )
     , Type.Array
     , Name.Name(Pattern.Name)
-    , Member.Member(Pattern.Member)
+    , Member.MemberOf(Pattern.Member)
     , Type.Object
     , Encode.encode
     , Decode.decode

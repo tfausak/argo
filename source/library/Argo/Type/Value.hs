@@ -23,8 +23,8 @@ data Value
     | Boolean Boolean.Boolean
     | Number Number.Number
     | String String.String
-    | Array (Array.Array Value)
-    | Object (Object.Object Value)
+    | Array (Array.ArrayOf Value)
+    | Object (Object.ObjectOf Value)
     deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
 
 encode :: Value -> Builder.Builder

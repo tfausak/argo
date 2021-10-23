@@ -135,7 +135,7 @@ withArray s f x = case x of
     Value.Array (Type.Array.Array y) -> f y
     _ -> fail $ "expected " <> s <> " but got " <> show x
 
-withObject :: String -> ([Member.Member Value.Value] -> Result.Result a) -> Value.Value -> Result.Result a
+withObject :: String -> ([Member.MemberOf Value.Value] -> Result.Result a) -> Value.Value -> Result.Result a
 withObject s f x = case x of
     Value.Object (Object.Object y) -> f y
     _ -> fail $ "expected " <> s <> " but got " <> show x
