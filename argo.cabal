@@ -64,20 +64,19 @@ library
         Argo.Decode
         Argo.Decoder
         Argo.Encode
+        Argo.Json.Array
+        Argo.Json.Boolean
+        Argo.Json.Member
+        Argo.Json.Name
+        Argo.Json.Null
+        Argo.Json.Number
+        Argo.Json.Object
+        Argo.Json.String
+        Argo.Json.Value
         Argo.Literal
         Argo.Pattern
         Argo.QuasiQuoter
         Argo.Result
-        Argo.Type
-        Argo.Type.Array
-        Argo.Type.Boolean
-        Argo.Type.Member
-        Argo.Type.Name
-        Argo.Type.Null
-        Argo.Type.Number
-        Argo.Type.Object
-        Argo.Type.String
-        Argo.Type.Value
     hs-source-dirs: source/library
     other-modules:
         Argo.Vendor.ByteString

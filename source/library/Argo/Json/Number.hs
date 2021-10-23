@@ -1,13 +1,15 @@
-{-# LANGUAGE TemplateHaskellQuotes #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveLift #-}
 
-module Argo.Type.Number where
+module Argo.Json.Number where
 
 import Data.Ratio ((%))
 
 import qualified Argo.Decoder as Decoder
 import qualified Argo.Literal as Literal
-import qualified Argo.Vendor.ByteString as ByteString
 import qualified Argo.Vendor.Builder as Builder
+import qualified Argo.Vendor.ByteString as ByteString
 import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.TemplateHaskell as TH
 import qualified Control.Applicative as Applicative
@@ -16,16 +18,11 @@ import qualified Data.Bool as Bool
 import qualified Data.Maybe as Maybe
 import qualified Data.Ratio as Ratio
 import qualified Data.Word as Word
+import qualified GHC.Generics as Generics
 
 data Number
     = Number Integer Integer
-    deriving (Eq, Show)
-
-instance TH.Lift Number where
-    liftTyped (Number x y) = [|| Number x y ||]
-
-instance DeepSeq.NFData Number where
-    rnf (Number x y) = DeepSeq.deepseq x $ DeepSeq.rnf y
+    deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
 
 number :: Integer -> Integer -> Number
 number x = normalize . Number x

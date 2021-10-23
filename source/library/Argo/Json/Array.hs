@@ -1,24 +1,21 @@
-{-# LANGUAGE TemplateHaskellQuotes #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveLift #-}
 
-module Argo.Type.Array where
+module Argo.Json.Array where
 
 import qualified Argo.Decoder as Decoder
 import qualified Argo.Literal as Literal
 import qualified Argo.Vendor.Builder as Builder
 import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.TemplateHaskell as TH
+import qualified GHC.Generics as Generics
 
-newtype Array a
-    = Array [a]
-    deriving (Eq, Show)
+newtype ArrayOf value
+    = Array [value]
+    deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
 
-instance TH.Lift a => TH.Lift (Array a) where
-    liftTyped (Array x) = [|| Array x ||]
-
-instance DeepSeq.NFData a => DeepSeq.NFData (Array a) where
-    rnf (Array x) = DeepSeq.rnf x
-
-encode :: (a -> Builder.Builder) -> Array a -> Builder.Builder
+encode :: (value -> Builder.Builder) -> ArrayOf value -> Builder.Builder
 encode f (Array x) =
     Builder.word8 Literal.leftSquareBracket
     <> foldMap
@@ -27,7 +24,7 @@ encode f (Array x) =
         (zip (False : repeat True) x)
     <> Builder.word8 Literal.rightSquareBracket
 
-decode :: Decoder.Decoder a -> Decoder.Decoder (Array a)
+decode :: Decoder.Decoder value -> Decoder.Decoder (ArrayOf value)
 decode f = do
     Decoder.word8 Literal.leftSquareBracket
     Decoder.spaces

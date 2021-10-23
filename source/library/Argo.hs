@@ -9,10 +9,12 @@ module Argo
         , Pattern.Array
         , Pattern.Object
         )
-    , Type.Array
-    , Name.Name(Pattern.Name)
-    , Member.Member(Pattern.Member)
-    , Type.Object
+    , Pattern.Array
+    , Name.Name
+    , pattern Pattern.Name
+    , Pattern.Member
+    , pattern Pattern.Member
+    , Pattern.Object
     , Encode.encode
     , Decode.decode
     , FromValue.FromValue(fromValue)
@@ -25,10 +27,8 @@ import qualified Argo.Class.FromValue as FromValue
 import qualified Argo.Class.ToValue as ToValue
 import qualified Argo.Decode as Decode
 import qualified Argo.Encode as Encode
+import qualified Argo.Json.Name as Name
+import qualified Argo.Json.Value as Value
 import qualified Argo.Pattern as Pattern
 import qualified Argo.QuasiQuoter as QuasiQuoter
 import qualified Argo.Result as Result
-import qualified Argo.Type as Type
-import qualified Argo.Type.Member as Member
-import qualified Argo.Type.Name as Name
-import qualified Argo.Type.Value as Value

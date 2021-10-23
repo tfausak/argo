@@ -1,22 +1,19 @@
-{-# LANGUAGE TemplateHaskellQuotes #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveLift #-}
 
-module Argo.Type.Null where
+module Argo.Json.Null where
 
 import qualified Argo.Decoder as Decoder
 import qualified Argo.Literal as Literal
 import qualified Argo.Vendor.Builder as Builder
 import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.TemplateHaskell as TH
+import qualified GHC.Generics as Generics
 
 newtype Null
     = Null ()
-    deriving (Eq, Show)
-
-instance TH.Lift Null where
-    liftTyped (Null x) = [|| Null x ||]
-
-instance DeepSeq.NFData Null where
-    rnf (Null x) = DeepSeq.rnf x
+    deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
 
 encode :: Null -> Builder.Builder
 encode = const $ Builder.byteString Literal.null

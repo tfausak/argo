@@ -1,29 +1,26 @@
-{-# LANGUAGE TemplateHaskellQuotes #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveLift #-}
 
-module Argo.Type.String where
+module Argo.Json.String where
 
 import qualified Argo.Decoder as Decoder
 import qualified Argo.Literal as Literal
-import qualified Argo.Vendor.ByteString as ByteString
 import qualified Argo.Vendor.Builder as Builder
+import qualified Argo.Vendor.ByteString as ByteString
 import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.TemplateHaskell as TH
 import qualified Argo.Vendor.Text as Text
 import qualified Control.Monad as Monad
 import qualified Data.Char as Char
 import qualified Data.Word as Word
+import qualified GHC.Generics as Generics
 
 newtype String
     = String Text.Text
-    deriving (Eq, Show)
+    deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
 
-instance TH.Lift Argo.Type.String.String where
-    liftTyped (String x) = [|| String x ||]
-
-instance DeepSeq.NFData Argo.Type.String.String where
-    rnf (String x) = DeepSeq.rnf x
-
-encode :: Argo.Type.String.String -> Builder.Builder
+encode :: Argo.Json.String.String -> Builder.Builder
 encode (String x) =
     Builder.word8 Literal.quotationMark
     <> Text.encodeUtf8BuilderEscaped encodeChar x
@@ -57,7 +54,7 @@ encodeLongEscape = Builder.liftFixedToBounded
 word8ToWord16 :: Word.Word8 -> Word.Word16
 word8ToWord16 = fromIntegral
 
-decode :: Decoder.Decoder Argo.Type.String.String
+decode :: Decoder.Decoder Argo.Json.String.String
 decode = do
     Decoder.word8 Literal.quotationMark
     b1 <- Decoder.get

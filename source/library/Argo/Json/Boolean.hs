@@ -1,6 +1,8 @@
-{-# LANGUAGE TemplateHaskellQuotes #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveLift #-}
 
-module Argo.Type.Boolean where
+module Argo.Json.Boolean where
 
 import Control.Applicative ((<|>))
 
@@ -9,16 +11,11 @@ import qualified Argo.Literal as Literal
 import qualified Argo.Vendor.Builder as Builder
 import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.TemplateHaskell as TH
+import qualified GHC.Generics as Generics
 
 newtype Boolean
     = Boolean Bool
-    deriving (Eq, Show)
-
-instance TH.Lift Boolean where
-    liftTyped (Boolean x) = [|| Boolean x ||]
-
-instance DeepSeq.NFData Boolean where
-    rnf (Boolean x) = DeepSeq.rnf x
+    deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
 
 encode :: Boolean -> Builder.Builder
 encode (Boolean x) =
