@@ -505,10 +505,10 @@ instance GenValidity.GenValid Argo.Name where
     genValid = Argo.Name <$> GenValidity.genValid
     shrinkValid (Argo.Name x) = Argo.Name <$> GenValidity.shrinkValid x
 
-instance GenValidity.Validity (Argo.MemberOf Argo.Value) where
+instance GenValidity.Validity Argo.Member where
     validate (Argo.Member k v) = GenValidity.validate (k, v)
 
-instance GenValidity.GenValid (Argo.MemberOf Argo.Value) where
+instance GenValidity.GenValid Argo.Member where
     genValid = Argo.Member <$> GenValidity.genValid <*> GenValidity.genValid
     shrinkValid (Argo.Member k v) = uncurry Argo.Member <$> GenValidity.shrinkValid (k, v)
 

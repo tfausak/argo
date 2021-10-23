@@ -68,7 +68,6 @@ library
         Argo.Pattern
         Argo.QuasiQuoter
         Argo.Result
-        Argo.Type
         Argo.Type.Array
         Argo.Type.Boolean
         Argo.Type.Member
