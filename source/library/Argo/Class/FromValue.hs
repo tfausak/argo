@@ -11,7 +11,6 @@ import qualified Argo.Type.Number as Number
 import qualified Argo.Type.Object as Object
 import qualified Argo.Type.String as String
 import qualified Argo.Type.Value as Value
-import qualified Argo.Vendor.Array as Array
 import qualified Argo.Vendor.Text as Text
 import qualified Data.Bits as Bits
 import qualified Data.Int as Int
@@ -101,15 +100,8 @@ instance (FromValue a, FromValue b) => FromValue (a, b) where
         [y, z] <- fromValue x
         (,) <$> fromValue y <*> fromValue z
 
-instance FromValue a => FromValue (Array.Array Int a) where
-    fromValue = withArray "Array" $ traverse fromValue
-
 instance FromValue a => FromValue [a] where
-    fromValue =
-        let
-            arrayToList :: Array.Array Int b -> [b]
-            arrayToList = Array.elems
-        in fmap arrayToList . fromValue
+    fromValue = withArray "Array" $ traverse fromValue
 
 instance (FromValue a, Show a) => FromValue (NonEmpty.NonEmpty a) where
     fromValue value = do
@@ -122,7 +114,6 @@ instance FromValue a => FromValue (Map.Map Text.Text a) where
     fromValue = withObject "Map"
         $ fmap Map.fromList
         . traverse (\ (Member.Member (Name.Name (String.String k)) v) -> (,) k <$> fromValue v)
-        . Array.elems
 
 withBoolean :: String -> (Bool -> Result.Result a) -> Value.Value -> Result.Result a
 withBoolean s f x = case x of
@@ -139,12 +130,12 @@ withString s f x = case x of
     Value.String (String.String y) -> f y
     _ -> fail $ "expected " <> s <> " but got " <> show x
 
-withArray :: String -> (Array.Array Int Value.Value -> Result.Result a) -> Value.Value -> Result.Result a
+withArray :: String -> ([Value.Value] -> Result.Result a) -> Value.Value -> Result.Result a
 withArray s f x = case x of
     Value.Array (Type.Array.Array y) -> f y
     _ -> fail $ "expected " <> s <> " but got " <> show x
 
-withObject :: String -> (Array.Array Int (Member.Member Value.Value) -> Result.Result a) -> Value.Value -> Result.Result a
+withObject :: String -> ([Member.Member Value.Value] -> Result.Result a) -> Value.Value -> Result.Result a
 withObject s f x = case x of
     Value.Object (Object.Object y) -> f y
     _ -> fail $ "expected " <> s <> " but got " <> show x

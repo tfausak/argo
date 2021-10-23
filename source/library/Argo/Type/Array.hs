@@ -4,21 +4,16 @@ module Argo.Type.Array where
 
 import qualified Argo.Decoder as Decoder
 import qualified Argo.Literal as Literal
-import qualified Argo.Vendor.Array as Array
 import qualified Argo.Vendor.Builder as Builder
 import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.TemplateHaskell as TH
 
 newtype Array a
-    = Array (Array.Array Int a)
+    = Array [a]
     deriving (Eq, Show)
 
 instance TH.Lift a => TH.Lift (Array a) where
-    liftTyped (Array x) =
-        let
-            bounds = Array.bounds x
-            elems = Array.elems x
-        in [|| Array $ Array.listArray bounds elems ||]
+    liftTyped (Array x) = [|| Array x ||]
 
 instance DeepSeq.NFData a => DeepSeq.NFData (Array a) where
     rnf (Array x) = DeepSeq.rnf x
@@ -29,7 +24,7 @@ encode f (Array x) =
     <> foldMap
         (\ (i, e) -> (if i /= 0 then Builder.word8 Literal.comma else mempty)
             <> f e)
-        (Array.assocs x)
+        (zip [ 0 :: Int .. ] x)
     <> Builder.word8 Literal.rightSquareBracket
 
 decode :: Decoder.Decoder a -> Decoder.Decoder (Array a)
