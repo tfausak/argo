@@ -11,7 +11,6 @@ import Test.Tasty.HUnit ((@?=))
 import Test.Tasty.QuickCheck ((===))
 
 import qualified Argo
-import qualified Data.Array as Array
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Builder as Builder
 import qualified Data.ByteString.Lazy as LazyByteString
@@ -90,19 +89,19 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
             ]
         , Tasty.testGroup "Array"
             [ Tasty.testCase "empty" $ do
-                encode (Argo.Array (array [])) @?= "[]"
+                encode (Argo.Array []) @?= "[]"
             , Tasty.testCase "one element" $ do
-                encode (Argo.Array (array [Argo.Number 1 0])) @?= "[1]"
+                encode (Argo.Array [Argo.Number 1 0]) @?= "[1]"
             , Tasty.testCase "two elements" $ do
-                encode (Argo.Array (array [Argo.Number 1 0, Argo.Number 2 0])) @?= "[1,2]"
+                encode (Argo.Array [Argo.Number 1 0, Argo.Number 2 0]) @?= "[1,2]"
             ]
         , Tasty.testGroup "Object"
             [ Tasty.testCase "empty" $ do
-                encode (Argo.Object (array [])) @?= "{}"
+                encode (Argo.Object []) @?= "{}"
             , Tasty.testCase "one element" $ do
-                encode (Argo.Object (array [Argo.Member (Argo.Name "a") $ Argo.Number 1 0])) @?= "{\"a\":1}"
+                encode (Argo.Object [Argo.Member (Argo.Name "a") $ Argo.Number 1 0]) @?= "{\"a\":1}"
             , Tasty.testCase "two elements" $ do
-                encode (Argo.Object (array [Argo.Member (Argo.Name "a") $ Argo.Number 1 0, Argo.Member (Argo.Name "b") $ Argo.Number 2 0])) @?= "{\"a\":1,\"b\":2}"
+                encode (Argo.Object [Argo.Member (Argo.Name "a") $ Argo.Number 1 0, Argo.Member (Argo.Name "b") $ Argo.Number 2 0]) @?= "{\"a\":1,\"b\":2}"
             ]
         ]
     , Tasty.testGroup "decode" $ let decode = resultToMaybe . Argo.decode :: ByteString.ByteString -> Maybe Argo.Value in
@@ -242,13 +241,13 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
             ]
         , Tasty.testGroup "Array"
             [ Tasty.testCase "empty" $ do
-                decode "[]" @?= Just (Argo.Array $ array [])
+                decode "[]" @?= Just (Argo.Array [])
             , Tasty.testCase "one element" $ do
-                decode "[1]" @?= Just (Argo.Array $ array [Argo.Number 1 0])
+                decode "[1]" @?= Just (Argo.Array [Argo.Number 1 0])
             , Tasty.testCase "two elements" $ do
-                decode "[1,2]" @?= Just (Argo.Array $ array [Argo.Number 1 0, Argo.Number 2 0])
+                decode "[1,2]" @?= Just (Argo.Array [Argo.Number 1 0, Argo.Number 2 0])
             , Tasty.testCase "nested" $ do
-                decode "[1,[2]]" @?= Just (Argo.Array $ array [Argo.Number 1 0, Argo.Array $ array [Argo.Number 2 0]])
+                decode "[1,[2]]" @?= Just (Argo.Array [Argo.Number 1 0, Argo.Array [Argo.Number 2 0]])
             , Tasty.testCase "not closed" $ do
                 decode "[" @?= Nothing
             , Tasty.testCase "not opened" $ do
@@ -264,13 +263,13 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
             ]
         , Tasty.testGroup "Object"
             [ Tasty.testCase "empty" $ do
-                decode "{}" @?= Just (Argo.Object $ array [])
+                decode "{}" @?= Just (Argo.Object [])
             , Tasty.testCase "one element" $ do
-                decode "{\"a\":1}" @?= Just (Argo.Object $ array [Argo.Member (Argo.Name "a") $ Argo.Number 1 0])
+                decode "{\"a\":1}" @?= Just (Argo.Object [Argo.Member (Argo.Name "a") $ Argo.Number 1 0])
             , Tasty.testCase "two elements" $ do
-                decode "{\"a\":1,\"b\":2}" @?= Just (Argo.Object $ array [Argo.Member (Argo.Name "a") $ Argo.Number 1 0, Argo.Member (Argo.Name "b") $ Argo.Number 2 0])
+                decode "{\"a\":1,\"b\":2}" @?= Just (Argo.Object [Argo.Member (Argo.Name "a") $ Argo.Number 1 0, Argo.Member (Argo.Name "b") $ Argo.Number 2 0])
             , Tasty.testCase "nested" $ do
-                decode "{\"a\":{\"b\":2}}" @?= Just (Argo.Object $ array [Argo.Member (Argo.Name "a") . Argo.Object $ array [Argo.Member (Argo.Name "b") $ Argo.Number 2 0]])
+                decode "{\"a\":{\"b\":2}}" @?= Just (Argo.Object [Argo.Member (Argo.Name "a") $ Argo.Object [Argo.Member (Argo.Name "b") $ Argo.Number 2 0]])
             , Tasty.testCase "not closed" $ do
                 decode "{" @?= Nothing
             , Tasty.testCase "not opened" $ do
@@ -341,17 +340,15 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
         , Tasty.testCase "Maybe a" $ do
             fromValue (Argo.Boolean False) @?= Just (Just False)
         , Tasty.testCase "()" $ do
-            fromValue (Argo.Array $ array []) @?= Just ()
+            fromValue (Argo.Array []) @?= Just ()
         , Tasty.testCase "(a, b)" $ do
-            fromValue (Argo.Array $ array [Argo.Boolean False, Argo.String "a"]) @?= Just (False, 'a')
-        , Tasty.testCase "Array Int a" $ do
-            fromValue (Argo.Array $ array []) @?= Just (array [] :: Array.Array Int Bool)
+            fromValue (Argo.Array [Argo.Boolean False, Argo.String "a"]) @?= Just (False, 'a')
         , Tasty.testCase "[a]" $ do
-            fromValue (Argo.Array $ array []) @?= Just ([] :: [Bool])
+            fromValue (Argo.Array []) @?= Just ([] :: [Bool])
         , Tasty.testCase "NonEmpty a" $ do
-            fromValue (Argo.Array $ array [Argo.Boolean False]) @?= Just (False :| [])
+            fromValue (Argo.Array [Argo.Boolean False]) @?= Just (False :| [])
         , Tasty.testCase "Map Text a" $ do
-            fromValue (Argo.Object $ array [Argo.Member (Argo.Name "a") $ Argo.Boolean False]) @?= Just (Map.fromList [("a" :: Text.Text, False)])
+            fromValue (Argo.Object [Argo.Member (Argo.Name "a") $ Argo.Boolean False]) @?= Just (Map.fromList [("a" :: Text.Text, False)])
         ]
     , Tasty.testGroup "toValue"
         [ Tasty.testCase "Value" $ do
@@ -395,17 +392,15 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
         , Tasty.testCase "Maybe a" $ do
             Argo.toValue (Just False) @?= Argo.Boolean False
         , Tasty.testCase "()" $ do
-            Argo.toValue () @?= Argo.Array (array [])
+            Argo.toValue () @?= Argo.Array []
         , Tasty.testCase "(a, b)" $ do
-            Argo.toValue (False, 'a') @?= Argo.Array (array [Argo.Boolean False, Argo.String "a"])
-        , Tasty.testCase "Array Int a" $ do
-            Argo.toValue (array [] :: Array.Array Int Bool) @?= Argo.Array (array [])
+            Argo.toValue (False, 'a') @?= Argo.Array [Argo.Boolean False, Argo.String "a"]
         , Tasty.testCase "[a]" $ do
-            Argo.toValue ([] :: [Bool]) @?= Argo.Array (array [])
+            Argo.toValue ([] :: [Bool]) @?= Argo.Array []
         , Tasty.testCase "NonEmpty a" $ do
-            Argo.toValue (False :| []) @?= Argo.Array (array [Argo.Boolean False])
+            Argo.toValue (False :| []) @?= Argo.Array [Argo.Boolean False]
         , Tasty.testCase "Map Text a" $ do
-            Argo.toValue (Map.fromList [("a" :: Text.Text, False)]) @?= Argo.Object (array [Argo.Member (Argo.Name "a") $ Argo.Boolean False])
+            Argo.toValue (Map.fromList [("a" :: Text.Text, False)]) @?= Argo.Object [Argo.Member (Argo.Name "a") $ Argo.Boolean False]
         ]
     , Tasty.testGroup "quasi quoter"
         [ Tasty.testCase "Null" $ do
@@ -417,9 +412,9 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
         , Tasty.testCase "String" $ do
             [Argo.value| "" |] @?= Argo.String ""
         , Tasty.testCase "Array" $ do
-            [Argo.value| [] |] @?= Argo.Array (array [])
+            [Argo.value| [] |] @?= Argo.Array []
         , Tasty.testCase "Object" $ do
-            [Argo.value| {} |] @?= Argo.Object (array [])
+            [Argo.value| {} |] @?= Argo.Object []
         ]
     , Tasty.testGroup "property"
         [ property "decode . encode" $ \ x ->
@@ -475,8 +470,6 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: ())
             , property "(a, b)" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: (Bool, Int.Int8))
-            , property "Array Int a" $ \ x ->
-                Argo.fromValue (Argo.toValue x) === Argo.Success (x :: Array.Array Int Bool)
             , property "[a]" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: [Bool])
             , property "NonEmpty a" $ \ x ->
@@ -504,9 +497,6 @@ propertyWith
 propertyWith n g s f = Tasty.testProperty n
     . Tasty.forAll g
     $ \ x -> Tasty.shrinking s x f
-
-array :: [a] -> Array.Array Int a
-array xs = Array.listArray (0, length xs - 1) xs
 
 instance GenValidity.Validity Argo.Name where
     validate (Argo.Name x) = GenValidity.validate x
@@ -547,21 +537,11 @@ genValueSized size = let newSize = div size 3 in Tasty.oneof
     , Argo.Boolean <$> GenValidity.genValid
     , Argo.Number <$> GenValidity.genValid <*> GenValidity.genValid
     , Argo.String <$> GenValidity.genValid
-    , Argo.Array <$> genArray size (genValueSized newSize)
-    , Argo.Object <$> genArray size (Argo.Member <$> GenValidity.genValid <*> genValueSized newSize)
+    , Argo.Array <$> Tasty.vectorOf size (genValueSized newSize)
+    , Argo.Object <$> Tasty.vectorOf size (Argo.Member <$> GenValidity.genValid <*> genValueSized newSize)
     ]
-
-genArray :: Int -> Tasty.Gen a -> Tasty.Gen (Array.Array Int a)
-genArray n = fmap (Array.listArray (0, n - 1)) . Tasty.vectorOf n
 
 resultToMaybe :: Argo.Result a -> Maybe a
 resultToMaybe r = case r of
     Argo.Failure _ -> Nothing
     Argo.Success x -> Just x
-
-instance GenValidity.Validity a => GenValidity.Validity (Array.Array Int a) where
-    validate = GenValidity.validate . Array.elems
-
-instance GenValidity.GenValid a => GenValidity.GenValid (Array.Array Int a) where
-    genValid = array <$> GenValidity.genValid
-    shrinkValid = Tasty.shrinkMapBy array Array.elems GenValidity.shrinkValid

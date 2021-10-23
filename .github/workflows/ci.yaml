@@ -20,10 +20,6 @@ jobs:
           - { os: windows-2019, ghc: 9.0.1, ext: .exe }
     runs-on: ${{ matrix.os }}
     steps:
-    
-      # https://github.com/haskell/actions/issues/36
-      - if: matrix.os == 'windows-2019'
-        run: echo "TEMP=$env:USERPROFILE\AppData\Local\Temp" >> $env:GITHUB_ENV
 
       - uses: actions/checkout@v2
 

@@ -23,7 +23,6 @@ flag pedantic
 
 common library
     build-depends:
-        , array >= 0.5.4 && < 0.6
         , base >= 4.14.0 && < 4.16
         , bytestring >= 0.10.12 && < 0.11
         , containers >= 0.6.4 && < 0.7
@@ -81,7 +80,6 @@ library
         Argo.Type.Value
     hs-source-dirs: source/library
     other-modules:
-        Argo.Vendor.Array
         Argo.Vendor.ByteString
         Argo.Vendor.Builder
         Argo.Vendor.DeepSeq

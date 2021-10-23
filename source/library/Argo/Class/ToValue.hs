@@ -11,7 +11,6 @@ import qualified Argo.Type.Number as Number
 import qualified Argo.Type.Object as Object
 import qualified Argo.Type.String as String
 import qualified Argo.Type.Value as Value
-import qualified Argo.Vendor.Array as Array
 import qualified Argo.Vendor.Text as Text
 import qualified Data.Int as Int
 import qualified Data.List as List
@@ -89,15 +88,8 @@ instance ToValue () where
 instance (ToValue a, ToValue b) => ToValue (a, b) where
     toValue (x, y) = toValue [toValue x, toValue y]
 
-instance ToValue a => ToValue (Array.Array Int a) where
-    toValue = Value.Array . Type.Array.Array . fmap toValue
-
 instance ToValue a => ToValue [a] where
-    toValue =
-        let
-            listToArray :: [b] -> Array.Array Int b
-            listToArray xs = Array.listArray (0, length xs - 1) xs
-        in toValue . listToArray
+    toValue = Value.Array . Type.Array.Array . fmap toValue
 
 instance ToValue a => ToValue (NonEmpty.NonEmpty a) where
     toValue = toValue . NonEmpty.toList
@@ -105,7 +97,6 @@ instance ToValue a => ToValue (NonEmpty.NonEmpty a) where
 instance ToValue a => ToValue (Map.Map Text.Text a) where
     toValue x = Value.Object
         . Object.Object
-        . Array.listArray (0, Map.size x - 1)
         . fmap (\ (k, v) -> Member.Member (Name.Name (String.String k)) (toValue v))
         $ Map.toAscList x
 

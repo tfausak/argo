@@ -2,7 +2,6 @@ module Argo.Decoder where
 
 import qualified Argo.Literal as Literal
 import qualified Argo.Result as Result
-import qualified Argo.Vendor.Array as Array
 import qualified Argo.Vendor.ByteString as ByteString
 import qualified Control.Applicative as Applicative
 import qualified Control.Monad as Monad
@@ -39,19 +38,19 @@ instance Applicative.Alternative Decoder where
         Result.Failure _ -> run dy b1
         Result.Success (b2, x) -> Result.Success (b2, x)
 
-array :: Decoder a -> Decoder (Array.Array Int a)
-array f = arrayWith f 0 []
+list :: Decoder a -> Decoder [a]
+list f = listWith f []
 
-arrayWith :: Decoder a -> Int -> [(Int, a)] -> Decoder (Array.Array Int a)
-arrayWith f n xs = do
+listWith :: Decoder a -> [a] -> Decoder [a]
+listWith f xs = do
     m <- Applicative.optional $ do
-        Monad.when (n /= 0) $ do
+        Monad.unless (null xs) $ do
             word8 Literal.comma
             spaces
         f
     case m of
-        Nothing -> pure $ Array.array (0, n - 1) xs
-        Just x -> arrayWith f (n + 1) $ (n, x) : xs
+        Nothing -> pure $ reverse xs
+        Just x -> listWith f $ x : xs
 
 byteString :: ByteString.ByteString -> Decoder ()
 byteString x = do
