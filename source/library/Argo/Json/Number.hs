@@ -2,14 +2,14 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveLift #-}
 
-module Argo.Type.Number where
+module Argo.Json.Number where
 
 import Data.Ratio ((%))
 
 import qualified Argo.Decoder as Decoder
 import qualified Argo.Literal as Literal
-import qualified Argo.Vendor.ByteString as ByteString
 import qualified Argo.Vendor.Builder as Builder
+import qualified Argo.Vendor.ByteString as ByteString
 import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.TemplateHaskell as TH
 import qualified Control.Applicative as Applicative

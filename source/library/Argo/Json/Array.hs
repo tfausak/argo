@@ -2,7 +2,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveLift #-}
 
-module Argo.Type.Array where
+module Argo.Json.Array where
 
 import qualified Argo.Decoder as Decoder
 import qualified Argo.Literal as Literal

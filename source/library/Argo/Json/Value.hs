@@ -2,17 +2,17 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveLift #-}
 
-module Argo.Type.Value where
+module Argo.Json.Value where
 
 import Control.Applicative ((<|>))
 
 import qualified Argo.Decoder as Decoder
-import qualified Argo.Type.Array as Array
-import qualified Argo.Type.Boolean as Boolean
-import qualified Argo.Type.Null as Null
-import qualified Argo.Type.Number as Number
-import qualified Argo.Type.Object as Object
-import qualified Argo.Type.String as String
+import qualified Argo.Json.Array as Array
+import qualified Argo.Json.Boolean as Boolean
+import qualified Argo.Json.Null as Null
+import qualified Argo.Json.Number as Number
+import qualified Argo.Json.Object as Object
+import qualified Argo.Json.String as String
 import qualified Argo.Vendor.Builder as Builder
 import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.TemplateHaskell as TH

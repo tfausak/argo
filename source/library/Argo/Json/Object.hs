@@ -2,11 +2,11 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveLift #-}
 
-module Argo.Type.Object where
+module Argo.Json.Object where
 
 import qualified Argo.Decoder as Decoder
+import qualified Argo.Json.Member as Member
 import qualified Argo.Literal as Literal
-import qualified Argo.Type.Member as Member
 import qualified Argo.Vendor.Builder as Builder
 import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.TemplateHaskell as TH

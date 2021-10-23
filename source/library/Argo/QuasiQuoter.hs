@@ -1,8 +1,8 @@
 module Argo.QuasiQuoter where
 
 import qualified Argo.Decode as Decode
+import qualified Argo.Json.Value as Value
 import qualified Argo.Result as Result
-import qualified Argo.Type.Value as Value
 import qualified Argo.Vendor.TemplateHaskell as TH
 import qualified Argo.Vendor.Text as Text
 

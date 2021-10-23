@@ -27,8 +27,8 @@ import qualified Argo.Class.FromValue as FromValue
 import qualified Argo.Class.ToValue as ToValue
 import qualified Argo.Decode as Decode
 import qualified Argo.Encode as Encode
+import qualified Argo.Json.Name as Name
+import qualified Argo.Json.Value as Value
 import qualified Argo.Pattern as Pattern
 import qualified Argo.QuasiQuoter as QuasiQuoter
 import qualified Argo.Result as Result
-import qualified Argo.Type.Name as Name
-import qualified Argo.Type.Value as Value

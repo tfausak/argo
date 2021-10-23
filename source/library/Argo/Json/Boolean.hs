@@ -2,7 +2,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveLift #-}
 
-module Argo.Type.Boolean where
+module Argo.Json.Boolean where
 
 import Control.Applicative ((<|>))
 
