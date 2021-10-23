@@ -22,16 +22,16 @@ encode :: (a -> Builder.Builder) -> Array a -> Builder.Builder
 encode f (Array x) =
     Builder.word8 Literal.leftSquareBracket
     <> foldMap
-        (\ (i, e) -> (if i /= 0 then Builder.word8 Literal.comma else mempty)
+        (\ (p, e) -> (if p then Builder.word8 Literal.comma else mempty)
             <> f e)
-        (zip [ 0 :: Int .. ] x)
+        (zip (True : repeat False) x)
     <> Builder.word8 Literal.rightSquareBracket
 
 decode :: Decoder.Decoder a -> Decoder.Decoder (Array a)
 decode f = do
     Decoder.word8 Literal.leftSquareBracket
     Decoder.spaces
-    xs <- Decoder.array f
+    xs <- Decoder.list f
     Decoder.word8 Literal.rightSquareBracket
     Decoder.spaces
     pure $ Array xs

@@ -38,19 +38,19 @@ instance Applicative.Alternative Decoder where
         Result.Failure _ -> run dy b1
         Result.Success (b2, x) -> Result.Success (b2, x)
 
-array :: Decoder a -> Decoder [a]
-array f = arrayWith f 0 []
+list :: Decoder a -> Decoder [a]
+list f = listWith f []
 
-arrayWith :: Decoder a -> Int -> [(Int, a)] -> Decoder [a]
-arrayWith f n xs = do
+listWith :: Decoder a -> [a] -> Decoder [a]
+listWith f xs = do
     m <- Applicative.optional $ do
-        Monad.when (n /= 0) $ do
+        Monad.unless (null xs) $ do
             word8 Literal.comma
             spaces
         f
     case m of
-        Nothing -> pure . reverse $ fmap snd xs
-        Just x -> arrayWith f (n + 1) $ (n, x) : xs
+        Nothing -> pure $ reverse xs
+        Just x -> listWith f $ x : xs
 
 byteString :: ByteString.ByteString -> Decoder ()
 byteString x = do
