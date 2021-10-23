@@ -7,6 +7,7 @@ module Argo.Json.Number where
 import Data.Ratio ((%))
 
 import qualified Argo.Decoder as Decoder
+import qualified Argo.Encoder as Encoder
 import qualified Argo.Literal as Literal
 import qualified Argo.Vendor.Builder as Builder
 import qualified Argo.Vendor.ByteString as ByteString
@@ -35,8 +36,8 @@ normalize (Number x y) =
     then normalize $ Number q (y + 1)
     else Number x y
 
-encode :: Number -> Builder.Builder
-encode (Number x y) =
+encode :: Encoder.Encoder Number
+encode = Encoder.Encoder $ \ _ (Number x y) ->
     if y == 0
     then Builder.integerDec x
     else Builder.integerDec x

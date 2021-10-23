@@ -5,6 +5,7 @@
 module Argo.Json.String where
 
 import qualified Argo.Decoder as Decoder
+import qualified Argo.Encoder as Encoder
 import qualified Argo.Literal as Literal
 import qualified Argo.Vendor.Builder as Builder
 import qualified Argo.Vendor.ByteString as ByteString
@@ -20,8 +21,8 @@ newtype String
     = String Text.Text
     deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
 
-encode :: Argo.Json.String.String -> Builder.Builder
-encode (String x) =
+encode :: Encoder.Encoder Argo.Json.String.String
+encode = Encoder.Encoder $ \ _ (String x) ->
     Builder.word8 Literal.quotationMark
     <> Text.encodeUtf8BuilderEscaped encodeChar x
     <> Builder.word8 Literal.quotationMark

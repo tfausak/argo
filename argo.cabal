@@ -64,6 +64,7 @@ library
         Argo.Decode
         Argo.Decoder
         Argo.Encode
+        Argo.Encoder
         Argo.Json.Array
         Argo.Json.Boolean
         Argo.Json.Member
