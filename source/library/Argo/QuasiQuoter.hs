@@ -8,10 +8,10 @@ import qualified Argo.Vendor.Text as Text
 
 value :: TH.QuasiQuoter
 value = TH.QuasiQuoter
-    { TH.quoteDec = const $ fail "quoteDec"
+    { TH.quoteDec = const $ fail "cannot be used as a declaration"
     , TH.quoteExp = quoteExp
-    , TH.quotePat = const $ fail "quotePat"
-    , TH.quoteType = const $ fail "quoteType"
+    , TH.quotePat = const $ fail "cannot be used as a pattern"
+    , TH.quoteType = const $ fail "cannot be used as a type"
     }
 
 quoteExp :: String -> TH.Q TH.Exp
