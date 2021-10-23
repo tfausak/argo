@@ -2,14 +2,8 @@
 
 module Argo.Class.ToValue where
 
-import qualified Argo.Type.Array as Type.Array
-import qualified Argo.Type.Boolean as Boolean
-import qualified Argo.Type.Member as Member
-import qualified Argo.Type.Name as Name
-import qualified Argo.Type.Null as Null
+import qualified Argo.Pattern as Pattern
 import qualified Argo.Type.Number as Number
-import qualified Argo.Type.Object as Object
-import qualified Argo.Type.String as String
 import qualified Argo.Type.Value as Value
 import qualified Argo.Vendor.Text as Text
 import qualified Data.Int as Int
@@ -26,7 +20,7 @@ instance ToValue Value.Value where
     toValue = id
 
 instance ToValue Bool where
-    toValue = Value.Boolean . Boolean.Boolean
+    toValue = Pattern.Boolean
 
 instance ToValue Char where
     toValue = toValue . Text.singleton
@@ -62,7 +56,7 @@ instance ToValue Word.Word64 where
     toValue = toValue . toInteger
 
 instance ToValue Integer where
-    toValue = Value.Number . flip Number.number 0
+    toValue = flip Pattern.Number 0
 
 instance ToValue Float where
     toValue = realFloatToValue
@@ -74,13 +68,13 @@ instance {-# OVERLAPPING #-} ToValue String where
     toValue = toValue . Text.pack
 
 instance ToValue Text.Text where
-    toValue = Value.String . String.String
+    toValue = Pattern.String
 
 instance ToValue Text.LazyText where
     toValue = toValue . Text.toStrict
 
 instance ToValue a => ToValue (Maybe a) where
-    toValue = maybe (Value.Null $ Null.Null ()) toValue
+    toValue = maybe Pattern.Null toValue
 
 instance ToValue () where
     toValue = const $ toValue ([] :: [Value.Value])
@@ -89,21 +83,20 @@ instance (ToValue a, ToValue b) => ToValue (a, b) where
     toValue (x, y) = toValue [toValue x, toValue y]
 
 instance ToValue a => ToValue [a] where
-    toValue = Value.Array . Type.Array.Array . fmap toValue
+    toValue = Pattern.Array . fmap toValue
 
 instance ToValue a => ToValue (NonEmpty.NonEmpty a) where
     toValue = toValue . NonEmpty.toList
 
 instance ToValue a => ToValue (Map.Map Text.Text a) where
-    toValue x = Value.Object
-        . Object.Object
-        . fmap (\ (k, v) -> Member.Member (Name.Name (String.String k)) (toValue v))
+    toValue x = Pattern.Object
+        . fmap (\ (k, v) -> Pattern.Member (Pattern.Name k) (toValue v))
         $ Map.toAscList x
 
 realFloatToValue :: RealFloat a => a -> Value.Value
 realFloatToValue x
-    | isNaN x = Value.Null $ Null.Null ()
-    | isInfinite x = Value.Null $ Null.Null ()
+    | isNaN x = Pattern.Null
+    | isInfinite x = Pattern.Null
     | otherwise =
         let isNegative = x < 0
         in Value.Number
