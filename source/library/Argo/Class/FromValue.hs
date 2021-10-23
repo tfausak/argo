@@ -2,14 +2,9 @@
 
 module Argo.Class.FromValue where
 
+import qualified Argo.Pattern as Pattern
 import qualified Argo.Result as Result
-import qualified Argo.Type.Array as Type.Array
-import qualified Argo.Type.Boolean as Boolean
-import qualified Argo.Type.Member as Member
-import qualified Argo.Type.Name as Name
 import qualified Argo.Type.Number as Number
-import qualified Argo.Type.Object as Object
-import qualified Argo.Type.String as String
 import qualified Argo.Type.Value as Value
 import qualified Argo.Vendor.Text as Text
 import qualified Data.Bits as Bits
@@ -65,7 +60,7 @@ instance FromValue Word.Word64 where
 instance FromValue Integer where
     fromValue = withNumber "Integer" $ \ x y ->
         if y < 0
-        then fail $ "expected integer but got " <> show (Number.number x y)
+        then fail $ "expected integer but got " <> show (Pattern.Number x y)
         else pure $ x * 10 ^ y
 
 instance FromValue Float where
@@ -87,57 +82,57 @@ instance FromValue Text.LazyText where
 
 instance FromValue a => FromValue (Maybe a) where
     fromValue x = case x of
-        Value.Null _ -> pure Nothing
+        Pattern.Null -> pure Nothing
         _ -> Just <$> fromValue x
 
 instance FromValue () where
-    fromValue x = do
-        [] <- fromValue x :: Result.Result [Value.Value]
-        pure ()
+    fromValue = withArray "()" $ \ xs -> case xs of
+        [] -> pure ()
+        _ -> fail $ "expected empty list but got " <> show xs
 
 instance (FromValue a, FromValue b) => FromValue (a, b) where
-    fromValue x = do
-        [y, z] <- fromValue x
-        (,) <$> fromValue y <*> fromValue z
+    fromValue = withArray "(a, b)" $ \ xs -> case xs of
+        [x, y] -> (,) <$> fromValue x <*> fromValue y
+        _ -> fail $ "expected tuple but got " <> show xs
 
 instance FromValue a => FromValue [a] where
-    fromValue = withArray "Array" $ traverse fromValue
+    fromValue = withArray "[a]" $ traverse fromValue
 
-instance (FromValue a, Show a) => FromValue (NonEmpty.NonEmpty a) where
+instance FromValue a => FromValue (NonEmpty.NonEmpty a) where
     fromValue value = do
         list <- fromValue value
         case NonEmpty.nonEmpty list of
-            Nothing -> fail $ "expected non-empty list but got " <> show list
+            Nothing -> fail "unexpected empty list"
             Just nonEmpty -> pure nonEmpty
 
 instance FromValue a => FromValue (Map.Map Text.Text a) where
     fromValue = withObject "Map"
         $ fmap Map.fromList
-        . traverse (\ (Member.Member (Name.Name (String.String k)) v) -> (,) k <$> fromValue v)
+        . traverse (\ (Pattern.Member (Pattern.Name k) v) -> (,) k <$> fromValue v)
 
 withBoolean :: String -> (Bool -> Result.Result a) -> Value.Value -> Result.Result a
 withBoolean s f x = case x of
-    Value.Boolean (Boolean.Boolean y) -> f y
+    Pattern.Boolean y -> f y
     _ -> fail $ "expected " <> s <> " but got " <> show x
 
 withNumber :: String -> (Integer -> Integer -> Result.Result a) -> Value.Value -> Result.Result a
 withNumber s f x = case x of
-    Value.Number (Number.Number y z) -> f y z
+    Pattern.Number y z -> f y z
     _ -> fail $ "expected " <> s <> " but got " <> show x
 
 withString :: String -> (Text.Text -> Result.Result a) -> Value.Value -> Result.Result a
 withString s f x = case x of
-    Value.String (String.String y) -> f y
+    Pattern.String y -> f y
     _ -> fail $ "expected " <> s <> " but got " <> show x
 
-withArray :: String -> ([Value.Value] -> Result.Result a) -> Value.Value -> Result.Result a
+withArray :: String -> (Pattern.Array -> Result.Result a) -> Value.Value -> Result.Result a
 withArray s f x = case x of
-    Value.Array (Type.Array.Array y) -> f y
+    Pattern.Array y -> f y
     _ -> fail $ "expected " <> s <> " but got " <> show x
 
-withObject :: String -> ([Member.MemberOf Value.Value] -> Result.Result a) -> Value.Value -> Result.Result a
+withObject :: String -> (Pattern.Object -> Result.Result a) -> Value.Value -> Result.Result a
 withObject s f x = case x of
-    Value.Object (Object.Object y) -> f y
+    Pattern.Object y -> f y
     _ -> fail $ "expected " <> s <> " but got " <> show x
 
 viaInteger :: (Integral a, Bits.Bits a) => Value.Value -> Result.Result a
