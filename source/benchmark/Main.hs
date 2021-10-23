@@ -64,12 +64,27 @@ main = Tasty.defaultMain
             , Tasty.bench "short escape" $ Tasty.nf decode "\"\\n\""
             , Tasty.bench "long escape" $ Tasty.nf decode "\"\\u001f\""
             , Tasty.bench "surrogate pair" $ Tasty.nf decode "\"\\ud834\\udd1e\""
+            , Tasty.bench "1 character" . Tasty.nf decode $ "\"" <> ByteString.replicate 1 0x61 <> "\""
+            , Tasty.bench "10 characters" . Tasty.nf decode $ "\"" <> ByteString.replicate 10 0x61 <> "\""
+            , Tasty.bench "100 characters" . Tasty.nf decode $ "\"" <> ByteString.replicate 100 0x61 <> "\""
+            , Tasty.bench "1000 characters" . Tasty.nf decode $ "\"" <> ByteString.replicate 1000 0x61 <> "\""
+            , Tasty.bench "10000 characters" . Tasty.nf decode $ "\"" <> ByteString.replicate 10000 0x61 <> "\""
             ]
         , Tasty.bgroup "Array"
             [ Tasty.bench "empty" $ Tasty.nf decode "[]"
+            , Tasty.bench "1 element" $ Tasty.nf decode "[null]"
+            , Tasty.bench "10 elements" . Tasty.nf decode $ "[null" <> ByteString.pack (take (5 * 9) $ cycle [0x2c, 0x6e, 0x75, 0x6c, 0x6c]) <> "]"
+            , Tasty.bench "100 elements" . Tasty.nf decode $ "[null" <> ByteString.pack (take (5 * 99) $ cycle [0x2c, 0x6e, 0x75, 0x6c, 0x6c]) <> "]"
+            , Tasty.bench "1000 elements" . Tasty.nf decode $ "[null" <> ByteString.pack (take (5 * 999) $ cycle [0x2c, 0x6e, 0x75, 0x6c, 0x6c]) <> "]"
+            , Tasty.bench "10000 elements" . Tasty.nf decode $ "[null" <> ByteString.pack (take (5 * 9999) $ cycle [0x2c, 0x6e, 0x75, 0x6c, 0x6c]) <> "]"
             ]
         , Tasty.bgroup "Object"
             [ Tasty.bench "empty" $ Tasty.nf decode "{}"
+            , Tasty.bench "1 element" $ Tasty.nf decode "{\"\":null}"
+            , Tasty.bench "10 elements" . Tasty.nf decode $ "{\"\":null" <> ByteString.pack (take (5 * 9) $ cycle [0x2c, 0x22, 0x22, 0x3a, 0x6e, 0x75, 0x6c, 0x6c]) <> "}"
+            , Tasty.bench "100 elements" . Tasty.nf decode $ "{\"\":null" <> ByteString.pack (take (5 * 99) $ cycle [0x2c, 0x22, 0x22, 0x3a, 0x6e, 0x75, 0x6c, 0x6c]) <> "}"
+            , Tasty.bench "1000 elements" . Tasty.nf decode $ "{\"\":null" <> ByteString.pack (take (5 * 999) $ cycle [0x2c, 0x22, 0x22, 0x3a, 0x6e, 0x75, 0x6c, 0x6c]) <> "}"
+            , Tasty.bench "10000 elements" . Tasty.nf decode $ "{\"\":null" <> ByteString.pack (take (5 * 9999) $ cycle [0x2c, 0x22, 0x22, 0x3a, 0x6e, 0x75, 0x6c, 0x6c]) <> "}"
             ]
         ]
     ]
