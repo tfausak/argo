@@ -21,7 +21,7 @@ newtype Boolean
 
 encode :: Boolean -> Encoder.Encoder ()
 encode (Boolean x) = do
-    Trans.tell . Builder.byteString $ if x then Literal.true else Literal.false
+    Trans.lift . Trans.tell . Builder.byteString $ if x then Literal.true else Literal.false
 
 decode :: Decoder.Decoder Boolean
 decode = decodeFalse <|> decodeTrue

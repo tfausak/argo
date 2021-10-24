@@ -19,7 +19,7 @@ newtype Null
 
 encode :: Null -> Encoder.Encoder ()
 encode _ = do
-    Trans.tell $ Builder.byteString Literal.null
+    Trans.lift . Trans.tell $ Builder.byteString Literal.null
 
 decode :: Decoder.Decoder Null
 decode = Null () <$ Decoder.byteString Literal.null <* Decoder.spaces

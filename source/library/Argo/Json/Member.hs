@@ -21,7 +21,7 @@ data MemberOf value
 encode :: (value -> Encoder.Encoder ()) -> MemberOf value -> Encoder.Encoder ()
 encode f (Member x y) = do
     Name.encode x
-    Trans.tell $ Builder.word8 Literal.colon
+    Trans.lift . Trans.tell $ Builder.word8 Literal.colon
     f y
 
 decode :: Decoder.Decoder value -> Decoder.Decoder (MemberOf value)

@@ -21,11 +21,11 @@ newtype ObjectOf value
 
 encode :: (value -> Encoder.Encoder ()) -> ObjectOf value -> Encoder.Encoder ()
 encode f (Object xs) = do
-    Trans.tell $ Builder.word8 Literal.leftCurlyBracket
+    Trans.lift . Trans.tell $ Builder.word8 Literal.leftCurlyBracket
     Monad.forM_ (zip (False : repeat True) xs) $ \ (p, x) -> do
-        Monad.when p . Trans.tell $ Builder.word8 Literal.comma
+        Monad.when p . Trans.lift . Trans.tell $ Builder.word8 Literal.comma
         Member.encode f x
-    Trans.tell $ Builder.word8 Literal.rightCurlyBracket
+    Trans.lift . Trans.tell $ Builder.word8 Literal.rightCurlyBracket
 
 decode :: Decoder.Decoder value -> Decoder.Decoder (ObjectOf value)
 decode f = do

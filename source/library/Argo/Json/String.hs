@@ -24,9 +24,9 @@ newtype String
 
 encode :: Argo.Json.String.String -> Encoder.Encoder ()
 encode (String x) = do
-    Trans.tell $ Builder.word8 Literal.quotationMark
-    Trans.tell $ Text.encodeUtf8BuilderEscaped encodeChar x
-    Trans.tell $ Builder.word8 Literal.quotationMark
+    Trans.lift . Trans.tell $ Builder.word8 Literal.quotationMark
+    Trans.lift . Trans.tell $ Text.encodeUtf8BuilderEscaped encodeChar x
+    Trans.lift . Trans.tell $ Builder.word8 Literal.quotationMark
 
 encodeChar :: Builder.BoundedPrim Word.Word8
 encodeChar =
