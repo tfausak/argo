@@ -58,6 +58,7 @@ common executable
 library
     import: library
 
+    autogen-modules: Paths_argo
     exposed-modules:
         Argo
         Argo.Class.FromValue
@@ -88,6 +89,7 @@ library
         Argo.Vendor.TemplateHaskell
         Argo.Vendor.Text
         Argo.Vendor.Transformers
+        Paths_argo
 
 executable argo
     import: executable
