@@ -76,6 +76,7 @@ library
         Argo.Json.String
         Argo.Json.Value
         Argo.Literal
+        Argo.Main
         Argo.Pattern
         Argo.QuasiQuoter
         Argo.Result
