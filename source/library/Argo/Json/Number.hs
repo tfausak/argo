@@ -13,6 +13,7 @@ import qualified Argo.Vendor.Builder as Builder
 import qualified Argo.Vendor.ByteString as ByteString
 import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.TemplateHaskell as TH
+import qualified Argo.Vendor.Transformers as Trans
 import qualified Control.Applicative as Applicative
 import qualified Control.Monad as Monad
 import qualified Data.Bool as Bool
@@ -36,13 +37,12 @@ normalize (Number x y) =
     then normalize $ Number q (y + 1)
     else Number x y
 
-encode :: Encoder.Encoder Number
-encode = Encoder.Encoder $ \ _ (Number x y) ->
-    if y == 0
-    then Builder.integerDec x
-    else Builder.integerDec x
-        <> Builder.word8 Literal.latinSmallLetterE
-        <> Builder.integerDec y
+encode :: Number -> Encoder.Encoder ()
+encode (Number x y) = do
+    Trans.tell $ Builder.integerDec x
+    Monad.when (y /= 0) $ do
+        Trans.tell $ Builder.word8 Literal.latinSmallLetterE
+        Trans.tell $ Builder.integerDec y
 
 decode :: Decoder.Decoder Number
 decode = do

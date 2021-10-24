@@ -15,9 +15,9 @@ newtype Name
     = Name String.String
     deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
 
-encode :: Encoder.Encoder Name
-encode = Encoder.Encoder $ \ n (Name x) ->
-    Encoder.run String.encode n x
+encode :: Name -> Encoder.Encoder ()
+encode (Name x) = do
+    String.encode x
 
 decode :: Decoder.Decoder Name
 decode = Name <$> String.decode

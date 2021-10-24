@@ -12,15 +12,16 @@ import qualified Argo.Literal as Literal
 import qualified Argo.Vendor.Builder as Builder
 import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.TemplateHaskell as TH
+import qualified Argo.Vendor.Transformers as Trans
 import qualified GHC.Generics as Generics
 
 newtype Boolean
     = Boolean Bool
     deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
 
-encode :: Encoder.Encoder Boolean
-encode = Encoder.Encoder $ \ _ (Boolean x) ->
-    Builder.byteString $ if x then Literal.true else Literal.false
+encode :: Boolean -> Encoder.Encoder ()
+encode (Boolean x) = do
+    Trans.tell . Builder.byteString $ if x then Literal.true else Literal.false
 
 decode :: Decoder.Decoder Boolean
 decode = decodeFalse <|> decodeTrue

@@ -11,25 +11,21 @@ import qualified Argo.Literal as Literal
 import qualified Argo.Vendor.Builder as Builder
 import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.TemplateHaskell as TH
-import qualified Data.Semigroup as Semigroup
+import qualified Argo.Vendor.Transformers as Trans
+import qualified Control.Monad as Monad
 import qualified GHC.Generics as Generics
 
 newtype ObjectOf value
     = Object [Member.MemberOf value]
     deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
 
-encode :: Encoder.Encoder value -> Encoder.Encoder (ObjectOf value)
-encode e = Encoder.Encoder $ \ n (Object xs) ->
-    Builder.word8 Literal.leftCurlyBracket
-    <> foldMap
-        (\ (p, x) -> (if p then Builder.word8 Literal.comma else mempty)
-            <> Builder.word8 Literal.newLine
-            <> Semigroup.stimesMonoid (n + 1) (Builder.word8 Literal.horizontalTabulation)
-            <> Encoder.run (Member.encode e) (n + 1) x)
-        (zip (False : repeat True) xs)
-    <> Builder.word8 Literal.newLine
-    <> Semigroup.stimesMonoid n (Builder.word8 Literal.horizontalTabulation)
-    <> Builder.word8 Literal.rightCurlyBracket
+encode :: (value -> Encoder.Encoder ()) -> ObjectOf value -> Encoder.Encoder ()
+encode f (Object xs) = do
+    Trans.tell $ Builder.word8 Literal.leftCurlyBracket
+    Monad.forM_ (zip (False : repeat True) xs) $ \ (p, x) -> do
+        Monad.when p . Trans.tell $ Builder.word8 Literal.comma
+        Member.encode f x
+    Trans.tell $ Builder.word8 Literal.rightCurlyBracket
 
 decode :: Decoder.Decoder value -> Decoder.Decoder (ObjectOf value)
 decode f = do

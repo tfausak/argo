@@ -12,6 +12,7 @@ import qualified Argo.Vendor.ByteString as ByteString
 import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.TemplateHaskell as TH
 import qualified Argo.Vendor.Text as Text
+import qualified Argo.Vendor.Transformers as Trans
 import qualified Control.Monad as Monad
 import qualified Data.Char as Char
 import qualified Data.Word as Word
@@ -21,11 +22,11 @@ newtype String
     = String Text.Text
     deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
 
-encode :: Encoder.Encoder Argo.Json.String.String
-encode = Encoder.Encoder $ \ _ (String x) ->
-    Builder.word8 Literal.quotationMark
-    <> Text.encodeUtf8BuilderEscaped encodeChar x
-    <> Builder.word8 Literal.quotationMark
+encode :: Argo.Json.String.String -> Encoder.Encoder ()
+encode (String x) = do
+    Trans.tell $ Builder.word8 Literal.quotationMark
+    Trans.tell $ Text.encodeUtf8BuilderEscaped encodeChar x
+    Trans.tell $ Builder.word8 Literal.quotationMark
 
 encodeChar :: Builder.BoundedPrim Word.Word8
 encodeChar =

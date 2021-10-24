@@ -10,25 +10,21 @@ import qualified Argo.Literal as Literal
 import qualified Argo.Vendor.Builder as Builder
 import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.TemplateHaskell as TH
-import qualified Data.Semigroup as Semigroup
+import qualified Argo.Vendor.Transformers as Trans
+import qualified Control.Monad as Monad
 import qualified GHC.Generics as Generics
 
 newtype ArrayOf value
     = Array [value]
     deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
 
-encode :: Encoder.Encoder value -> Encoder.Encoder (ArrayOf value)
-encode e = Encoder.Encoder $ \ n (Array xs) ->
-    Builder.word8 Literal.leftSquareBracket
-    <> foldMap
-        (\ (p, x) -> (if p then Builder.word8 Literal.comma else mempty)
-            <> Builder.word8 Literal.newLine
-            <> Semigroup.stimesMonoid (n + 1) (Builder.word8 Literal.horizontalTabulation)
-            <> Encoder.run e (n + 1) x)
-        (zip (False : repeat True) xs)
-    <> Builder.word8 Literal.newLine
-    <> Semigroup.stimesMonoid n (Builder.word8 Literal.horizontalTabulation)
-    <> Builder.word8 Literal.rightSquareBracket
+encode :: (value -> Encoder.Encoder ()) -> ArrayOf value -> Encoder.Encoder ()
+encode f (Array xs) = do
+    Trans.tell $ Builder.word8 Literal.leftSquareBracket
+    Monad.forM_ (zip (False : repeat True) xs) $ \ (p, x) -> do
+        Monad.when p . Trans.tell $ Builder.word8 Literal.comma
+        f x
+    Trans.tell $ Builder.word8 Literal.rightSquareBracket
 
 decode :: Decoder.Decoder value -> Decoder.Decoder (ArrayOf value)
 decode f = do
