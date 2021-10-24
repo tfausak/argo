@@ -23,10 +23,11 @@ newtype String
     deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
 
 encode :: Argo.Json.String.String -> Encoder.Encoder ()
-encode (String x) = do
-    Trans.lift . Trans.tell $ Builder.word8 Literal.quotationMark
-    Trans.lift . Trans.tell $ Text.encodeUtf8BuilderEscaped encodeChar x
-    Trans.lift . Trans.tell $ Builder.word8 Literal.quotationMark
+encode (String x) = Trans.lift
+    . Trans.tell
+    $ Builder.word8 Literal.quotationMark
+    <> Text.encodeUtf8BuilderEscaped encodeChar x
+    <> Builder.word8 Literal.quotationMark
 
 encodeChar :: Builder.BoundedPrim Word.Word8
 encodeChar =

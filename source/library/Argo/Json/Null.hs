@@ -18,8 +18,7 @@ newtype Null
     deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
 
 encode :: Null -> Encoder.Encoder ()
-encode _ = do
-    Trans.lift . Trans.tell $ Builder.byteString Literal.null
+encode = const . Trans.lift . Trans.tell $ Builder.byteString Literal.null
 
 decode :: Decoder.Decoder Null
 decode = Null () <$ Decoder.byteString Literal.null <* Decoder.spaces

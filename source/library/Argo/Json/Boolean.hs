@@ -20,8 +20,10 @@ newtype Boolean
     deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
 
 encode :: Boolean -> Encoder.Encoder ()
-encode (Boolean x) = do
-    Trans.lift . Trans.tell . Builder.byteString $ if x then Literal.true else Literal.false
+encode (Boolean x) = Trans.lift
+    . Trans.tell
+    . Builder.byteString
+    $ if x then Literal.true else Literal.false
 
 decode :: Decoder.Decoder Boolean
 decode = decodeFalse <|> decodeTrue

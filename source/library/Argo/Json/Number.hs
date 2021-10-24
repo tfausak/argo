@@ -40,9 +40,11 @@ normalize (Number x y) =
 encode :: Number -> Encoder.Encoder ()
 encode (Number x y) = do
     Trans.lift . Trans.tell $ Builder.integerDec x
-    Monad.when (y /= 0) $ do
-        Trans.lift . Trans.tell $ Builder.word8 Literal.latinSmallLetterE
-        Trans.lift . Trans.tell $ Builder.integerDec y
+    Monad.when (y /= 0)
+        . Trans.lift
+        . Trans.tell
+        $ Builder.word8 Literal.latinSmallLetterE
+        <> Builder.integerDec y
 
 decode :: Decoder.Decoder Number
 decode = do
