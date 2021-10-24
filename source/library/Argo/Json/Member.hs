@@ -12,6 +12,7 @@ import qualified Argo.Vendor.Builder as Builder
 import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.TemplateHaskell as TH
 import qualified Argo.Vendor.Transformers as Trans
+import qualified Control.Monad as Monad
 import qualified GHC.Generics as Generics
 
 data MemberOf value
@@ -22,6 +23,11 @@ encode :: (value -> Encoder.Encoder ()) -> MemberOf value -> Encoder.Encoder ()
 encode f (Member x y) = do
     Name.encode x
     Trans.lift . Trans.tell $ Builder.word8 Literal.colon
+    config <- Trans.ask
+    Monad.when (Encoder.hasIndent config)
+        . Trans.lift
+        . Trans.tell
+        $ Builder.word8 Literal.space
     f y
 
 decode :: Decoder.Decoder value -> Decoder.Decoder (MemberOf value)

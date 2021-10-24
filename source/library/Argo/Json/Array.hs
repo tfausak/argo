@@ -21,10 +21,15 @@ newtype ArrayOf value
 encode :: (value -> Encoder.Encoder ()) -> ArrayOf value -> Encoder.Encoder ()
 encode f (Array xs) = do
     Trans.lift . Trans.tell $ Builder.word8 Literal.leftSquareBracket
-    Monad.forM_ (zip (False : repeat True) xs) $ \ (p, x) -> do
-        Monad.when p . Trans.lift . Trans.tell $ Builder.word8 Literal.comma
-        f x
+    Trans.local Encoder.increaseLevel
+        . mapM_ (uncurry $ encodeElement f)
+        $ zip [ 0 .. ] xs
     Trans.lift . Trans.tell $ Builder.word8 Literal.rightSquareBracket
+
+encodeElement :: (value -> Encoder.Encoder ()) -> Int -> value -> Encoder.Encoder ()
+encodeElement f i x = do
+    Monad.when (i > 0) . Trans.lift . Trans.tell $ Builder.word8 Literal.comma
+    f x
 
 decode :: Decoder.Decoder value -> Decoder.Decoder (ArrayOf value)
 decode f = do

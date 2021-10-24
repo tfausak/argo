@@ -22,10 +22,15 @@ newtype ObjectOf value
 encode :: (value -> Encoder.Encoder ()) -> ObjectOf value -> Encoder.Encoder ()
 encode f (Object xs) = do
     Trans.lift . Trans.tell $ Builder.word8 Literal.leftCurlyBracket
-    Monad.forM_ (zip (False : repeat True) xs) $ \ (p, x) -> do
-        Monad.when p . Trans.lift . Trans.tell $ Builder.word8 Literal.comma
-        Member.encode f x
+    Trans.local Encoder.increaseLevel
+        . mapM_ (uncurry $ encodeElement f)
+        $ zip [ 0 .. ] xs
     Trans.lift . Trans.tell $ Builder.word8 Literal.rightCurlyBracket
+
+encodeElement :: (value -> Encoder.Encoder ()) -> Int -> Member.MemberOf value -> Encoder.Encoder ()
+encodeElement f i x = do
+    Monad.when (i > 0) . Trans.lift . Trans.tell $ Builder.word8 Literal.comma
+    Member.encode f x
 
 decode :: Decoder.Decoder value -> Decoder.Decoder (ObjectOf value)
 decode f = do

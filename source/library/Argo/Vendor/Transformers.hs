@@ -1,8 +1,10 @@
 module Argo.Vendor.Transformers
     ( ReaderT.ReaderT
     , WriterT.WriterT
+    , ReaderT.ask
     , WriterT.execWriterT
     , Trans.lift
+    , ReaderT.local
     , ReaderT.runReaderT
     , WriterT.tell
     ) where
