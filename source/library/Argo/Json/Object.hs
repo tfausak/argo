@@ -20,12 +20,12 @@ newtype ObjectOf value
     deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
 
 encode :: (value -> Encoder.Encoder ()) -> ObjectOf value -> Encoder.Encoder ()
-encode f (Object xs) = do
-    Trans.lift . Trans.tell $ Builder.word8 Literal.leftCurlyBracket
-    Trans.local Encoder.increaseLevel
-        . mapM_ (uncurry $ encodeElement f)
-        $ zip [ 0 .. ] xs
-    Trans.lift . Trans.tell $ Builder.word8 Literal.rightCurlyBracket
+encode f (Object xs) = Encoder.list
+    (Trans.lift . Trans.tell $ Builder.word8 Literal.leftCurlyBracket)
+    (Trans.lift . Trans.tell $ Builder.word8 Literal.rightCurlyBracket)
+    (Trans.lift . Trans.tell $ Builder.word8 Literal.comma)
+    (Member.encode f)
+    xs
 
 encodeElement :: (value -> Encoder.Encoder ()) -> Int -> Member.MemberOf value -> Encoder.Encoder ()
 encodeElement f i x = do
