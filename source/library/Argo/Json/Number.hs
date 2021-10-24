@@ -7,11 +7,13 @@ module Argo.Json.Number where
 import Data.Ratio ((%))
 
 import qualified Argo.Decoder as Decoder
+import qualified Argo.Encoder as Encoder
 import qualified Argo.Literal as Literal
 import qualified Argo.Vendor.Builder as Builder
 import qualified Argo.Vendor.ByteString as ByteString
 import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.TemplateHaskell as TH
+import qualified Argo.Vendor.Transformers as Trans
 import qualified Control.Applicative as Applicative
 import qualified Control.Monad as Monad
 import qualified Data.Bool as Bool
@@ -35,12 +37,13 @@ normalize (Number x y) =
     then normalize $ Number q (y + 1)
     else Number x y
 
-encode :: Number -> Builder.Builder
-encode (Number x y) =
-    if y == 0
-    then Builder.integerDec x
-    else Builder.integerDec x
-        <> Builder.word8 Literal.latinSmallLetterE
+encode :: Number -> Encoder.Encoder ()
+encode (Number x y) = do
+    Trans.lift . Trans.tell $ Builder.integerDec x
+    Monad.when (y /= 0)
+        . Trans.lift
+        . Trans.tell
+        $ Builder.word8 Literal.latinSmallLetterE
         <> Builder.integerDec y
 
 decode :: Decoder.Decoder Number

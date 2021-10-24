@@ -419,6 +419,8 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
     , Tasty.testGroup "property"
         [ property "decode . encode" $ \ x ->
             (resultToMaybe . Argo.decode . LazyByteString.toStrict . Builder.toLazyByteString $ Argo.encode x) === Just (x :: Argo.Value)
+        , property "decode . encodeWith" $ \ x ->
+            (Argo.decode . LazyByteString.toStrict . Builder.toLazyByteString $ Argo.encodeWith Argo.Tab x) === Argo.Success (x :: Argo.Value)
         , Tasty.testGroup "fromValue . toValue"
             [ property "Value" $ \ x ->
                 (resultToMaybe . Argo.fromValue $ Argo.toValue x) === Just (x :: Argo.Value)

@@ -5,12 +5,14 @@
 module Argo.Json.String where
 
 import qualified Argo.Decoder as Decoder
+import qualified Argo.Encoder as Encoder
 import qualified Argo.Literal as Literal
 import qualified Argo.Vendor.Builder as Builder
 import qualified Argo.Vendor.ByteString as ByteString
 import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.TemplateHaskell as TH
 import qualified Argo.Vendor.Text as Text
+import qualified Argo.Vendor.Transformers as Trans
 import qualified Control.Monad as Monad
 import qualified Data.Char as Char
 import qualified Data.Word as Word
@@ -20,9 +22,10 @@ newtype String
     = String Text.Text
     deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
 
-encode :: Argo.Json.String.String -> Builder.Builder
-encode (String x) =
-    Builder.word8 Literal.quotationMark
+encode :: Argo.Json.String.String -> Encoder.Encoder ()
+encode (String x) = Trans.lift
+    . Trans.tell
+    $ Builder.word8 Literal.quotationMark
     <> Text.encodeUtf8BuilderEscaped encodeChar x
     <> Builder.word8 Literal.quotationMark
 

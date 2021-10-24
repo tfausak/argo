@@ -5,24 +5,25 @@
 module Argo.Json.Array where
 
 import qualified Argo.Decoder as Decoder
+import qualified Argo.Encoder as Encoder
 import qualified Argo.Literal as Literal
 import qualified Argo.Vendor.Builder as Builder
 import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.TemplateHaskell as TH
+import qualified Argo.Vendor.Transformers as Trans
 import qualified GHC.Generics as Generics
 
 newtype ArrayOf value
     = Array [value]
     deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
 
-encode :: (value -> Builder.Builder) -> ArrayOf value -> Builder.Builder
-encode f (Array x) =
-    Builder.word8 Literal.leftSquareBracket
-    <> foldMap
-        (\ (p, e) -> (if p then Builder.word8 Literal.comma else mempty)
-            <> f e)
-        (zip (False : repeat True) x)
-    <> Builder.word8 Literal.rightSquareBracket
+encode :: (value -> Encoder.Encoder ()) -> ArrayOf value -> Encoder.Encoder ()
+encode f (Array xs) = Encoder.list
+    (Trans.lift . Trans.tell $ Builder.word8 Literal.leftSquareBracket)
+    (Trans.lift . Trans.tell $ Builder.word8 Literal.rightSquareBracket)
+    (Trans.lift . Trans.tell $ Builder.word8 Literal.comma)
+    f
+    xs
 
 decode :: Decoder.Decoder value -> Decoder.Decoder (ArrayOf value)
 decode f = do
