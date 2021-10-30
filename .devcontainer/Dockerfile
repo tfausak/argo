@@ -6,7 +6,7 @@ RUN \
     apt-get update && \
     apt-get install --assume-yes curl gcc git libgmp-dev make sudo
 
-ARG GHCUP_VERSION=0.1.17.2
+ARG GHCUP_VERSION=0.1.17.3
 RUN \
     curl --output /usr/local/bin/ghcup "https://downloads.haskell.org/~ghcup/$GHCUP_VERSION/x86_64-linux-ghcup-$GHCUP_VERSION" && \
     chmod +x /usr/local/bin/ghcup && \
@@ -19,7 +19,7 @@ RUN \
 USER "$USER_NAME"
 ENV PATH="/home/$USER_NAME/.cabal/bin:/home/$USER_NAME/.ghcup/bin:$PATH"
 
-ARG GHC_VERSION=9.0.1
+ARG GHC_VERSION=9.2.1
 RUN \
     ghcup install ghc "$GHC_VERSION" --set && \
     ghc --version
