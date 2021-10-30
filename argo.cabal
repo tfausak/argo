@@ -35,6 +35,7 @@ common library
         -Weverything
         -Wno-all-missed-specialisations
         -Wno-implicit-prelude
+        -Wno-missed-specialisations
         -Wno-missing-deriving-strategies
         -Wno-missing-export-lists
         -Wno-missing-exported-signatures
@@ -45,6 +46,11 @@ common library
 
     if flag(pedantic)
         ghc-options: -Werror
+
+    if impl(ghc >= 9.2)
+        ghc-options:
+            -Wno-implicit-lift
+            -Wno-missing-kind-signatures
 
 common executable
     import: library
