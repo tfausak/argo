@@ -4,8 +4,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 
-import Data.GenValidity.Map ()
-import Data.GenValidity.Text ()
 import Data.List.NonEmpty (NonEmpty((:|)))
 import Test.Tasty.HUnit ((@?=))
 import Test.Tasty.QuickCheck ((===))
@@ -14,7 +12,6 @@ import qualified Argo
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Builder as Builder
 import qualified Data.ByteString.Lazy as LazyByteString
-import qualified Data.GenValidity as GenValidity
 import qualified Data.Int as Int
 import qualified Data.Map as Map
 import qualified Data.Text as Text
@@ -483,11 +480,11 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
     ]
 
 property
-    :: (Show t, Tasty.Testable prop, GenValidity.GenValid t)
+    :: (Show t, Tasty.Testable prop, Tasty.Arbitrary t)
     => Tasty.TestName
     -> (t -> prop)
     -> Tasty.TestTree
-property n = propertyWith n GenValidity.genValid GenValidity.shrinkValid
+property n = propertyWith n Tasty.arbitrary Tasty.shrink
 
 propertyWith
     :: (Show t, Tasty.Testable prop)
@@ -500,50 +497,47 @@ propertyWith n g s f = Tasty.testProperty n
     . Tasty.forAll g
     $ \ x -> Tasty.shrinking s x f
 
-instance GenValidity.Validity Argo.Name where
-    validate (Argo.Name x) = GenValidity.validate x
+instance Tasty.Arbitrary Argo.Name where
+    arbitrary = Argo.Name <$> Tasty.arbitrary
+    shrink (Argo.Name x) = Argo.Name <$> Tasty.shrink x
 
-instance GenValidity.GenValid Argo.Name where
-    genValid = Argo.Name <$> GenValidity.genValid
-    shrinkValid (Argo.Name x) = Argo.Name <$> GenValidity.shrinkValid x
+instance Tasty.Arbitrary Argo.Member where
+    arbitrary = Argo.Member <$> Tasty.arbitrary <*> Tasty.arbitrary
+    shrink (Argo.Member k v) = uncurry Argo.Member <$> Tasty.shrink (k, v)
 
-instance GenValidity.Validity Argo.Member where
-    validate (Argo.Member k v) = GenValidity.validate (k, v)
-
-instance GenValidity.GenValid Argo.Member where
-    genValid = Argo.Member <$> GenValidity.genValid <*> GenValidity.genValid
-    shrinkValid (Argo.Member k v) = uncurry Argo.Member <$> GenValidity.shrinkValid (k, v)
-
-instance GenValidity.Validity Argo.Value where
-    validate x = case x of
-        Argo.Null -> GenValidity.valid
-        Argo.Boolean y -> GenValidity.annotate y "Boolean"
-        Argo.Number y z -> GenValidity.annotate (y, z) "Number"
-        Argo.String y -> GenValidity.annotate y "String"
-        Argo.Array y -> GenValidity.annotate y "Array"
-        Argo.Object y -> GenValidity.annotate y "Object"
-
-instance GenValidity.GenValid Argo.Value where
-    genValid = Tasty.sized genValueSized
-    shrinkValid x = case x of
+instance Tasty.Arbitrary Argo.Value where
+    arbitrary = Tasty.sized genValueSized
+    shrink x = case x of
         Argo.Null -> []
-        Argo.Boolean y -> Argo.Boolean <$> GenValidity.shrinkValid y
-        Argo.Number y z -> uncurry Argo.Number <$> GenValidity.shrinkValid (y, z)
-        Argo.String y -> Argo.String <$> GenValidity.shrinkValid y
-        Argo.Array y -> Argo.Array <$> GenValidity.shrinkValid y
-        Argo.Object y -> Argo.Object <$> GenValidity.shrinkValid y
+        Argo.Boolean y -> Argo.Boolean <$> Tasty.shrink y
+        Argo.Number y z -> uncurry Argo.Number <$> Tasty.shrink (y, z)
+        Argo.String y -> Argo.String <$> Tasty.shrink y
+        Argo.Array y -> Argo.Array <$> Tasty.shrink y
+        Argo.Object y -> Argo.Object <$> Tasty.shrink y
 
 genValueSized :: Int -> Tasty.Gen Argo.Value
 genValueSized size = let newSize = div size 3 in Tasty.oneof
     [ pure Argo.Null
-    , Argo.Boolean <$> GenValidity.genValid
-    , Argo.Number <$> GenValidity.genValid <*> GenValidity.genValid
-    , Argo.String <$> GenValidity.genValid
+    , Argo.Boolean <$> Tasty.arbitrary
+    , Argo.Number <$> Tasty.arbitrary <*> Tasty.arbitrary
+    , Argo.String <$> Tasty.arbitrary
     , Argo.Array <$> Tasty.vectorOf size (genValueSized newSize)
-    , Argo.Object <$> Tasty.vectorOf size (Argo.Member <$> GenValidity.genValid <*> genValueSized newSize)
+    , Argo.Object <$> Tasty.vectorOf size (Argo.Member <$> Tasty.arbitrary <*> genValueSized newSize)
     ]
 
 resultToMaybe :: Argo.Result a -> Maybe a
 resultToMaybe r = case r of
     Argo.Failure _ -> Nothing
     Argo.Success x -> Just x
+
+instance Tasty.Arbitrary Text.Text where
+    arbitrary = Text.pack <$> Tasty.arbitrary
+    shrink = Tasty.shrinkMap Text.pack Text.unpack
+
+instance Tasty.Arbitrary LazyText.Text where
+    arbitrary = LazyText.pack <$> Tasty.arbitrary
+    shrink = Tasty.shrinkMap LazyText.pack LazyText.unpack
+
+instance Tasty.Arbitrary a => Tasty.Arbitrary (NonEmpty a) where
+    arbitrary = (:|) <$> Tasty.arbitrary <*> Tasty.arbitrary
+    shrink (x :| xs) = uncurry (:|) <$> Tasty.shrink (x, xs)
