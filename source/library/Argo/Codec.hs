@@ -12,20 +12,24 @@ import qualified Argo.Json.Object as Object
 import qualified Argo.Json.String as String
 import qualified Argo.Json.Value as Value
 import qualified Argo.Result as Result
+import qualified Argo.Vendor.Transformers as Trans
 import qualified Control.Applicative as Applicative
 import qualified Control.Monad as Monad
-import qualified Control.Monad.Trans.Class as Trans
-import qualified Control.Monad.Trans.Except as Except
-import qualified Control.Monad.Trans.Reader as Reader
-import qualified Control.Monad.Trans.State as State
-import qualified Control.Monad.Trans.Writer as Writer
+import qualified Data.Functor.Identity as Identity
 import qualified Data.Text as Text
 
 decodeWith :: ValueCodec a -> Value.Value -> Result.Result a
-decodeWith c = either fail pure . Except.runExcept . Reader.runReaderT (decode c)
+decodeWith c = either fail pure
+    . Identity.runIdentity
+    . Trans.runExceptT
+    . Trans.runReaderT (decode c)
 
 encodeWith :: ValueCodec a -> a -> Value.Value
-encodeWith c x = State.execState (encode c x) . Value.Null $ Null.fromUnit ()
+encodeWith c x = snd
+    . Identity.runIdentity
+    . Trans.runStateT (encode c x)
+    . Value.Null
+    $ Null.fromUnit ()
 
 project :: (i -> f) -> CodecOf r w f o -> CodecOf r w i o
 project f c = c { encode = encode c . f }
@@ -70,87 +74,87 @@ dimap f g c = Codec
     }
 
 type ValueCodec a = Codec
-    (Reader.ReaderT Value.Value (Except.Except String))
-    (State.State Value.Value)
+    (Trans.ReaderT Value.Value (Trans.ExceptT String Identity.Identity))
+    (Trans.StateT Value.Value Identity.Identity)
     a
 
 valueCodec :: ValueCodec Value.Value
 valueCodec = Codec
-    { decode = Reader.ask
+    { decode = Trans.ask
     , encode = \ x -> do
-        State.put x
+        Trans.put x
         pure x
     }
 
 nullCodec :: ValueCodec Null.Null
 nullCodec = Codec
     { decode = do
-        x <- Reader.ask
+        x <- Trans.ask
         case x of
             Value.Null y -> pure y
-            _ -> Trans.lift . Except.throwE $ "expected Null but got " <> show x
+            _ -> Trans.lift . Trans.throwE $ "expected Null but got " <> show x
     , encode = \ x -> do
-        State.put $ Value.Null x
+        Trans.put $ Value.Null x
         pure x
     }
 
 booleanCodec :: ValueCodec Boolean.Boolean
 booleanCodec = Codec
     { decode = do
-        x <- Reader.ask
+        x <- Trans.ask
         case x of
             Value.Boolean y -> pure y
-            _ -> Trans.lift . Except.throwE $ "expected Boolean but got " <> show x
+            _ -> Trans.lift . Trans.throwE $ "expected Boolean but got " <> show x
     , encode = \ x -> do
-        State.put $ Value.Boolean x
+        Trans.put $ Value.Boolean x
         pure x
     }
 
 numberCodec :: ValueCodec Number.Number
 numberCodec = Codec
     { decode = do
-        x <- Reader.ask
+        x <- Trans.ask
         case x of
             Value.Number y -> pure y
-            _ -> Trans.lift . Except.throwE $ "expected Number but got " <> show x
+            _ -> Trans.lift . Trans.throwE $ "expected Number but got " <> show x
     , encode = \ x -> do
-        State.put $ Value.Number x
+        Trans.put $ Value.Number x
         pure x
     }
 
 stringCodec :: ValueCodec String.String
 stringCodec = Codec
     { decode = do
-        x <- Reader.ask
+        x <- Trans.ask
         case x of
             Value.String y -> pure y
-            _ -> Trans.lift . Except.throwE $ "expected String but got " <> show x
+            _ -> Trans.lift . Trans.throwE $ "expected String but got " <> show x
     , encode = \ x -> do
-        State.put $ Value.String x
+        Trans.put $ Value.String x
         pure x
     }
 
 arrayCodec :: ValueCodec (Array.ArrayOf Value.Value)
 arrayCodec = Codec
     { decode = do
-        x <- Reader.ask
+        x <- Trans.ask
         case x of
             Value.Array y -> pure y
-            _ -> Trans.lift . Except.throwE $ "expected Array but got " <> show x
+            _ -> Trans.lift . Trans.throwE $ "expected Array but got " <> show x
     , encode = \ x -> do
-        State.put $ Value.Array x
+        Trans.put $ Value.Array x
         pure x
     }
 
 objectCodec :: ValueCodec (Object.ObjectOf Value.Value)
 objectCodec = Codec
     { decode = do
-        x <- Reader.ask
+        x <- Trans.ask
         case x of
             Value.Object y -> pure y
-            _ -> Trans.lift . Except.throwE $ "expected Object but got " <> show x
+            _ -> Trans.lift . Trans.throwE $ "expected Object but got " <> show x
     , encode = \ x -> do
-        State.put $ Value.Object x
+        Trans.put $ Value.Object x
         pure x
     }
 
@@ -179,39 +183,45 @@ data Permission
     deriving (Eq, Show)
 
 type ArrayCodec a = Codec
-    (State.StateT [Value.Value] (Except.Except String))
-    (Writer.Writer [Value.Value])
+    (Trans.StateT [Value.Value] (Trans.ExceptT String Identity.Identity))
+    (Trans.WriterT [Value.Value] Identity.Identity)
     a
 
 fromArrayCodec :: Permission -> ArrayCodec a -> ValueCodec a
 fromArrayCodec p c = Codec
     { decode = do
         xs <- decode arrayCodec
-        case Except.runExcept . State.runStateT (decode c) $ Array.toList xs of
-            Left x -> Trans.lift $ Except.throwE x
+        case Identity.runIdentity . Trans.runExceptT . Trans.runStateT (decode c) $ Array.toList xs of
+            Left x -> Trans.lift $ Trans.throwE x
             Right (x, ys) -> do
                 case (p, ys) of
-                    (Forbid, _ : _) -> Trans.lift $ Except.throwE "leftover elements"
+                    (Forbid, _ : _) -> Trans.lift $ Trans.throwE "leftover elements"
                     _ -> pure ()
                 pure x
     , encode = \ x -> do
-        Monad.void . encode arrayCodec . Array.fromList . Writer.execWriter $ encode c x
+        Monad.void
+            . encode arrayCodec
+            . Array.fromList
+            . snd
+            . Identity.runIdentity
+            . Trans.runWriterT
+            $ encode c x
         pure x
     }
 
 element :: ValueCodec a -> ArrayCodec a
 element c = Codec
     { decode = do
-        l <- State.get
+        l <- Trans.get
         case l of
-            [] -> Trans.lift $ Except.throwE "unexpected empty list"
+            [] -> Trans.lift $ Trans.throwE "unexpected empty list"
             h : t ->  case decodeWith c h of
-                Result.Failure y -> Trans.lift $ Except.throwE y
+                Result.Failure y -> Trans.lift $ Trans.throwE y
                 Result.Success y -> do
-                    State.put t
+                    Trans.put t
                     pure y
     , encode = \ x -> do
-        Writer.tell [encodeWith c x]
+        Trans.tell [encodeWith c x]
         pure x
     }
 
@@ -221,23 +231,29 @@ tupleCodec cx cy = fromArrayCodec Forbid $ (,)
     <*> project snd (element cy)
 
 type ObjectCodec a = Codec
-    (State.StateT [Member.MemberOf Value.Value] (Except.Except String))
-    (Writer.Writer [Member.MemberOf Value.Value])
+    (Trans.StateT [Member.MemberOf Value.Value] (Trans.ExceptT String Identity.Identity))
+    (Trans.WriterT [Member.MemberOf Value.Value] Identity.Identity)
     a
 
 fromObjectCodec :: Permission -> ObjectCodec a -> ValueCodec a
 fromObjectCodec p c = Codec
     { decode = do
         xs <- decode objectCodec
-        case Except.runExcept . State.runStateT (decode c) $ Object.toList xs of
-            Left x -> Trans.lift $ Except.throwE x
+        case Identity.runIdentity . Trans.runExceptT . Trans.runStateT (decode c) $ Object.toList xs of
+            Left x -> Trans.lift $ Trans.throwE x
             Right (x, ys) -> do
                 case (p, ys) of
-                    (Forbid, _ : _) -> Trans.lift $ Except.throwE "leftover members"
+                    (Forbid, _ : _) -> Trans.lift $ Trans.throwE "leftover members"
                     _ -> pure ()
                 pure x
     , encode = \ x -> do
-        Monad.void . encode objectCodec . Object.fromList . Writer.execWriter $ encode c x
+        Monad.void
+            . encode objectCodec
+            . Object.fromList
+            . snd
+            . Identity.runIdentity
+            . Trans.runWriterT
+            $ encode c x
         pure x
     }
 
@@ -246,7 +262,7 @@ required k c = Codec
     { decode = do
         m <- decode (optional k c)
         case m of
-            Nothing -> Trans.lift . Except.throwE $ "missing required member: " <> show k
+            Nothing -> Trans.lift . Trans.throwE $ "missing required member: " <> show k
             Just x -> pure x
     , encode = \ x -> do
         Monad.void . encode (optional k c) $ Just x
@@ -256,18 +272,18 @@ required k c = Codec
 optional :: Name.Name -> ValueCodec a -> ObjectCodec (Maybe a)
 optional k c = Codec
     { decode = do
-        xs <- State.get
+        xs <- Trans.get
         case detect (\ (Member.Member j _) -> j == k) xs of
             Nothing -> pure Nothing
             Just (Member.Member _ x, ys) -> case decodeWith c x of
-                Result.Failure y -> Trans.lift $ Except.throwE y
+                Result.Failure y -> Trans.lift $ Trans.throwE y
                 Result.Success y -> do
-                    State.put ys
+                    Trans.put ys
                     pure $ Just y
     , encode = \ x -> do
         case x of
             Nothing -> pure ()
-            Just y -> Writer.tell [Member.Member k $ encodeWith c y]
+            Just y -> Trans.tell [Member.Member k $ encodeWith c y]
         pure x
     }
 
