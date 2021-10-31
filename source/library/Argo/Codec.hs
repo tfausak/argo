@@ -163,9 +163,7 @@ textCodec = dimap String.toText String.fromText stringCodec
 eitherCodec :: ValueCodec a -> ValueCodec b -> ValueCodec (Either a b)
 eitherCodec c1 c2 = Codec
     { decode = fmap Left (decode c1) <|> fmap Right (decode c2)
-    , encode = \ x -> case x of
-        Left y -> fmap Left $ encode c1 y
-        Right y -> fmap Right $ encode c2 y
+    , encode = either (fmap Left . encode c1) (fmap Right . encode c2)
     }
 
 maybeCodec :: ValueCodec a -> ValueCodec (Maybe a)
