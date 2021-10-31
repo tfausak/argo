@@ -182,16 +182,16 @@ data Permission
     | Forbid
     deriving (Eq, Show)
 
-type ArrayCodec a = Codec
-    (Trans.StateT [Value.Value] (Trans.ExceptT String Identity.Identity))
-    (Trans.WriterT [Value.Value] Identity.Identity)
+type ListCodec e a = Codec
+    (Trans.StateT [e] (Trans.ExceptT String Identity.Identity))
+    (Trans.WriterT [e] Identity.Identity)
     a
 
-fromArrayCodec :: Permission -> ArrayCodec a -> ValueCodec a
-fromArrayCodec p c = Codec
+fromListCodec :: ValueCodec [e] -> Permission -> ListCodec e a -> ValueCodec a
+fromListCodec ce p ca = Codec
     { decode = do
-        xs <- decode arrayCodec
-        case Identity.runIdentity . Trans.runExceptT . Trans.runStateT (decode c) $ Array.toList xs of
+        xs <- decode ce
+        case Identity.runIdentity . Trans.runExceptT $ Trans.runStateT (decode ca) xs of
             Left x -> Trans.lift $ Trans.throwE x
             Right (x, ys) -> do
                 case (p, ys) of
@@ -200,14 +200,18 @@ fromArrayCodec p c = Codec
                 pure x
     , encode = \ x -> do
         Monad.void
-            . encode arrayCodec
-            . Array.fromList
+            . encode ce
             . snd
             . Identity.runIdentity
             . Trans.runWriterT
-            $ encode c x
+            $ encode ca x
         pure x
     }
+
+type ArrayCodec a = ListCodec Value.Value a
+
+fromArrayCodec :: Permission -> ArrayCodec a -> ValueCodec a
+fromArrayCodec = fromListCodec $ dimap Array.toList Array.fromList arrayCodec
 
 element :: ValueCodec a -> ArrayCodec a
 element c = Codec
@@ -230,32 +234,10 @@ tupleCodec cx cy = fromArrayCodec Forbid $ (,)
     <$> project fst (element cx)
     <*> project snd (element cy)
 
-type ObjectCodec a = Codec
-    (Trans.StateT [Member.MemberOf Value.Value] (Trans.ExceptT String Identity.Identity))
-    (Trans.WriterT [Member.MemberOf Value.Value] Identity.Identity)
-    a
+type ObjectCodec a = ListCodec (Member.MemberOf Value.Value) a
 
 fromObjectCodec :: Permission -> ObjectCodec a -> ValueCodec a
-fromObjectCodec p c = Codec
-    { decode = do
-        xs <- decode objectCodec
-        case Identity.runIdentity . Trans.runExceptT . Trans.runStateT (decode c) $ Object.toList xs of
-            Left x -> Trans.lift $ Trans.throwE x
-            Right (x, ys) -> do
-                case (p, ys) of
-                    (Forbid, _ : _) -> Trans.lift $ Trans.throwE "leftover members"
-                    _ -> pure ()
-                pure x
-    , encode = \ x -> do
-        Monad.void
-            . encode objectCodec
-            . Object.fromList
-            . snd
-            . Identity.runIdentity
-            . Trans.runWriterT
-            $ encode c x
-        pure x
-    }
+fromObjectCodec = fromListCodec $ dimap Object.toList Object.fromList objectCodec
 
 required :: Name.Name -> ValueCodec a -> ObjectCodec a
 required k c = Codec
