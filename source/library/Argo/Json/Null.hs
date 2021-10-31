@@ -17,8 +17,14 @@ newtype Null
     = Null ()
     deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
 
+fromUnit :: () -> Null
+fromUnit = Null
+
+toUnit :: Null -> ()
+toUnit (Null x) = x
+
 encode :: Null -> Encoder.Encoder ()
 encode = const . Trans.lift . Trans.tell $ Builder.byteString Literal.null
 
 decode :: Decoder.Decoder Null
-decode = Null () <$ Decoder.byteString Literal.null <* Decoder.spaces
+decode = fromUnit () <$ Decoder.byteString Literal.null <* Decoder.spaces

@@ -17,13 +17,19 @@ newtype ArrayOf value
     = Array [value]
     deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
 
+fromList :: [value] -> ArrayOf value
+fromList = Array
+
+toList :: ArrayOf value -> [value]
+toList (Array x) = x
+
 encode :: (value -> Encoder.Encoder ()) -> ArrayOf value -> Encoder.Encoder ()
-encode f (Array xs) = Encoder.list
+encode f = Encoder.list
     (Trans.lift . Trans.tell $ Builder.word8 Literal.leftSquareBracket)
     (Trans.lift . Trans.tell $ Builder.word8 Literal.rightSquareBracket)
     (Trans.lift . Trans.tell $ Builder.word8 Literal.comma)
     f
-    xs
+    . toList
 
 decode :: Decoder.Decoder value -> Decoder.Decoder (ArrayOf value)
 decode f = do
@@ -32,4 +38,4 @@ decode f = do
     xs <- Decoder.list f
     Decoder.word8 Literal.rightSquareBracket
     Decoder.spaces
-    pure $ Array xs
+    pure $ fromList xs

@@ -19,17 +19,23 @@ newtype Boolean
     = Boolean Bool
     deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
 
+fromBool :: Bool -> Boolean
+fromBool = Boolean
+
+toBool :: Boolean -> Bool
+toBool (Boolean x) = x
+
 encode :: Boolean -> Encoder.Encoder ()
-encode (Boolean x) = Trans.lift
+encode x = Trans.lift
     . Trans.tell
     . Builder.byteString
-    $ if x then Literal.true else Literal.false
+    $ if toBool x then Literal.true else Literal.false
 
 decode :: Decoder.Decoder Boolean
 decode = decodeFalse <|> decodeTrue
 
 decodeFalse :: Decoder.Decoder Boolean
-decodeFalse = Boolean False <$ Decoder.byteString Literal.false <* Decoder.spaces
+decodeFalse = fromBool False <$ Decoder.byteString Literal.false <* Decoder.spaces
 
 decodeTrue :: Decoder.Decoder Boolean
-decodeTrue = Boolean True <$ Decoder.byteString Literal.true <* Decoder.spaces
+decodeTrue = fromBool True <$ Decoder.byteString Literal.true <* Decoder.spaces

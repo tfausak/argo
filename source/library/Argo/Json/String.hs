@@ -22,11 +22,17 @@ newtype String
     = String Text.Text
     deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
 
+fromText :: Text.Text -> Argo.Json.String.String
+fromText = String
+
+toText :: Argo.Json.String.String -> Text.Text
+toText (String x) = x
+
 encode :: Argo.Json.String.String -> Encoder.Encoder ()
-encode (String x) = Trans.lift
+encode x = Trans.lift
     . Trans.tell
     $ Builder.word8 Literal.quotationMark
-    <> Text.encodeUtf8BuilderEscaped encodeChar x
+    <> Text.encodeUtf8BuilderEscaped encodeChar (toText x)
     <> Builder.word8 Literal.quotationMark
 
 encodeChar :: Builder.BoundedPrim Word.Word8
@@ -73,7 +79,7 @@ decode = do
         Left e -> fail $ show e
         Right x -> case unescapeText x of
             Nothing -> fail "invalid escape"
-            Just y -> pure $ String y
+            Just y -> pure $ fromText y
 
 findAt :: Word.Word8 -> Int -> ByteString.ByteString -> Maybe Int
 findAt x i = fmap (+ i) . ByteString.elemIndex x . ByteString.drop i

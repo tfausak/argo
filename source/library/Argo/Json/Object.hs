@@ -19,13 +19,19 @@ newtype ObjectOf value
     = Object [Member.MemberOf value]
     deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
 
+fromList :: [Member.MemberOf value] -> ObjectOf value
+fromList = Object
+
+toList :: ObjectOf value -> [Member.MemberOf value]
+toList (Object x) = x
+
 encode :: (value -> Encoder.Encoder ()) -> ObjectOf value -> Encoder.Encoder ()
-encode f (Object xs) = Encoder.list
+encode f = Encoder.list
     (Trans.lift . Trans.tell $ Builder.word8 Literal.leftCurlyBracket)
     (Trans.lift . Trans.tell $ Builder.word8 Literal.rightCurlyBracket)
     (Trans.lift . Trans.tell $ Builder.word8 Literal.comma)
     (Member.encode f)
-    xs
+    . toList
 
 encodeElement :: (value -> Encoder.Encoder ()) -> Int -> Member.MemberOf value -> Encoder.Encoder ()
 encodeElement f i x = do
@@ -39,4 +45,4 @@ decode f = do
     xs <- Decoder.list $ Member.decode f
     Decoder.word8 Literal.rightCurlyBracket
     Decoder.spaces
-    pure $ Object xs
+    pure $ fromList xs

@@ -15,8 +15,14 @@ newtype Name
     = Name String.String
     deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
 
+fromString :: String.String -> Name
+fromString = Name
+
+toString :: Name -> String.String
+toString (Name x) = x
+
 encode :: Name -> Encoder.Encoder ()
-encode (Name x) = String.encode x
+encode = String.encode . toString
 
 decode :: Decoder.Decoder Name
-decode = Name <$> String.decode
+decode = fromString <$> String.decode
