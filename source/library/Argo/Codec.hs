@@ -165,31 +165,24 @@ textCodec :: ValueCodec Text.Text
 textCodec = dimap String.toText String.fromText stringCodec
 
 maybeCodec :: ValueCodec a -> ValueCodec (Maybe a)
-maybeCodec c = Codec
-    { decode = fmap Just $ decode c
-    , encode = \ x -> case x of
-        Just y -> fmap Just $ encode c y
-        Nothing -> fail "expected Just but got Nothing"
-    } <|> dimap (const Nothing) (const $ Null.fromUnit ()) nullCodec
+maybeCodec c =
+    mapBoth Just id c
+    <|> dimap (const Nothing) (const $ Null.fromUnit ()) nullCodec
 
 eitherCodec :: ValueCodec a -> ValueCodec b -> ValueCodec (Either a b)
 eitherCodec cx cy =
-    let
-        tx = tagged "Left" cx
-        ty = tagged "Right" cy
-    in Codec
-        { decode = fmap Left $ decode tx
-        , encode = \ x -> case x of
-            Left y -> fmap Left $ encode tx y
-            Right _ -> fail "expected Left but got Right"
-        }
-    <|>
-    Codec
-        { decode = fmap Right $ decode ty
-        , encode = \ x -> case x of
-            Right y -> fmap Right $ encode ty y
-            Left _ -> fail "expected Right but got Left"
-        }
+    mapBoth Left (either Just (const Nothing)) (tagged "Left" cx)
+    <|> mapBoth Right (either (const Nothing) Just) (tagged "Right" cy)
+
+mapBoth
+    :: (Functor r, Applicative.Alternative w)
+    => (o2 -> o1) -> (i1 -> Maybe i2) -> CodecOf r w i2 o2 -> CodecOf r w i1 o1
+mapBoth f g c = Codec
+    { decode = fmap f $ decode c
+    , encode = \ x -> case g x of
+        Nothing -> Applicative.empty
+        Just y -> fmap f $ encode c y
+    }
 
 tagged :: String -> ValueCodec a -> ValueCodec a
 tagged t c = dimap snd ((,) ()) . fromObjectCodec Allow $ (,)
