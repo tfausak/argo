@@ -164,18 +164,13 @@ boolCodec = dimap Boolean.toBool Boolean.fromBool booleanCodec
 textCodec :: ValueCodec Text.Text
 textCodec = dimap String.toText String.fromText stringCodec
 
-eitherCodec :: ValueCodec a -> ValueCodec b -> ValueCodec (Either a b)
-eitherCodec c1 c2 = Codec
-    { decode = fmap Left (decode c1) <|> fmap Right (decode c2)
-    , encode = either (fmap Left . encode c1) (fmap Right . encode c2)
-    }
-
 maybeCodec :: ValueCodec a -> ValueCodec (Maybe a)
-maybeCodec =
-    dimap
-        (either Just $ const Nothing)
-        (maybe (Right $ Null.fromUnit ()) Left)
-    . flip eitherCodec nullCodec
+maybeCodec c = Codec
+    { decode = fmap Just $ decode c
+    , encode = \ x -> case x of
+        Just y -> fmap Just $ encode c y
+        Nothing -> fail "expected Just but got Nothing"
+    } <|> dimap (const Nothing) (const $ Null.fromUnit ()) nullCodec
 
 data Permission
     = Allow

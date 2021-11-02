@@ -487,12 +487,6 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
             Codec.encodeWith Codec.boolCodec False @?= Argo.Boolean False
         , Tasty.testCase "decode bool" $ do
             Codec.decodeWith Codec.boolCodec (Argo.Boolean False) @?= Argo.Success False
-        , Tasty.testCase "encode either text bool" $ do
-            Codec.encodeWith (Codec.eitherCodec Codec.textCodec Codec.boolCodec) (Left "") @?= Argo.String ""
-            Codec.encodeWith (Codec.eitherCodec Codec.textCodec Codec.boolCodec) (Right False) @?= Argo.Boolean False
-        , Tasty.testCase "decode either text bool" $ do
-            Codec.decodeWith (Codec.eitherCodec Codec.textCodec Codec.boolCodec) (Argo.String "") @?= Argo.Success (Left "")
-            Codec.decodeWith (Codec.eitherCodec Codec.textCodec Codec.boolCodec) (Argo.Boolean False) @?= Argo.Success (Right False)
         , Tasty.testCase "encode maybe text" $ do
             Codec.encodeWith (Codec.maybeCodec Codec.textCodec) Nothing @?= Argo.Null
             Codec.encodeWith (Codec.maybeCodec Codec.textCodec) (Just "") @?= Argo.String ""
