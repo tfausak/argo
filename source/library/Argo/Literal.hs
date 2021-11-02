@@ -18,9 +18,6 @@ comma = 0x2c
 digitNine :: Word.Word8
 digitNine = 0x39
 
-digitOne :: Word.Word8
-digitOne = 0x31
-
 digitZero :: Word.Word8
 digitZero = 0x30
 
