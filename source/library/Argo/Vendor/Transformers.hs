@@ -1,5 +1,6 @@
 module Argo.Vendor.Transformers
     ( ExceptT.ExceptT
+    , MaybeT.MaybeT
     , ReaderT.ReaderT
     , StateT.StateT
     , WriterT.WriterT
@@ -9,6 +10,7 @@ module Argo.Vendor.Transformers
     , ReaderT.local
     , StateT.put
     , ExceptT.runExceptT
+    , MaybeT.runMaybeT
     , ReaderT.runReaderT
     , StateT.runStateT
     , WriterT.runWriterT
@@ -18,6 +20,7 @@ module Argo.Vendor.Transformers
 
 import qualified Control.Monad.Trans.Class as Trans
 import qualified Control.Monad.Trans.Except as ExceptT
+import qualified Control.Monad.Trans.Maybe as MaybeT
 import qualified Control.Monad.Trans.Reader as ReaderT
 import qualified Control.Monad.Trans.State as StateT
 import qualified Control.Monad.Trans.Writer as WriterT

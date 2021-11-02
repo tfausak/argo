@@ -27,7 +27,7 @@ decodeWith c = either fail pure
 encodeWith :: ValueCodec a -> a -> Value.Value
 encodeWith c x = snd
     . Identity.runIdentity
-    . Trans.runStateT (encode c x)
+    . Trans.runStateT (Trans.runMaybeT $ encode c x)
     . Value.Null
     $ Null.fromUnit ()
 
@@ -75,14 +75,14 @@ dimap f g c = Codec
 
 type ValueCodec a = Codec
     (Trans.ReaderT Value.Value (Trans.ExceptT String Identity.Identity))
-    (Trans.StateT Value.Value Identity.Identity)
+    (Trans.MaybeT (Trans.StateT Value.Value Identity.Identity))
     a
 
 valueCodec :: ValueCodec Value.Value
 valueCodec = Codec
     { decode = Trans.ask
     , encode = \ x -> do
-        Trans.put x
+        Trans.lift $ Trans.put x
         pure x
     }
 
@@ -94,7 +94,7 @@ nullCodec = Codec
             Value.Null y -> pure y
             _ -> Trans.lift . Trans.throwE $ "expected Null but got " <> show x
     , encode = \ x -> do
-        Trans.put $ Value.Null x
+        Trans.lift . Trans.put $ Value.Null x
         pure x
     }
 
@@ -106,7 +106,7 @@ booleanCodec = Codec
             Value.Boolean y -> pure y
             _ -> Trans.lift . Trans.throwE $ "expected Boolean but got " <> show x
     , encode = \ x -> do
-        Trans.put $ Value.Boolean x
+        Trans.lift . Trans.put $ Value.Boolean x
         pure x
     }
 
@@ -118,7 +118,7 @@ numberCodec = Codec
             Value.Number y -> pure y
             _ -> Trans.lift . Trans.throwE $ "expected Number but got " <> show x
     , encode = \ x -> do
-        Trans.put $ Value.Number x
+        Trans.lift . Trans.put $ Value.Number x
         pure x
     }
 
@@ -130,7 +130,7 @@ stringCodec = Codec
             Value.String y -> pure y
             _ -> Trans.lift . Trans.throwE $ "expected String but got " <> show x
     , encode = \ x -> do
-        Trans.put $ Value.String x
+        Trans.lift . Trans.put $ Value.String x
         pure x
     }
 
@@ -142,7 +142,7 @@ arrayCodec = Codec
             Value.Array y -> pure y
             _ -> Trans.lift . Trans.throwE $ "expected Array but got " <> show x
     , encode = \ x -> do
-        Trans.put $ Value.Array x
+        Trans.lift . Trans.put $ Value.Array x
         pure x
     }
 
@@ -154,7 +154,7 @@ objectCodec = Codec
             Value.Object y -> pure y
             _ -> Trans.lift . Trans.throwE $ "expected Object but got " <> show x
     , encode = \ x -> do
-        Trans.put $ Value.Object x
+        Trans.lift . Trans.put $ Value.Object x
         pure x
     }
 
