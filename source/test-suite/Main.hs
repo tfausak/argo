@@ -493,6 +493,12 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
         , Tasty.testCase "decode maybe text" $ do
             Codec.decodeWith (Codec.maybeCodec Codec.textCodec) Argo.Null @?= Argo.Success Nothing
             Codec.decodeWith (Codec.maybeCodec Codec.textCodec) (Argo.String "") @?= Argo.Success (Just "")
+        , Tasty.testCase "encode either text bool" $ do
+            Codec.encodeWith (Codec.eitherCodec Codec.textCodec Codec.boolCodec) (Left "") @?= Argo.Object [Argo.Member (Argo.Name "type") $ Argo.String "Left", Argo.Member (Argo.Name "value") $ Argo.String ""]
+            Codec.encodeWith (Codec.eitherCodec Codec.textCodec Codec.boolCodec) (Right False) @?= Argo.Object [Argo.Member (Argo.Name "type") $ Argo.String "Right", Argo.Member (Argo.Name "value") $ Argo.Boolean False]
+        , Tasty.testCase "decode either text bool" $ do
+            Codec.decodeWith (Codec.eitherCodec Codec.textCodec Codec.boolCodec) (Argo.Object [Argo.Member (Argo.Name "type") $ Argo.String "Left", Argo.Member (Argo.Name "value") $ Argo.String ""]) @?= Argo.Success (Left "")
+            Codec.decodeWith (Codec.eitherCodec Codec.textCodec Codec.boolCodec) (Argo.Object [Argo.Member (Argo.Name "type") $ Argo.String "Right", Argo.Member (Argo.Name "value") $ Argo.Boolean False]) @?= Argo.Success (Right False)
         , Tasty.testCase "encode tuple text bool" $ do
             Codec.encodeWith (Codec.tupleCodec Codec.textCodec Codec.boolCodec) ("", False) @?= Argo.Array [Argo.String "", Argo.Boolean False]
         , Tasty.testCase "decode tuple text bool" $ do

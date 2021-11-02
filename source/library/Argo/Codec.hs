@@ -172,6 +172,41 @@ maybeCodec c = Codec
         Nothing -> fail "expected Just but got Nothing"
     } <|> dimap (const Nothing) (const $ Null.fromUnit ()) nullCodec
 
+eitherCodec :: ValueCodec a -> ValueCodec b -> ValueCodec (Either a b)
+eitherCodec cx cy =
+    let
+        tx = tagged "Left" cx
+        ty = tagged "Right" cy
+    in Codec
+        { decode = fmap Left $ decode tx
+        , encode = \ x -> case x of
+            Left y -> fmap Left $ encode tx y
+            Right _ -> fail "expected Left but got Right"
+        }
+    <|>
+    Codec
+        { decode = fmap Right $ decode ty
+        , encode = \ x -> case x of
+            Right y -> fmap Right $ encode ty y
+            Left _ -> fail "expected Right but got Left"
+        }
+
+tagged :: String -> ValueCodec a -> ValueCodec a
+tagged t c = dimap snd ((,) ()) . fromObjectCodec Allow $ (,)
+    <$> project fst (required (Name.fromString . String.fromText $ Text.pack "type") (literalCodec (Value.String . String.fromText $ Text.pack t)))
+    <*> project snd (required (Name.fromString . String.fromText $ Text.pack "value") c)
+
+literalCodec :: Value.Value -> ValueCodec ()
+literalCodec expected = Codec
+    { decode = do
+        actual <- Trans.ask
+        Monad.when (actual /= expected)
+            . Trans.lift
+            . Trans.throwE
+            $ "expected " <> show expected <> " but got " <> show actual
+    , encode = const . Trans.lift $ Trans.put expected
+    }
+
 data Permission
     = Allow
     | Forbid
