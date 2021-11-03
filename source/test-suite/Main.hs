@@ -9,6 +9,7 @@ import Test.Tasty.HUnit ((@?=))
 import Test.Tasty.QuickCheck ((===))
 
 import qualified Argo
+import qualified Argo.Codec as Codec
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Builder as Builder
 import qualified Data.ByteString.Lazy as LazyByteString
@@ -477,7 +478,49 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: Map.Map Text.Text Bool)
             ]
         ]
+    , Tasty.testGroup "Codec"
+        [ Tasty.testCase "encode text" $ do
+            Codec.encodeWith Codec.textCodec "" @?= Argo.String ""
+        , Tasty.testCase "decode text" $ do
+            Codec.decodeWith Codec.textCodec (Argo.String "") @?= Argo.Success ""
+        , Tasty.testCase "encode bool" $ do
+            Codec.encodeWith Codec.boolCodec False @?= Argo.Boolean False
+        , Tasty.testCase "decode bool" $ do
+            Codec.decodeWith Codec.boolCodec (Argo.Boolean False) @?= Argo.Success False
+        , Tasty.testCase "encode maybe text" $ do
+            Codec.encodeWith (Codec.maybeCodec Codec.textCodec) Nothing @?= Argo.Null
+            Codec.encodeWith (Codec.maybeCodec Codec.textCodec) (Just "") @?= Argo.String ""
+        , Tasty.testCase "decode maybe text" $ do
+            Codec.decodeWith (Codec.maybeCodec Codec.textCodec) Argo.Null @?= Argo.Success Nothing
+            Codec.decodeWith (Codec.maybeCodec Codec.textCodec) (Argo.String "") @?= Argo.Success (Just "")
+        , Tasty.testCase "encode either text bool" $ do
+            Codec.encodeWith (Codec.eitherCodec Codec.textCodec Codec.boolCodec) (Left "") @?= Argo.Object [Argo.Member (Argo.Name "type") $ Argo.String "Left", Argo.Member (Argo.Name "value") $ Argo.String ""]
+            Codec.encodeWith (Codec.eitherCodec Codec.textCodec Codec.boolCodec) (Right False) @?= Argo.Object [Argo.Member (Argo.Name "type") $ Argo.String "Right", Argo.Member (Argo.Name "value") $ Argo.Boolean False]
+        , Tasty.testCase "decode either text bool" $ do
+            Codec.decodeWith (Codec.eitherCodec Codec.textCodec Codec.boolCodec) (Argo.Object [Argo.Member (Argo.Name "type") $ Argo.String "Left", Argo.Member (Argo.Name "value") $ Argo.String ""]) @?= Argo.Success (Left "")
+            Codec.decodeWith (Codec.eitherCodec Codec.textCodec Codec.boolCodec) (Argo.Object [Argo.Member (Argo.Name "type") $ Argo.String "Right", Argo.Member (Argo.Name "value") $ Argo.Boolean False]) @?= Argo.Success (Right False)
+        , Tasty.testCase "encode tuple text bool" $ do
+            Codec.encodeWith (Codec.tupleCodec Codec.textCodec Codec.boolCodec) ("", False) @?= Argo.Array [Argo.String "", Argo.Boolean False]
+        , Tasty.testCase "decode tuple text bool" $ do
+            Codec.decodeWith (Codec.tupleCodec Codec.textCodec Codec.boolCodec) (Argo.Array [Argo.String "", Argo.Boolean False]) @?= Argo.Success ("", False)
+        , Tasty.testCase "encode record" $ do
+            Codec.encodeWith recordCodec (Record False Nothing) @?= Argo.Object [Argo.Member (Argo.Name "bool") $ Argo.Boolean False]
+            Codec.encodeWith recordCodec (Record False $ Just "") @?= Argo.Object [Argo.Member (Argo.Name "bool") $ Argo.Boolean False, Argo.Member (Argo.Name "text") $ Argo.String ""]
+        , Tasty.testCase "decode record" $ do
+            Codec.decodeWith recordCodec (Argo.Object [Argo.Member (Argo.Name "bool") $ Argo.Boolean False]) @?= Argo.Success (Record False Nothing)
+            Codec.decodeWith recordCodec (Argo.Object [Argo.Member (Argo.Name "bool") $ Argo.Boolean False, Argo.Member (Argo.Name "text") $ Argo.String ""]) @?= Argo.Success (Record False $ Just "")
+        ]
     ]
+
+data Record = Record
+    { recordBool :: Bool
+    , recordText :: Maybe Text.Text
+    } deriving (Eq, Show)
+
+recordCodec :: Codec.ValueCodec Record
+recordCodec = Codec.fromObjectCodec Codec.Allow $ Record
+    <$> Codec.project recordBool (Codec.required (Argo.Name "bool") Codec.boolCodec)
+    <*> Codec.project recordText (Codec.optional (Argo.Name "text") Codec.textCodec)
 
 property
     :: (Show t, Tasty.Testable prop, Tasty.Arbitrary t)

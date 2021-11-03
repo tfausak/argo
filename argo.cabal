@@ -69,6 +69,7 @@ library
         Argo
         Argo.Class.FromValue
         Argo.Class.ToValue
+        Argo.Codec
         Argo.Decode
         Argo.Decoder
         Argo.Encode

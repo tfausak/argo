@@ -15,8 +15,9 @@ encode = encodeWith $ Encoder.Spaces 0
 encodeWith :: ToValue.ToValue a => Encoder.Indent -> a -> Builder.Builder
 encodeWith i x =
     let c = Encoder.Config { Encoder.indent = i, Encoder.level = 0 }
-    in Identity.runIdentity
-    . Trans.execWriterT
+    in snd
+    . Identity.runIdentity
+    . Trans.runWriterT
     . flip Trans.runReaderT c
     $ do
         Value.encode $ ToValue.toValue x

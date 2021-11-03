@@ -37,7 +37,7 @@ list l r s f xs = case xs of
         c <- Trans.ask
         let newLine = if hasIndent c then Builder.word8 Literal.newLine else mempty
         Trans.local increaseLevel $ do
-            i <- Trans.asks makeIndent
+            i <- makeIndent <$> Trans.ask
             Trans.lift . Trans.tell $ newLine <> i
             f x
             Monad.forM_ ys $ \ y -> do
