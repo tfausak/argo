@@ -7,20 +7,22 @@ import qualified Argo.Vendor.TemplateHaskell as TH
 import qualified Argo.Vendor.Text as Text
 
 pointer :: TH.QuasiQuoter
-pointer = TH.QuasiQuoter
-    { TH.quoteDec = const $ fail "cannot be used as a declaration"
-    , TH.quoteExp = Result.result fail TH.lift . Decode.decodePointer . Text.encodeUtf8 . Text.pack
-    , TH.quotePat = const $ fail "cannot be used as a pattern"
-    , TH.quoteType = const $ fail "cannot be used as a type"
+pointer = defaultQuasiQuoter
+    { TH.quoteExp = Result.result fail TH.lift . Decode.decodePointer . Text.encodeUtf8 . Text.pack
     }
 
 value :: TH.QuasiQuoter
-value = TH.QuasiQuoter
-    { TH.quoteDec = const $ fail "cannot be used as a declaration"
-    , TH.quoteExp = Result.result fail TH.lift . fmap asValue . Decode.decode . Text.encodeUtf8 . Text.pack
-    , TH.quotePat = const $ fail "cannot be used as a pattern"
-    , TH.quoteType = const $ fail "cannot be used as a type"
+value = defaultQuasiQuoter
+    { TH.quoteExp = Result.result fail TH.lift . fmap asValue . Decode.decode . Text.encodeUtf8 . Text.pack
     }
 
 asValue :: Value.Value -> Value.Value
 asValue = id
+
+defaultQuasiQuoter :: TH.QuasiQuoter
+defaultQuasiQuoter = TH.QuasiQuoter
+    { TH.quoteDec = const $ fail "cannot be used as a declaration"
+    , TH.quoteExp = const $ fail "cannot be used as an expression"
+    , TH.quotePat = const $ fail "cannot be used as a pattern"
+    , TH.quoteType = const $ fail "cannot be used as a type"
+    }
