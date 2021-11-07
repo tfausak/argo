@@ -8,6 +8,7 @@ import qualified Argo.Decoder as Decoder
 import qualified Argo.Encoder as Encoder
 import qualified Argo.Json.Name as Name
 import qualified Argo.Literal as Literal
+import qualified Argo.Type.Config as Config
 import qualified Argo.Vendor.Builder as Builder
 import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.TemplateHaskell as TH
@@ -24,7 +25,7 @@ encode f (Member x y) = do
     Name.encode x
     Trans.lift . Trans.tell $ Builder.word8 Literal.colon
     config <- Trans.ask
-    Monad.when (Encoder.hasIndent config)
+    Monad.when (Config.hasIndent config)
         . Trans.lift
         . Trans.tell
         $ Builder.word8 Literal.space

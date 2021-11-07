@@ -8,6 +8,7 @@ import qualified Argo.Json.Number as Number
 import qualified Argo.Json.Value as Value
 import qualified Argo.Pattern as Pattern
 import qualified Argo.Pointer.Pointer as Pointer
+import qualified Argo.Type.Config as Config
 import qualified Argo.Vendor.Builder as Builder
 import qualified Argo.Vendor.ByteString as ByteString
 import qualified Argo.Vendor.Text as Text
@@ -104,7 +105,7 @@ instance ToValue Pointer.Pointer where
         . ByteString.toStrict
         . Builder.toLazyByteString
         . snd
-        . Encoder.run Encoder.defaultConfig
+        . Encoder.run Config.initial
         . Pointer.encode
 
 realFloatToValue :: RealFloat a => a -> Value.Value

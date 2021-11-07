@@ -1,6 +1,7 @@
 module Argo.Encoder where
 
 import qualified Argo.Literal as Literal
+import qualified Argo.Type.Config as Config
 import qualified Argo.Type.Indent as Indent
 import qualified Argo.Vendor.Builder as Builder
 import qualified Argo.Vendor.Transformers as Trans
@@ -8,29 +9,10 @@ import qualified Control.Monad as Monad
 import qualified Data.Functor.Identity as Identity
 import qualified Data.Semigroup as Semigroup
 
-type Encoder = Trans.ReaderT Config (Trans.WriterT Builder.Builder Identity.Identity)
+type Encoder = Trans.ReaderT Config.Config (Trans.WriterT Builder.Builder Identity.Identity)
 
-run :: Config -> Encoder a -> (a, Builder.Builder)
+run :: Config.Config -> Encoder a -> (a, Builder.Builder)
 run c = Identity.runIdentity . Trans.runWriterT . flip Trans.runReaderT c
-
-data Config = Config
-    { indent :: Indent.Indent
-    , level :: Int
-    } deriving (Eq, Show)
-
-defaultConfig :: Config
-defaultConfig = Config
-    { indent = Indent.Spaces 0
-    , level = 0
-    }
-
-hasIndent :: Config -> Bool
-hasIndent x = case indent x of
-    Indent.Spaces y -> y > 0
-    Indent.Tab -> True
-
-increaseLevel :: Config -> Config
-increaseLevel x = x { level = level x + 1 }
 
 list :: Encoder () -> Encoder () -> Encoder () -> (a -> Encoder ()) -> [a] -> Encoder ()
 list l r s f xs = case xs of
@@ -40,8 +22,8 @@ list l r s f xs = case xs of
     x : ys -> do
         l
         c <- Trans.ask
-        let newLine = if hasIndent c then Builder.word8 Literal.newLine else mempty
-        Trans.local increaseLevel $ do
+        let newLine = if Config.hasIndent c then Builder.word8 Literal.newLine else mempty
+        Trans.local Config.increaseLevel $ do
             i <- makeIndent <$> Trans.ask
             Trans.lift . Trans.tell $ newLine <> i
             f x
@@ -52,11 +34,11 @@ list l r s f xs = case xs of
         Trans.lift . Trans.tell $ newLine <> makeIndent c
         r
 
-makeIndent :: Config -> Builder.Builder
-makeIndent x = case indent x of
+makeIndent :: Config.Config -> Builder.Builder
+makeIndent x = case Config.indent x of
     Indent.Spaces y -> if y <= 0 then mempty else
-        Semigroup.stimesMonoid (level x)
+        Semigroup.stimesMonoid (Config.level x)
         . Semigroup.stimes y
         $ Builder.word8 Literal.space
-    Indent.Tab -> Semigroup.stimesMonoid (level x)
+    Indent.Tab -> Semigroup.stimesMonoid (Config.level x)
         $ Builder.word8 Literal.horizontalTabulation
