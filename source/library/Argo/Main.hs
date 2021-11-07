@@ -24,11 +24,11 @@ main = do
     mapM_ (IO.hPutStr IO.stderr) es
     Monad.unless (null es) Exit.exitFailure
 
-    config <- either fail pure $ Monad.foldM applyFlag defaultConfig flags
-    Monad.when (configHelp config) $ do
+    settings <- either fail pure $ Monad.foldM applyFlag defaultSettings flags
+    Monad.when (settingsHelp settings) $ do
         putStr $ Console.usageInfo (name <> " version " <> version) options
         Exit.exitSuccess
-    Monad.when (configVersion config) $ do
+    Monad.when (settingsVersion settings) $ do
         putStrLn version
         Exit.exitSuccess
 
@@ -36,7 +36,7 @@ main = do
     case Argo.decode contents of
         Argo.Failure e -> fail e
         Argo.Success value -> Builder.hPutBuilder IO.stdout
-            $ Argo.encodeWith (configIndent config) (value :: Argo.Value)
+            $ Argo.encodeWith (settingsIndent settings) (value :: Argo.Value)
 
 quote :: String -> String
 quote x = "`" <> x <> "'"
@@ -52,24 +52,24 @@ options =
     , Console.Option ['t'] ["tab"] (Console.NoArg Flag.Tab) "pretty-prints the output using tabs"
     ]
 
-data Config = Config
-    { configHelp :: Bool
-    , configIndent :: Indent.Indent
-    , configVersion :: Bool
+data Settings = Settings
+    { settingsHelp :: Bool
+    , settingsIndent :: Indent.Indent
+    , settingsVersion :: Bool
     } deriving (Eq, Show)
 
-defaultConfig :: Config
-defaultConfig = Config
-    { configHelp = False
-    , configIndent = Indent.Spaces 0
-    , configVersion = False
+defaultSettings :: Settings
+defaultSettings = Settings
+    { settingsHelp = False
+    , settingsIndent = Indent.Spaces 0
+    , settingsVersion = False
     }
 
-applyFlag :: Config -> Flag.Flag -> Either String Config
-applyFlag config flag = case flag of
-    Flag.Help -> pure config { configHelp = True }
+applyFlag :: Settings -> Flag.Flag -> Either String Settings
+applyFlag settings flag = case flag of
+    Flag.Help -> pure settings { settingsHelp = True }
     Flag.Spaces string -> do
         int <- Read.readEither string
-        pure config { configIndent = Indent.Spaces int }
-    Flag.Tab -> pure config { configIndent = Indent.Tab }
-    Flag.Version -> pure config { configVersion = True }
+        pure settings { settingsIndent = Indent.Spaces int }
+    Flag.Tab -> pure settings { settingsIndent = Indent.Tab }
+    Flag.Version -> pure settings { settingsVersion = True }
