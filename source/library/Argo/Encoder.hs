@@ -17,6 +17,12 @@ data Config = Config
     , level :: Int
     } deriving (Eq, Show)
 
+defaultConfig :: Config
+defaultConfig = Config
+    { indent = Spaces 0
+    , level = 0
+    }
+
 data Indent
     = Spaces Int
     | Tab

@@ -14,7 +14,7 @@ encode = encodeWith $ Encoder.Spaces 0
 
 encodeWith :: ToValue.ToValue a => Encoder.Indent -> a -> Builder.Builder
 encodeWith i x =
-    let c = Encoder.Config { Encoder.indent = i, Encoder.level = 0 }
+    let c = Encoder.defaultConfig { Encoder.indent = i }
     in snd . Encoder.run c $ do
         Value.encode $ ToValue.toValue x
         Monad.when (Encoder.hasIndent c)
@@ -24,5 +24,5 @@ encodeWith i x =
 
 encodePointer :: Pointer.Pointer -> Builder.Builder
 encodePointer =
-    let c = Encoder.Config { Encoder.indent = Encoder.Spaces 0, Encoder.level = 0 }
+    let c = Encoder.defaultConfig
     in snd . Encoder.run c . Pointer.encode
