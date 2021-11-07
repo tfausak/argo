@@ -5,6 +5,7 @@ module Argo.Vendor.Builder
     , Prim.condB
     , Builder.integerDec
     , Prim.liftFixedToBounded
+    , Builder.toLazyByteString
     , Builder.word8
     , word8F
     , Prim.word16HexFixed

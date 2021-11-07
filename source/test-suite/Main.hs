@@ -347,6 +347,8 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
             fromValue (Argo.Array [Argo.Boolean False]) @?= Just (False :| [])
         , Tasty.testCase "Map Text a" $ do
             fromValue (Argo.Object [Argo.Member (Argo.Name "a") $ Argo.Boolean False]) @?= Just (Map.fromList [("a" :: Text.Text, False)])
+        , Tasty.testCase "Pointer" $ do
+            fromValue (Argo.String "") @?= Just (Argo.Pointer [])
         ]
     , Tasty.testGroup "toValue"
         [ Tasty.testCase "Value" $ do
@@ -399,6 +401,8 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
             Argo.toValue (False :| []) @?= Argo.Array [Argo.Boolean False]
         , Tasty.testCase "Map Text a" $ do
             Argo.toValue (Map.fromList [("a" :: Text.Text, False)]) @?= Argo.Object [Argo.Member (Argo.Name "a") $ Argo.Boolean False]
+        , Tasty.testCase "Pointer" $ do
+            Argo.toValue (Argo.Pointer []) @?= Argo.String ""
         ]
     , Tasty.testGroup "quasi quoter"
         [ Tasty.testCase "Null" $ do
@@ -476,6 +480,8 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: NonEmpty Bool)
             , property "Map Text a" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: Map.Map Text.Text Bool)
+            , property "Pointer" $ \ x ->
+                Argo.fromValue (Argo.toValue x) === Argo.Success (x :: Argo.Pointer)
             ]
         ]
     , Tasty.testGroup "Codec"

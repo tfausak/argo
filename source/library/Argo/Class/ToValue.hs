@@ -2,9 +2,13 @@
 
 module Argo.Class.ToValue where
 
+import qualified Argo.Encoder as Encoder
 import qualified Argo.Json.Number as Number
 import qualified Argo.Json.Value as Value
 import qualified Argo.Pattern as Pattern
+import qualified Argo.Pointer.Pointer as Pointer
+import qualified Argo.Vendor.Builder as Builder
+import qualified Argo.Vendor.ByteString as ByteString
 import qualified Argo.Vendor.Text as Text
 import qualified Data.Int as Int
 import qualified Data.List as List
@@ -92,6 +96,15 @@ instance ToValue a => ToValue (Map.Map Text.Text a) where
     toValue x = Pattern.Object
         . fmap (\ (k, v) -> Pattern.Member (Pattern.Name k) (toValue v))
         $ Map.toAscList x
+
+instance ToValue Pointer.Pointer where
+    toValue = either (error . mappend "Pointer.toValue: " . show) toValue
+        . Text.decodeUtf8'
+        . ByteString.toStrict
+        . Builder.toLazyByteString
+        . snd
+        . Encoder.run Encoder.defaultConfig
+        . Pointer.encode
 
 realFloatToValue :: RealFloat a => a -> Value.Value
 realFloatToValue x
