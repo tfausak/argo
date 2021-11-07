@@ -1,16 +1,21 @@
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
+
 module Argo.Pointer.Token where
 
 import qualified Argo.Decoder as Decoder
 import qualified Argo.Encoder as Encoder
 import qualified Argo.Literal as Literal
 import qualified Argo.Vendor.Builder as Builder
+import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.Text as Text
 import qualified Argo.Vendor.Transformers as Trans
 import qualified Data.Word as Word
+import qualified GHC.Generics as Generics
 
 newtype Token
     = Token Text.Text
-    deriving (Eq, Show)
+    deriving (Eq, Generics.Generic, DeepSeq.NFData, Show)
 
 fromText :: Text.Text -> Token
 fromText = Token

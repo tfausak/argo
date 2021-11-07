@@ -44,7 +44,7 @@ main = Tasty.defaultMain
             , Tasty.bench "10000 elements" . Tasty.nf encode . Argo.Object . replicate 10000 $ Argo.Member (Argo.Name "") Argo.Null
             ]
         ]
-    , Tasty.bgroup "decode" $ let decode = resultToMaybe . Argo.decode :: ByteString.ByteString -> Maybe Argo.Value in
+    , Tasty.bgroup "decode" $ let decode = Argo.decode :: ByteString.ByteString -> Argo.Result Argo.Value in
         [ Tasty.bgroup "Null"
             [ Tasty.bench "null" $ Tasty.nf decode "null"
             ]
@@ -86,9 +86,8 @@ main = Tasty.defaultMain
             , Tasty.bench "10000 elements" . Tasty.nf decode $ "{\"\":null" <> ByteString.pack (take (5 * 9999) $ cycle [0x2c, 0x22, 0x22, 0x3a, 0x6e, 0x75, 0x6c, 0x6c]) <> "}"
             ]
         ]
+    , Tasty.bgroup "Pointer"
+        [ Tasty.bench "decode" $ Tasty.nf Argo.decodePointer ""
+        , Tasty.bench "encode" . Tasty.nf Builder.toLazyByteString . Argo.encodePointer $ Argo.Pointer []
+        ]
     ]
-
-resultToMaybe :: Argo.Result a -> Maybe a
-resultToMaybe r = case r of
-    Argo.Failure _ -> Nothing
-    Argo.Success x -> Just x

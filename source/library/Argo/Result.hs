@@ -1,11 +1,16 @@
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
+
 module Argo.Result where
 
+import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Control.Applicative as Applicative
+import qualified GHC.Generics as Generics
 
 data Result a
     = Failure String
     | Success a
-    deriving (Eq, Show)
+    deriving (Eq, Generics.Generic, DeepSeq.NFData, Show)
 
 instance Functor Result where
     fmap f r = case r of

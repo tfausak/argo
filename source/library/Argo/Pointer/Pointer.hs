@@ -1,3 +1,6 @@
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
+
 module Argo.Pointer.Pointer where
 
 import qualified Argo.Decoder as Decoder
@@ -5,14 +8,16 @@ import qualified Argo.Encoder as Encoder
 import qualified Argo.Literal as Literal
 import qualified Argo.Pointer.Token as Token
 import qualified Argo.Vendor.Builder as Builder
+import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.Transformers as Trans
 import qualified Control.Applicative as Applicative
+import qualified GHC.Generics as Generics
 
 -- | A JSON pointer, as described by RFC 6901.
 -- <https://datatracker.ietf.org/doc/html/rfc6901>
 newtype Pointer
     = Pointer [Token.Token]
-    deriving (Eq, Show)
+    deriving (Eq, Generics.Generic, DeepSeq.NFData, Show)
 
 fromList :: [Token.Token] -> Pointer
 fromList = Pointer
