@@ -10,8 +10,6 @@ import Test.Tasty.QuickCheck ((===))
 
 import qualified Argo
 import qualified Argo.Codec as Codec
-import qualified Argo.Decode as Decode
-import qualified Argo.Encode as Encode
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Builder as Builder
 import qualified Data.ByteString.Lazy as LazyByteString
@@ -515,18 +513,19 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
     , Tasty.testGroup "Pointer"
         $ let pointer = Argo.Pointer . fmap Argo.Token in
         [ Tasty.testCase "decode" $ do
-            Decode.decodePointer "" @?= Argo.Success (pointer [])
-            Decode.decodePointer "/" @?= Argo.Success (pointer [""])
-            Decode.decodePointer "/a" @?= Argo.Success (pointer ["a"])
-            Decode.decodePointer "/a/b" @?= Argo.Success (pointer ["a", "b"])
-            Decode.decodePointer "/ab" @?= Argo.Success (pointer ["ab"])
-            Decode.decodePointer "/~0" @?= Argo.Success (pointer ["~"])
-            Decode.decodePointer "/~1" @?= Argo.Success (pointer ["/"])
-            Decode.decodePointer "/~01" @?= Argo.Success (pointer ["~1"])
-            Decode.decodePointer "a" @?= Argo.Failure "eof"
-            Decode.decodePointer "/~2" @?= Argo.Failure "eof"
+            let decode = Argo.decodePointer
+            decode "" @?= Argo.Success (pointer [])
+            decode "/" @?= Argo.Success (pointer [""])
+            decode "/a" @?= Argo.Success (pointer ["a"])
+            decode "/a/b" @?= Argo.Success (pointer ["a", "b"])
+            decode "/ab" @?= Argo.Success (pointer ["ab"])
+            decode "/~0" @?= Argo.Success (pointer ["~"])
+            decode "/~1" @?= Argo.Success (pointer ["/"])
+            decode "/~01" @?= Argo.Success (pointer ["~1"])
+            decode "a" @?= Argo.Failure "eof"
+            decode "/~2" @?= Argo.Failure "eof"
         , Tasty.testCase "encode" $ do
-            let encode = Builder.toLazyByteString . Encode.encodePointer
+            let encode = Builder.toLazyByteString . Argo.encodePointer
             encode (pointer []) @?= ""
             encode (pointer [""]) @?= "/"
             encode (pointer ["a"]) @?= "/a"

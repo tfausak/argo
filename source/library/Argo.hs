@@ -25,6 +25,8 @@ module Argo
     , Result.Result(Failure, Success)
     , Pointer.Pointer(Pattern.Pointer)
     , Token.Token(Pattern.Token)
+    , Encode.encodePointer
+    , Decode.decodePointer
     ) where
 
 import qualified Argo.Class.FromValue as FromValue
