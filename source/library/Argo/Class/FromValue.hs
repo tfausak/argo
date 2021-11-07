@@ -115,8 +115,7 @@ instance FromValue a => FromValue (Map.Map Text.Text a) where
 
 instance FromValue Pointer.Pointer where
     fromValue = withString "Pointer"
-        $ fmap snd
-        . Decoder.run (Pointer.decode <* Decoder.eof)
+        $ Decoder.run Pointer.decode
         . Text.encodeUtf8
 
 withBoolean :: String -> (Bool -> Result.Result a) -> Value.Value -> Result.Result a

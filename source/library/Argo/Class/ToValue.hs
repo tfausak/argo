@@ -104,7 +104,6 @@ instance ToValue Pointer.Pointer where
         . Text.decodeUtf8'
         . ByteString.toStrict
         . Builder.toLazyByteString
-        . snd
         . Encoder.run Config.initial
         . Pointer.encode
 

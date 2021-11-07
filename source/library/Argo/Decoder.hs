@@ -8,35 +8,38 @@ import qualified Control.Monad as Monad
 import qualified Data.Word as Word
 
 newtype Decoder a = Decoder
-    { run :: ByteString.ByteString -> Result.Result (ByteString.ByteString, a)
+    { unwrap :: ByteString.ByteString -> Result.Result (ByteString.ByteString, a)
     }
 
 instance Functor Decoder where
-    fmap f d = Decoder $ \ b1 -> case run d b1 of
+    fmap f d = Decoder $ \ b1 -> case unwrap d b1 of
         Result.Failure e -> Result.Failure e
         Result.Success (b2, x) -> Result.Success (b2, f x)
 
 instance Applicative Decoder where
     pure x = Decoder $ \ b -> Result.Success (b, x)
-    df <*> dx = Decoder $ \ b1 -> case run df b1 of
+    df <*> dx = Decoder $ \ b1 -> case unwrap df b1 of
         Result.Failure e -> Result.Failure e
-        Result.Success (b2, f) -> case run dx b2 of
+        Result.Success (b2, f) -> case unwrap dx b2 of
             Result.Failure e -> Result.Failure e
             Result.Success (b3, x) -> Result.Success (b3, f x)
 
 instance Monad Decoder where
-    d >>= f = Decoder $ \ b1 -> case run d b1 of
+    d >>= f = Decoder $ \ b1 -> case unwrap d b1 of
         Result.Failure e -> Result.Failure e
-        Result.Success (b2, x) -> run (f x) b2
+        Result.Success (b2, x) -> unwrap (f x) b2
 
 instance MonadFail Decoder where
     fail = Decoder . const . Result.Failure
 
 instance Applicative.Alternative Decoder where
     empty = fail "empty"
-    dx <|> dy = Decoder $ \ b1 -> case run dx b1 of
-        Result.Failure _ -> run dy b1
+    dx <|> dy = Decoder $ \ b1 -> case unwrap dx b1 of
+        Result.Failure _ -> unwrap dy b1
         Result.Success (b2, x) -> Result.Success (b2, x)
+
+run :: Decoder a -> ByteString.ByteString -> Result.Result a
+run d = fmap snd . unwrap (d <* eof)
 
 list :: Decoder a -> Decoder [a]
 list f = listWith f []

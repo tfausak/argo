@@ -11,8 +11,11 @@ import qualified Data.Semigroup as Semigroup
 
 type Encoder = Trans.ReaderT Config.Config (Trans.WriterT Builder.Builder Identity.Identity)
 
-run :: Config.Config -> Encoder a -> (a, Builder.Builder)
-run c = Identity.runIdentity . Trans.runWriterT . flip Trans.runReaderT c
+unwrap :: Config.Config -> Encoder a -> (a, Builder.Builder)
+unwrap c = Identity.runIdentity . Trans.runWriterT . flip Trans.runReaderT c
+
+run :: Config.Config -> Encoder a -> Builder.Builder
+run c = snd . unwrap c
 
 list :: Encoder () -> Encoder () -> Encoder () -> (a -> Encoder ()) -> [a] -> Encoder ()
 list l r s f xs = case xs of
