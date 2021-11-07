@@ -9,7 +9,7 @@ import qualified Argo.Vendor.Text as Text
 pointer :: TH.QuasiQuoter
 pointer = TH.QuasiQuoter
     { TH.quoteDec = const $ fail "cannot be used as a declaration"
-    , TH.quoteExp = fromResult . Decode.decodePointer . Text.encodeUtf8 . Text.pack
+    , TH.quoteExp = result fail TH.lift . Decode.decodePointer . Text.encodeUtf8 . Text.pack
     , TH.quotePat = const $ fail "cannot be used as a pattern"
     , TH.quoteType = const $ fail "cannot be used as a type"
     }
@@ -17,7 +17,7 @@ pointer = TH.QuasiQuoter
 value :: TH.QuasiQuoter
 value = TH.QuasiQuoter
     { TH.quoteDec = const $ fail "cannot be used as a declaration"
-    , TH.quoteExp = fromResult . fmap asValue . Decode.decode . Text.encodeUtf8 . Text.pack
+    , TH.quoteExp = result fail TH.lift . fmap asValue . Decode.decode . Text.encodeUtf8 . Text.pack
     , TH.quotePat = const $ fail "cannot be used as a pattern"
     , TH.quoteType = const $ fail "cannot be used as a type"
     }
@@ -25,7 +25,7 @@ value = TH.QuasiQuoter
 asValue :: Value.Value -> Value.Value
 asValue = id
 
-fromResult :: (TH.Lift a, MonadFail m, TH.Quote m) => Result.Result a -> m TH.Exp
-fromResult x = case x of
-    Result.Failure y -> fail y
-    Result.Success y -> TH.lift y
+result :: (String -> b) -> (a -> b) -> Result.Result a -> b
+result f g x = case x of
+    Result.Failure y -> f y
+    Result.Success y -> g y

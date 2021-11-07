@@ -3,7 +3,6 @@ module Argo.Vendor.TemplateHaskell
     , TH.Lift(..)
     , TH.Q
     , QQ.QuasiQuoter(..)
-    , TH.Quote
     ) where
 
 import qualified Language.Haskell.TH.Quote as QQ
