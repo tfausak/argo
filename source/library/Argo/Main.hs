@@ -21,11 +21,10 @@ main = do
 
 mainWith :: String -> [String] -> IO ()
 mainWith name arguments = do
-    let (flags, as, os, es) = Console.getOpt' Console.Permute options arguments
-    mapM_ (IO.hPutStrLn IO.stderr . mappend "unknown argument " . quote) as
-    mapM_ (IO.hPutStrLn IO.stderr . mappend "unknown option " . quote) os
-    mapM_ (IO.hPutStr IO.stderr) es
-    Monad.unless (null es) Exit.exitFailure
+    let ((warnings, errors), flags) = getFlags arguments
+    mapM_ (IO.hPutStrLn IO.stderr) warnings
+    mapM_ (IO.hPutStr IO.stderr) errors
+    Monad.unless (null errors) Exit.exitFailure
 
     settings <- either fail pure $ Monad.foldM Settings.applyFlag Settings.initial flags
     Monad.when (Settings.help settings) $ do
@@ -40,6 +39,14 @@ mainWith name arguments = do
         Argo.Failure e -> fail e
         Argo.Success value -> Builder.hPutBuilder IO.stdout
             $ Argo.encodeWith (Settings.indent settings) (value :: Argo.Value)
+
+getFlags :: [String] -> (([String], [String]), [Flag.Flag])
+getFlags arguments =
+    let
+        (flags, xs, ys, errors) = Console.getOpt' Console.Permute options arguments
+        warnings = fmap (mappend "unknown argument " . quote) xs
+            <> fmap (mappend "unknown option " . quote) ys
+    in ((warnings, errors), flags)
 
 quote :: String -> String
 quote x = "`" <> x <> "'"
