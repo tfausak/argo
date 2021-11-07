@@ -2,7 +2,7 @@ module Argo.Main where
 
 import qualified Argo
 import qualified Argo.Type.Flag as Flag
-import qualified Argo.Type.Indent as Indent
+import qualified Argo.Type.Settings as Settings
 import qualified Control.Monad as Monad
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Builder as Builder
@@ -12,7 +12,6 @@ import qualified System.Console.GetOpt as Console
 import qualified System.Environment as Environment
 import qualified System.Exit as Exit
 import qualified System.IO as IO
-import qualified Text.Read as Read
 
 main :: IO ()
 main = do
@@ -24,11 +23,11 @@ main = do
     mapM_ (IO.hPutStr IO.stderr) es
     Monad.unless (null es) Exit.exitFailure
 
-    settings <- either fail pure $ Monad.foldM applyFlag defaultSettings flags
-    Monad.when (settingsHelp settings) $ do
+    settings <- either fail pure $ Monad.foldM Settings.applyFlag Settings.initial flags
+    Monad.when (Settings.help settings) $ do
         putStr $ Console.usageInfo (name <> " version " <> version) options
         Exit.exitSuccess
-    Monad.when (settingsVersion settings) $ do
+    Monad.when (Settings.version settings) $ do
         putStrLn version
         Exit.exitSuccess
 
@@ -36,7 +35,7 @@ main = do
     case Argo.decode contents of
         Argo.Failure e -> fail e
         Argo.Success value -> Builder.hPutBuilder IO.stdout
-            $ Argo.encodeWith (settingsIndent settings) (value :: Argo.Value)
+            $ Argo.encodeWith (Settings.indent settings) (value :: Argo.Value)
 
 quote :: String -> String
 quote x = "`" <> x <> "'"
@@ -51,25 +50,3 @@ options =
     , Console.Option ['s'] ["spaces"] (Console.ReqArg Flag.Spaces "INT") "pretty-prints the output using INT sapces"
     , Console.Option ['t'] ["tab"] (Console.NoArg Flag.Tab) "pretty-prints the output using tabs"
     ]
-
-data Settings = Settings
-    { settingsHelp :: Bool
-    , settingsIndent :: Indent.Indent
-    , settingsVersion :: Bool
-    } deriving (Eq, Show)
-
-defaultSettings :: Settings
-defaultSettings = Settings
-    { settingsHelp = False
-    , settingsIndent = Indent.Spaces 0
-    , settingsVersion = False
-    }
-
-applyFlag :: Settings -> Flag.Flag -> Either String Settings
-applyFlag settings flag = case flag of
-    Flag.Help -> pure settings { settingsHelp = True }
-    Flag.Spaces string -> do
-        int <- Read.readEither string
-        pure settings { settingsIndent = Indent.Spaces int }
-    Flag.Tab -> pure settings { settingsIndent = Indent.Tab }
-    Flag.Version -> pure settings { settingsVersion = True }

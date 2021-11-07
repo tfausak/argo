@@ -93,6 +93,7 @@ library
         Argo.Type.Config
         Argo.Type.Flag
         Argo.Type.Indent
+        Argo.Type.Settings
     hs-source-dirs: source/library
     other-modules:
         Argo.Vendor.ByteString
