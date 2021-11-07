@@ -11,8 +11,6 @@ import qualified Argo.Json.Number as Number
 import qualified Argo.Json.Object as Object
 import qualified Argo.Json.String as String
 import qualified Argo.Json.Value as Value
-import qualified Argo.Pointer.Pointer as Pointer
-import qualified Argo.Pointer.Token as Token
 import qualified Argo.Vendor.Text as Text
 
 pattern Null :: Value.Value
@@ -51,13 +49,3 @@ pattern Name :: Text.Text -> Name.Name
 pattern Name x = Name.Name (String.String x)
 
 {-# COMPLETE Name #-}
-
-pattern Pointer :: [Token.Token] -> Pointer.Pointer
-pattern Pointer x = Pointer.Pointer x
-
-{-# COMPLETE Pointer #-}
-
-pattern Token :: Text.Text -> Token.Token
-pattern Token x = Token.Token x
-
-{-# COMPLETE Token #-}

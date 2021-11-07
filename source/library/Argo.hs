@@ -23,8 +23,8 @@ module Argo
     , ToValue.ToValue(toValue)
     , QuasiQuoter.value
     , Result.Result(Failure, Success)
-    , Pointer.Pointer(Pattern.Pointer)
-    , Token.Token(Pattern.Token)
+    , Pointer.Pointer(Pointer.Pointer)
+    , Token.Token(Token.Token)
     , Encode.encodePointer
     , Decode.decodePointer
     ) where
