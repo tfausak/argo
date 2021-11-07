@@ -1,6 +1,7 @@
 module Argo.Encoder where
 
 import qualified Argo.Literal as Literal
+import qualified Argo.Type.Indent as Indent
 import qualified Argo.Vendor.Builder as Builder
 import qualified Argo.Vendor.Transformers as Trans
 import qualified Control.Monad as Monad
@@ -13,25 +14,20 @@ run :: Config -> Encoder a -> (a, Builder.Builder)
 run c = Identity.runIdentity . Trans.runWriterT . flip Trans.runReaderT c
 
 data Config = Config
-    { indent :: Indent
+    { indent :: Indent.Indent
     , level :: Int
     } deriving (Eq, Show)
 
 defaultConfig :: Config
 defaultConfig = Config
-    { indent = Spaces 0
+    { indent = Indent.Spaces 0
     , level = 0
     }
 
-data Indent
-    = Spaces Int
-    | Tab
-    deriving (Eq, Show)
-
 hasIndent :: Config -> Bool
 hasIndent x = case indent x of
-    Spaces y -> y > 0
-    Tab -> True
+    Indent.Spaces y -> y > 0
+    Indent.Tab -> True
 
 increaseLevel :: Config -> Config
 increaseLevel x = x { level = level x + 1 }
@@ -58,9 +54,9 @@ list l r s f xs = case xs of
 
 makeIndent :: Config -> Builder.Builder
 makeIndent x = case indent x of
-    Spaces y -> if y <= 0 then mempty else
+    Indent.Spaces y -> if y <= 0 then mempty else
         Semigroup.stimesMonoid (level x)
         . Semigroup.stimes y
         $ Builder.word8 Literal.space
-    Tab -> Semigroup.stimesMonoid (level x)
+    Indent.Tab -> Semigroup.stimesMonoid (level x)
         $ Builder.word8 Literal.horizontalTabulation

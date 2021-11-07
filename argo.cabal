@@ -90,6 +90,7 @@ library
         Argo.Pointer.Token
         Argo.QuasiQuoter
         Argo.Result
+        Argo.Type.Indent
     hs-source-dirs: source/library
     other-modules:
         Argo.Vendor.ByteString

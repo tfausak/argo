@@ -1,7 +1,7 @@
 module Argo.Main where
 
 import qualified Argo
-import qualified Argo.Encoder as Encoder
+import qualified Argo.Type.Indent as Indent
 import qualified Control.Monad as Monad
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Builder as Builder
@@ -60,14 +60,14 @@ options =
 
 data Config = Config
     { configHelp :: Bool
-    , configIndent :: Encoder.Indent
+    , configIndent :: Indent.Indent
     , configVersion :: Bool
     } deriving (Eq, Show)
 
 defaultConfig :: Config
 defaultConfig = Config
     { configHelp = False
-    , configIndent = Encoder.Spaces 0
+    , configIndent = Indent.Spaces 0
     , configVersion = False
     }
 
@@ -76,6 +76,6 @@ applyFlag config flag = case flag of
     FlagHelp -> pure config { configHelp = True }
     FlagSpaces string -> do
         int <- Read.readEither string
-        pure config { configIndent = Encoder.Spaces int }
-    FlagTab -> pure config { configIndent = Encoder.Tab }
+        pure config { configIndent = Indent.Spaces int }
+    FlagTab -> pure config { configIndent = Indent.Tab }
     FlagVersion -> pure config { configVersion = True }
