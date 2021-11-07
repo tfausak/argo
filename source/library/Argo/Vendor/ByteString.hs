@@ -16,6 +16,7 @@ module Argo.Vendor.ByteString
     , ByteString.takeWhileEnd
     , LazyByteString.toStrict
     , ByteString.uncons
+    , ByteString.unpack
     ) where
 
 import qualified Data.ByteString as ByteString
