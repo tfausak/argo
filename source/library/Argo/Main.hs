@@ -17,6 +17,10 @@ main :: IO ()
 main = do
     name <- Environment.getProgName
     arguments <- Environment.getArgs
+    mainWith name arguments
+
+mainWith :: String -> [String] -> IO ()
+mainWith name arguments = do
     let (flags, as, os, es) = Console.getOpt' Console.Permute options arguments
     mapM_ (IO.hPutStrLn IO.stderr . mappend "unknown argument " . quote) as
     mapM_ (IO.hPutStrLn IO.stderr . mappend "unknown option " . quote) os
