@@ -23,6 +23,8 @@ module Argo
     , ToValue.ToValue(toValue)
     , QuasiQuoter.value
     , Result.Result(Failure, Success)
+    , Pointer.Pointer(Pattern.Pointer)
+    , Token.Token(Pattern.Token)
     ) where
 
 import qualified Argo.Class.FromValue as FromValue
@@ -32,6 +34,8 @@ import qualified Argo.Encode as Encode
 import qualified Argo.Encoder as Encoder
 import qualified Argo.Json.Name as Name
 import qualified Argo.Json.Value as Value
+import qualified Argo.Pointer.Pointer as Pointer
+import qualified Argo.Pointer.Token as Token
 import qualified Argo.Pattern as Pattern
 import qualified Argo.QuasiQuoter as QuasiQuoter
 import qualified Argo.Result as Result

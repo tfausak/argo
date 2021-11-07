@@ -12,8 +12,6 @@ import qualified Argo
 import qualified Argo.Codec as Codec
 import qualified Argo.Decode as Decode
 import qualified Argo.Encode as Encode
-import qualified Argo.Pointer.Pointer as Pointer
-import qualified Argo.Pointer.Token as Token
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Builder as Builder
 import qualified Data.ByteString.Lazy as LazyByteString
@@ -515,7 +513,7 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
             Codec.decodeWith recordCodec (Argo.Object [Argo.Member (Argo.Name "bool") $ Argo.Boolean False, Argo.Member (Argo.Name "text") $ Argo.String ""]) @?= Argo.Success (Record False $ Just "")
         ]
     , Tasty.testGroup "Pointer"
-        $ let pointer = Pointer.fromList . fmap Token.fromText in
+        $ let pointer = Argo.Pointer . fmap Argo.Token in
         [ Tasty.testCase "decode" $ do
             Decode.decodePointer "" @?= Argo.Success (pointer [])
             Decode.decodePointer "/" @?= Argo.Success (pointer [""])
