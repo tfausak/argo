@@ -18,6 +18,9 @@ comma = 0x2c
 digitNine :: Word.Word8
 digitNine = 0x39
 
+digitOne :: Word.Word8
+digitOne = 0x31
+
 digitZero :: Word.Word8
 digitZero = 0x30
 
@@ -87,8 +90,14 @@ rightCurlyBracket = 0x7d
 rightSquareBracket :: Word.Word8
 rightSquareBracket = 0x5d
 
+solidus :: Word.Word8
+solidus = 0x2f
+
 space :: Word.Word8
 space = 0x20
+
+tilde :: Word.Word8
+tilde = 0x7e
 
 true :: ByteString.ByteString
 true = ByteString.pack [0x74, 0x72, 0x75, 0x65]

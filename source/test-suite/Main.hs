@@ -10,6 +10,10 @@ import Test.Tasty.QuickCheck ((===))
 
 import qualified Argo
 import qualified Argo.Codec as Codec
+import qualified Argo.Decode as Decode
+import qualified Argo.Encode as Encode
+import qualified Argo.Pointer.Pointer as Pointer
+import qualified Argo.Pointer.Token as Token
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Builder as Builder
 import qualified Data.ByteString.Lazy as LazyByteString
@@ -509,6 +513,28 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
         , Tasty.testCase "decode record" $ do
             Codec.decodeWith recordCodec (Argo.Object [Argo.Member (Argo.Name "bool") $ Argo.Boolean False]) @?= Argo.Success (Record False Nothing)
             Codec.decodeWith recordCodec (Argo.Object [Argo.Member (Argo.Name "bool") $ Argo.Boolean False, Argo.Member (Argo.Name "text") $ Argo.String ""]) @?= Argo.Success (Record False $ Just "")
+        ]
+    , Tasty.testGroup "Pointer"
+        $ let pointer = Pointer.fromList . fmap Token.fromText in
+        [ Tasty.testCase "decode" $ do
+            Decode.decodePointer "" @?= Argo.Success (pointer [])
+            Decode.decodePointer "/" @?= Argo.Success (pointer [""])
+            Decode.decodePointer "/a" @?= Argo.Success (pointer ["a"])
+            Decode.decodePointer "/a/b" @?= Argo.Success (pointer ["a", "b"])
+            Decode.decodePointer "/ab" @?= Argo.Success (pointer ["ab"])
+            Decode.decodePointer "/~0" @?= Argo.Success (pointer ["~"])
+            Decode.decodePointer "/~1" @?= Argo.Success (pointer ["/"])
+            Decode.decodePointer "/~01" @?= Argo.Success (pointer ["~1"])
+        , Tasty.testCase "encode" $ do
+            let encode = Builder.toLazyByteString . Encode.encodePointer
+            encode (pointer []) @?= ""
+            encode (pointer [""]) @?= "/"
+            encode (pointer ["a"]) @?= "/a"
+            encode (pointer ["a", "b"]) @?= "/a/b"
+            encode (pointer ["ab"]) @?= "/ab"
+            encode (pointer ["~"]) @?= "/~0"
+            encode (pointer ["/"]) @?= "/~1"
+            encode (pointer ["~1"]) @?= "/~01"
         ]
     ]
 

@@ -18,6 +18,8 @@ import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.TemplateHaskell as TH
 import qualified GHC.Generics as Generics
 
+-- | A JSON (JavaScript Object Notation) value, as described by RFC 8259.
+-- <https://datatracker.ietf.org/doc/html/rfc8259>
 data Value
     = Null Null.Null
     | Boolean Boolean.Boolean
