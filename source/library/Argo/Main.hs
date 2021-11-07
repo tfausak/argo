@@ -1,6 +1,7 @@
 module Argo.Main where
 
 import qualified Argo
+import qualified Argo.Type.Flag as Flag
 import qualified Argo.Type.Indent as Indent
 import qualified Control.Monad as Monad
 import qualified Data.ByteString as ByteString
@@ -43,19 +44,12 @@ quote x = "`" <> x <> "'"
 version :: String
 version = Version.showVersion This.version
 
-data Flag
-    = FlagHelp
-    | FlagSpaces String
-    | FlagTab
-    | FlagVersion
-    deriving (Eq, Show)
-
-options :: [Console.OptDescr Flag]
+options :: [Console.OptDescr Flag.Flag]
 options =
-    [ Console.Option ['h', '?'] ["help"] (Console.NoArg FlagHelp) "shows this help message and exits"
-    , Console.Option ['v'] ["version"] (Console.NoArg FlagVersion) "shows the version number and exits"
-    , Console.Option ['s'] ["spaces"] (Console.ReqArg FlagSpaces "INT") "pretty-prints the output using INT sapces"
-    , Console.Option ['t'] ["tab"] (Console.NoArg FlagTab) "pretty-prints the output using tabs"
+    [ Console.Option ['h', '?'] ["help"] (Console.NoArg Flag.Help) "shows this help message and exits"
+    , Console.Option ['v'] ["version"] (Console.NoArg Flag.Version) "shows the version number and exits"
+    , Console.Option ['s'] ["spaces"] (Console.ReqArg Flag.Spaces "INT") "pretty-prints the output using INT sapces"
+    , Console.Option ['t'] ["tab"] (Console.NoArg Flag.Tab) "pretty-prints the output using tabs"
     ]
 
 data Config = Config
@@ -71,11 +65,11 @@ defaultConfig = Config
     , configVersion = False
     }
 
-applyFlag :: Config -> Flag -> Either String Config
+applyFlag :: Config -> Flag.Flag -> Either String Config
 applyFlag config flag = case flag of
-    FlagHelp -> pure config { configHelp = True }
-    FlagSpaces string -> do
+    Flag.Help -> pure config { configHelp = True }
+    Flag.Spaces string -> do
         int <- Read.readEither string
         pure config { configIndent = Indent.Spaces int }
-    FlagTab -> pure config { configIndent = Indent.Tab }
-    FlagVersion -> pure config { configVersion = True }
+    Flag.Tab -> pure config { configIndent = Indent.Tab }
+    Flag.Version -> pure config { configVersion = True }

@@ -91,6 +91,7 @@ library
         Argo.QuasiQuoter
         Argo.Result
         Argo.Type.Config
+        Argo.Type.Flag
         Argo.Type.Indent
     hs-source-dirs: source/library
     other-modules:
