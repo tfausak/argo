@@ -13,7 +13,7 @@ module Argo
     , Name.Name
     , pattern Pattern.Name
     , Pattern.Member
-    , pattern Pattern.Member
+    , Member.MemberOf(Member)
     , Pattern.Object
     , Encode.encode
     , Encode.encodeWith
@@ -35,6 +35,7 @@ import qualified Argo.Class.FromValue as FromValue
 import qualified Argo.Class.ToValue as ToValue
 import qualified Argo.Decode as Decode
 import qualified Argo.Encode as Encode
+import qualified Argo.Json.Member as Member
 import qualified Argo.Json.Name as Name
 import qualified Argo.Json.Value as Value
 import qualified Argo.Pointer.Pointer as Pointer

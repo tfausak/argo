@@ -3,6 +3,7 @@
 module Argo.Class.FromValue where
 
 import qualified Argo.Decoder as Decoder
+import qualified Argo.Json.Member as Member
 import qualified Argo.Json.Number as Number
 import qualified Argo.Json.Value as Value
 import qualified Argo.Pattern as Pattern
@@ -110,7 +111,7 @@ instance FromValue a => FromValue (NonEmpty.NonEmpty a) where
 instance FromValue a => FromValue (Map.Map Text.Text a) where
     fromValue = withObject "Map"
         $ fmap Map.fromList
-        . traverse (\ (Pattern.Member (Pattern.Name k) v) -> (,) k <$> fromValue v)
+        . traverse (\ (Member.Member (Pattern.Name k) v) -> (,) k <$> fromValue v)
 
 instance FromValue Pointer.Pointer where
     fromValue = withString "Pointer"

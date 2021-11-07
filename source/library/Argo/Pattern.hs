@@ -40,11 +40,6 @@ pattern Object x = Value.Object (Object.Object x)
 
 type Member = Member.MemberOf Value.Value
 
-pattern Member :: Name.Name -> Value.Value -> Member
-pattern Member k v = Member.Member k v
-
-{-# COMPLETE Member #-}
-
 pattern Name :: Text.Text -> Name.Name
 pattern Name x = Name.Name (String.String x)
 

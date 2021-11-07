@@ -3,6 +3,7 @@
 module Argo.Class.ToValue where
 
 import qualified Argo.Encoder as Encoder
+import qualified Argo.Json.Member as Member
 import qualified Argo.Json.Number as Number
 import qualified Argo.Json.Value as Value
 import qualified Argo.Pattern as Pattern
@@ -94,7 +95,7 @@ instance ToValue a => ToValue (NonEmpty.NonEmpty a) where
 
 instance ToValue a => ToValue (Map.Map Text.Text a) where
     toValue x = Pattern.Object
-        . fmap (\ (k, v) -> Pattern.Member (Pattern.Name k) (toValue v))
+        . fmap (\ (k, v) -> Member.Member (Pattern.Name k) (toValue v))
         $ Map.toAscList x
 
 instance ToValue Pointer.Pointer where
