@@ -134,12 +134,12 @@ withString s f x = case x of
     Pattern.String y -> f y
     _ -> fail $ "expected " <> s <> " but got " <> show x
 
-withArray :: String -> (Pattern.Array -> Result.Result a) -> Value.Value -> Result.Result a
+withArray :: String -> ([Value.Value] -> Result.Result a) -> Value.Value -> Result.Result a
 withArray s f x = case x of
     Pattern.Array y -> f y
     _ -> fail $ "expected " <> s <> " but got " <> show x
 
-withObject :: String -> (Pattern.Object -> Result.Result a) -> Value.Value -> Result.Result a
+withObject :: String -> ([Member.MemberOf Value.Value] -> Result.Result a) -> Value.Value -> Result.Result a
 withObject s f x = case x of
     Pattern.Object y -> f y
     _ -> fail $ "expected " <> s <> " but got " <> show x

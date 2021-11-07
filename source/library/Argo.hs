@@ -9,12 +9,9 @@ module Argo
         , Pattern.Array
         , Pattern.Object
         )
-    , Pattern.Array
     , Name.Name
     , pattern Pattern.Name
-    , Pattern.Member
     , Member.MemberOf(Member)
-    , Pattern.Object
     , Encode.encode
     , Encode.encodeWith
     , Indent.Indent(Spaces, Tab)
