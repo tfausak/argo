@@ -10,13 +10,11 @@ module Argo
         , Pattern.Object
         )
     , Pattern.Array
-    , Array.ArrayOf
     , Name.Name
     , pattern Pattern.Name
     , Pattern.Member
     , Member.MemberOf(Member)
     , Pattern.Object
-    , Object.ObjectOf
     , Encode.encode
     , Encode.encodeWith
     , Indent.Indent(Spaces, Tab)
@@ -37,10 +35,8 @@ import qualified Argo.Class.FromValue as FromValue
 import qualified Argo.Class.ToValue as ToValue
 import qualified Argo.Decode as Decode
 import qualified Argo.Encode as Encode
-import qualified Argo.Json.Array as Array
 import qualified Argo.Json.Member as Member
 import qualified Argo.Json.Name as Name
-import qualified Argo.Json.Object as Object
 import qualified Argo.Json.Value as Value
 import qualified Argo.Pattern as Pattern
 import qualified Argo.Pointer.Pointer as Pointer
