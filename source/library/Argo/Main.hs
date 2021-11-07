@@ -26,19 +26,12 @@ mainWith name arguments = do
     mapM_ (IO.hPutStr IO.stderr) errors
     Monad.unless (null errors) Exit.exitFailure
 
-    settings <- either fail pure $ Monad.foldM Settings.applyFlag Settings.initial flags
-    Monad.when (Settings.help settings) $ do
-        putStr $ Console.usageInfo (name <> " version " <> version) options
-        Exit.exitSuccess
-    Monad.when (Settings.version settings) $ do
-        putStrLn version
-        Exit.exitSuccess
-
-    contents <- ByteString.getContents
-    case Argo.decode contents of
-        Argo.Failure e -> fail e
-        Argo.Success value -> Builder.hPutBuilder IO.stdout
-            $ Argo.encodeWith (Settings.indent settings) (value :: Argo.Value)
+    withSettings name flags $ \ settings -> do
+        contents <- ByteString.getContents
+        value <- case Argo.decode contents of
+            Argo.Failure e -> fail e
+            Argo.Success x -> pure (x :: Argo.Value)
+        Builder.hPutBuilder IO.stdout $ Argo.encodeWith (Settings.indent settings) value
 
 getFlags :: [String] -> (([String], [String]), [Flag.Flag])
 getFlags arguments =
@@ -47,6 +40,15 @@ getFlags arguments =
         warnings = fmap (mappend "unknown argument " . quote) xs
             <> fmap (mappend "unknown option " . quote) ys
     in ((warnings, errors), flags)
+
+withSettings :: String -> [Flag.Flag] -> (Settings.Settings -> IO ()) -> IO ()
+withSettings name flags callback = do
+    settings <- either fail pure $ Monad.foldM Settings.applyFlag Settings.initial flags
+    if Settings.help settings
+        then putStr $ Console.usageInfo (name <> " version " <> version) options
+        else if Settings.version settings
+            then putStrLn version
+            else callback settings
 
 quote :: String -> String
 quote x = "`" <> x <> "'"
