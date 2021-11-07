@@ -242,7 +242,7 @@ element c = Codec
         l <- Trans.get
         case l of
             [] -> Trans.lift $ Trans.throwE "unexpected empty list"
-            h : t ->  case decodeWith c h of
+            h : t -> case decodeWith c h of
                 Result.Failure y -> Trans.lift $ Trans.throwE y
                 Result.Success y -> do
                     Trans.put t

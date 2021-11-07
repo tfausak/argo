@@ -37,3 +37,8 @@ instance Applicative.Alternative Result where
     rx <|> ry = case rx of
         Failure _ -> ry
         Success _ -> rx
+
+result :: (String -> b) -> (a -> b) -> Result a -> b
+result f g r = case r of
+    Failure e -> f e
+    Success x -> g x
