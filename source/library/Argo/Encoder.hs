@@ -18,30 +18,36 @@ run :: Config.Config -> Encoder a -> Builder.Builder
 run c = snd . unwrap c
 
 list :: Encoder () -> Encoder () -> Encoder () -> (a -> Encoder ()) -> [a] -> Encoder ()
-list l r s f xs = case xs of
-    [] -> do
-        l
-        r
-    x : ys -> do
-        l
-        c <- Trans.ask
-        let newLine = if Config.hasIndent c then Builder.word8 Literal.newLine else mempty
-        Trans.local Config.increaseLevel $ do
-            i <- makeIndent <$> Trans.ask
-            Trans.lift . Trans.tell $ newLine <> i
-            f x
-            Monad.forM_ ys $ \ y -> do
-                s
-                Trans.lift . Trans.tell $ newLine <> i
-                f y
-        Trans.lift . Trans.tell $ newLine <> makeIndent c
-        r
+list left right separator encode xs = do
+    left
+    case xs of
+        [] -> pure ()
+        x : ys -> do
+            Trans.local Config.increaseLevel $ do
+                maybeIndent <- makeIndent <$> Trans.ask
+                withNewLine maybeIndent
+                encode x
+                Monad.forM_ ys $ \ y -> do
+                    separator
+                    withNewLine maybeIndent
+                    encode y
+            maybeIndent <- makeIndent <$> Trans.ask
+            withNewLine maybeIndent
+    right
 
-makeIndent :: Config.Config -> Builder.Builder
-makeIndent x = case Config.indent x of
-    Indent.Spaces y -> if y <= 0 then mempty else
-        Semigroup.stimesMonoid (Config.level x)
-        . Semigroup.stimes y
-        $ Builder.word8 Literal.space
-    Indent.Tab -> Semigroup.stimesMonoid (Config.level x)
+makeIndent :: Config.Config -> Maybe Builder.Builder
+makeIndent config = case Config.indent config of
+    Indent.Spaces spaces -> if spaces <= 0
+        then Nothing
+        else Just
+            . Semigroup.stimesMonoid (Config.level config * spaces)
+            $ Builder.word8 Literal.space
+    Indent.Tab -> Just
+        . Semigroup.stimesMonoid (Config.level config)
         $ Builder.word8 Literal.horizontalTabulation
+
+withNewLine :: Maybe Builder.Builder -> Encoder ()
+withNewLine = maybe (pure ())
+    $ Trans.lift
+    . Trans.tell
+    . mappend (Builder.word8 Literal.newLine)
