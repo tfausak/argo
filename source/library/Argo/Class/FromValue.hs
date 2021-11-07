@@ -8,7 +8,7 @@ import qualified Argo.Json.Number as Number
 import qualified Argo.Json.Value as Value
 import qualified Argo.Pattern as Pattern
 import qualified Argo.Pointer.Pointer as Pointer
-import qualified Argo.Result as Result
+import qualified Argo.Type.Result as Result
 import qualified Argo.Vendor.Text as Text
 import qualified Data.Bits as Bits
 import qualified Data.Int as Int

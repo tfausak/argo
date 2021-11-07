@@ -11,7 +11,7 @@ import qualified Argo.Json.Number as Number
 import qualified Argo.Json.Object as Object
 import qualified Argo.Json.String as String
 import qualified Argo.Json.Value as Value
-import qualified Argo.Result as Result
+import qualified Argo.Type.Result as Result
 import qualified Argo.Vendor.Transformers as Trans
 import qualified Control.Applicative as Applicative
 import qualified Control.Monad as Monad

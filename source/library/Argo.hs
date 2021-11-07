@@ -42,9 +42,9 @@ import qualified Argo.Json.Member as Member
 import qualified Argo.Json.Name as Name
 import qualified Argo.Json.Object as Object
 import qualified Argo.Json.Value as Value
+import qualified Argo.Pattern as Pattern
 import qualified Argo.Pointer.Pointer as Pointer
 import qualified Argo.Pointer.Token as Token
-import qualified Argo.Pattern as Pattern
 import qualified Argo.QuasiQuoter as QuasiQuoter
-import qualified Argo.Result as Result
 import qualified Argo.Type.Indent as Indent
+import qualified Argo.Type.Result as Result

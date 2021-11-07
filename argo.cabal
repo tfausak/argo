@@ -89,10 +89,10 @@ library
         Argo.Pointer.Pointer
         Argo.Pointer.Token
         Argo.QuasiQuoter
-        Argo.Result
         Argo.Type.Config
         Argo.Type.Flag
         Argo.Type.Indent
+        Argo.Type.Result
         Argo.Type.Settings
     hs-source-dirs: source/library
     other-modules:
