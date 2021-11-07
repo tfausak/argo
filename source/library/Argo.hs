@@ -24,8 +24,8 @@ module Argo
     , QuasiQuoter.value
     , QuasiQuoter.pointer
     , Result.Result(Failure, Success)
-    , Pointer.Pointer(Pointer.Pointer)
-    , Token.Token(Token.Token)
+    , Pointer.Pointer(Pointer)
+    , Token.Token(Token)
     , Pointer.evaluate
     , Encode.encodePointer
     , Decode.decodePointer
