@@ -536,6 +536,11 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
             encode (pointer ["~1"]) @?= "/~01"
         , property "decode . encode" $ \ x ->
             (Argo.decodePointer . LazyByteString.toStrict . Builder.toLazyByteString $ Argo.encodePointer x) === Argo.Success (x :: Argo.Pointer)
+        , Tasty.testCase "quasi-quoter" $ do
+            [Argo.pointer||] @?= pointer []
+            [Argo.pointer|/|] @?= pointer [""]
+            [Argo.pointer|/a|] @?= pointer ["a"]
+            [Argo.pointer|/a/b|] @?= pointer ["a", "b"]
         ]
     ]
 

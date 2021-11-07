@@ -22,6 +22,7 @@ module Argo
     , FromValue.FromValue(fromValue)
     , ToValue.ToValue(toValue)
     , QuasiQuoter.value
+    , QuasiQuoter.pointer
     , Result.Result(Failure, Success)
     , Pointer.Pointer(Pointer.Pointer)
     , Token.Token(Token.Token)
