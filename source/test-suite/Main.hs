@@ -523,6 +523,8 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
             Decode.decodePointer "/~0" @?= Argo.Success (pointer ["~"])
             Decode.decodePointer "/~1" @?= Argo.Success (pointer ["/"])
             Decode.decodePointer "/~01" @?= Argo.Success (pointer ["~1"])
+            Decode.decodePointer "a" @?= Argo.Failure "eof"
+            Decode.decodePointer "/~2" @?= Argo.Failure "eof"
         , Tasty.testCase "encode" $ do
             let encode = Builder.toLazyByteString . Encode.encodePointer
             encode (pointer []) @?= ""
