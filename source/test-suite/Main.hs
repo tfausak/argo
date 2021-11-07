@@ -547,6 +547,20 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
             [Argo.pointer|/|] @?= pointer [""]
             [Argo.pointer|/a|] @?= pointer ["a"]
             [Argo.pointer|/a/b|] @?= pointer ["a", "b"]
+        , Tasty.testCase "evaluate" $ do
+            let evaluate p = resultToMaybe . Argo.evaluate p
+            evaluate (pointer []) Argo.Null @?= Just Argo.Null
+            evaluate (pointer ["a"]) (Argo.Object [Argo.Member (Argo.Name "a") Argo.Null]) @?= Just Argo.Null
+            evaluate (pointer ["a", "b"]) (Argo.Object [Argo.Member (Argo.Name "a") $ Argo.Object [Argo.Member (Argo.Name "b") Argo.Null]]) @?= Just Argo.Null
+            evaluate (pointer ["0"]) (Argo.Object [Argo.Member (Argo.Name "0") Argo.Null]) @?= Just Argo.Null
+            evaluate (pointer ["0"]) (Argo.Array [Argo.Null]) @?= Just Argo.Null
+            evaluate (pointer ["0", "1"]) (Argo.Array [Argo.Array [Argo.Boolean False, Argo.Null]]) @?= Just Argo.Null
+            evaluate (pointer ["a"]) Argo.Null @?= Nothing
+            evaluate (pointer ["a"]) (Argo.Object []) @?= Nothing
+            evaluate (pointer ["a"]) (Argo.Array [Argo.Null]) @?= Nothing
+            evaluate (pointer ["0"]) (Argo.Array []) @?= Nothing
+            evaluate (pointer ["-"]) (Argo.Array []) @?= Nothing
+            evaluate (pointer ["00"]) (Argo.Array [Argo.Null]) @?= Nothing
         ]
     ]
 

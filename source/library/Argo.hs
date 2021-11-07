@@ -26,6 +26,7 @@ module Argo
     , Result.Result(Failure, Success)
     , Pointer.Pointer(Pointer.Pointer)
     , Token.Token(Token.Token)
+    , Pointer.evaluate
     , Encode.encodePointer
     , Decode.decodePointer
     ) where

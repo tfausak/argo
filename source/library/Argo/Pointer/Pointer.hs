@@ -6,14 +6,24 @@ module Argo.Pointer.Pointer where
 
 import qualified Argo.Decoder as Decoder
 import qualified Argo.Encoder as Encoder
+import qualified Argo.Json.Value as Value
+import qualified Argo.Json.Object as Object
+import qualified Argo.Json.Array as Array
+import qualified Argo.Json.Member as Member
+import qualified Argo.Json.Name as Name
+import qualified Argo.Json.String as String
 import qualified Argo.Literal as Literal
 import qualified Argo.Pointer.Token as Token
+import qualified Argo.Result as Result
 import qualified Argo.Vendor.Builder as Builder
 import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.TemplateHaskell as TH
 import qualified Argo.Vendor.Transformers as Trans
+import qualified Argo.Vendor.Text as Text
 import qualified Control.Applicative as Applicative
+import qualified Data.List as List
 import qualified GHC.Generics as Generics
+import qualified Text.Read as Read
 
 -- | A JSON pointer, as described by RFC 6901.
 -- <https://datatracker.ietf.org/doc/html/rfc6901>
@@ -42,3 +52,34 @@ encodeToken :: Token.Token -> Encoder.Encoder ()
 encodeToken x = do
     Trans.lift . Trans.tell $ Builder.word8 Literal.solidus
     Token.encode x
+
+evaluate :: Pointer -> Value.Value -> Result.Result Value.Value
+evaluate p v = case toList p of
+    [] -> pure v
+    t : ts -> do
+        w <- case v of
+            Value.Array a -> atIndex t a
+            Value.Object o -> atKey t o
+            _ -> fail "not indexable"
+        evaluate (fromList ts) w
+
+atIndex :: Token.Token -> Array.ArrayOf value -> Result.Result value
+atIndex t a = do
+    i <- tokenToIndex t
+    case drop i $ Array.toList a of
+        [] -> fail $ "missing index: " <> show t
+        e : _ -> pure e
+
+tokenToIndex :: Token.Token -> Result.Result Int
+tokenToIndex token = do
+    let
+        text = Token.toText token
+        invalid = "invalid index: " <> show token
+    case Text.uncons text of
+        Just ('0', rest) -> if Text.null rest then pure 0 else fail invalid
+        _ -> maybe (fail invalid) pure . Read.readMaybe $ Text.unpack text
+
+atKey :: Token.Token -> Object.ObjectOf value -> Result.Result value
+atKey t = maybe (fail $ "missing key: " <> show t) (\ (Member.Member _ v) -> pure v)
+    . List.find (\ (Member.Member k _) -> String.toText (Name.toString k) == Token.toText t)
+    . Object.toList
