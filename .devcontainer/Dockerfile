@@ -4,7 +4,7 @@ FROM ubuntu:"$UBUNTU_TAG"
 ENV LANG=C.UTF-8
 RUN \
     apt-get update && \
-    apt-get install --assume-yes curl gcc git libgmp-dev make sudo
+    apt-get install --assume-yes curl gcc git libgmp-dev nano make sudo
 
 ARG GHCUP_VERSION=0.1.17.3
 RUN \
