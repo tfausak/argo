@@ -12,7 +12,7 @@ RUN \
     chmod +x /usr/local/bin/ghcup && \
     ghcup --version
 
-ARG USER_NAME=me
+ARG USER_NAME=haskell
 RUN \
     useradd --create-home --shell "$( which bash )" "$USER_NAME" && \
     echo "$USER_NAME ALL=(ALL) NOPASSWD: ALL" | tee "/etc/sudoers.d/$USER_NAME"
