@@ -347,6 +347,8 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
             fromValue (Argo.Array [Argo.Boolean False]) @?= Just (False :| [])
         , Tasty.testCase "Map Text a" $ do
             fromValue (Argo.Object [Argo.Member (Argo.Name "a") $ Argo.Boolean False]) @?= Just (Map.fromList [("a" :: Text.Text, False)])
+        , Tasty.testCase "Pointer" $ do
+            fromValue (Argo.String "") @?= Just (Argo.Pointer [])
         ]
     , Tasty.testGroup "toValue"
         [ Tasty.testCase "Value" $ do
@@ -399,6 +401,8 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
             Argo.toValue (False :| []) @?= Argo.Array [Argo.Boolean False]
         , Tasty.testCase "Map Text a" $ do
             Argo.toValue (Map.fromList [("a" :: Text.Text, False)]) @?= Argo.Object [Argo.Member (Argo.Name "a") $ Argo.Boolean False]
+        , Tasty.testCase "Pointer" $ do
+            Argo.toValue (Argo.Pointer []) @?= Argo.String ""
         ]
     , Tasty.testGroup "quasi quoter"
         [ Tasty.testCase "Null" $ do
@@ -416,12 +420,12 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
         ]
     , Tasty.testGroup "property"
         [ property "decode . encode" $ \ x ->
-            (resultToMaybe . Argo.decode . LazyByteString.toStrict . Builder.toLazyByteString $ Argo.encode x) === Just (x :: Argo.Value)
+            (Argo.decode . LazyByteString.toStrict . Builder.toLazyByteString $ Argo.encode x) === Argo.Success (x :: Argo.Value)
         , property "decode . encodeWith" $ \ x ->
             (Argo.decode . LazyByteString.toStrict . Builder.toLazyByteString $ Argo.encodeWith Argo.Tab x) === Argo.Success (x :: Argo.Value)
         , Tasty.testGroup "fromValue . toValue"
             [ property "Value" $ \ x ->
-                (resultToMaybe . Argo.fromValue $ Argo.toValue x) === Just (x :: Argo.Value)
+                Argo.fromValue (Argo.toValue x) === Argo.Success (x :: Argo.Value)
             , property "Bool" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: Bool)
             , property "Char" $ \ x ->
@@ -476,6 +480,8 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: NonEmpty Bool)
             , property "Map Text a" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Argo.Success (x :: Map.Map Text.Text Bool)
+            , property "Pointer" $ \ x ->
+                Argo.fromValue (Argo.toValue x) === Argo.Success (x :: Argo.Pointer)
             ]
         ]
     , Tasty.testGroup "Codec"
@@ -509,6 +515,52 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
         , Tasty.testCase "decode record" $ do
             Codec.decodeWith recordCodec (Argo.Object [Argo.Member (Argo.Name "bool") $ Argo.Boolean False]) @?= Argo.Success (Record False Nothing)
             Codec.decodeWith recordCodec (Argo.Object [Argo.Member (Argo.Name "bool") $ Argo.Boolean False, Argo.Member (Argo.Name "text") $ Argo.String ""]) @?= Argo.Success (Record False $ Just "")
+        ]
+    , Tasty.testGroup "Pointer"
+        $ let pointer = Argo.Pointer . fmap Argo.Token in
+        [ Tasty.testCase "decode" $ do
+            let decode = resultToMaybe . Argo.decodePointer
+            decode "" @?= Just (pointer [])
+            decode "/" @?= Just (pointer [""])
+            decode "/a" @?= Just (pointer ["a"])
+            decode "/a/b" @?= Just (pointer ["a", "b"])
+            decode "/ab" @?= Just (pointer ["ab"])
+            decode "/~0" @?= Just (pointer ["~"])
+            decode "/~1" @?= Just (pointer ["/"])
+            decode "/~01" @?= Just (pointer ["~1"])
+            decode "a" @?= Nothing
+            decode "/~2" @?= Nothing
+        , Tasty.testCase "encode" $ do
+            let encode = Builder.toLazyByteString . Argo.encodePointer
+            encode (pointer []) @?= ""
+            encode (pointer [""]) @?= "/"
+            encode (pointer ["a"]) @?= "/a"
+            encode (pointer ["a", "b"]) @?= "/a/b"
+            encode (pointer ["ab"]) @?= "/ab"
+            encode (pointer ["~"]) @?= "/~0"
+            encode (pointer ["/"]) @?= "/~1"
+            encode (pointer ["~1"]) @?= "/~01"
+        , property "decode . encode" $ \ x ->
+            (Argo.decodePointer . LazyByteString.toStrict . Builder.toLazyByteString $ Argo.encodePointer x) === Argo.Success (x :: Argo.Pointer)
+        , Tasty.testCase "quasi-quoter" $ do
+            [Argo.pointer||] @?= pointer []
+            [Argo.pointer|/|] @?= pointer [""]
+            [Argo.pointer|/a|] @?= pointer ["a"]
+            [Argo.pointer|/a/b|] @?= pointer ["a", "b"]
+        , Tasty.testCase "evaluate" $ do
+            let evaluate p = resultToMaybe . Argo.evaluate p
+            evaluate (pointer []) Argo.Null @?= Just Argo.Null
+            evaluate (pointer ["a"]) (Argo.Object [Argo.Member (Argo.Name "a") Argo.Null]) @?= Just Argo.Null
+            evaluate (pointer ["a", "b"]) (Argo.Object [Argo.Member (Argo.Name "a") $ Argo.Object [Argo.Member (Argo.Name "b") Argo.Null]]) @?= Just Argo.Null
+            evaluate (pointer ["0"]) (Argo.Object [Argo.Member (Argo.Name "0") Argo.Null]) @?= Just Argo.Null
+            evaluate (pointer ["0"]) (Argo.Array [Argo.Null]) @?= Just Argo.Null
+            evaluate (pointer ["0", "1"]) (Argo.Array [Argo.Array [Argo.Boolean False, Argo.Null]]) @?= Just Argo.Null
+            evaluate (pointer ["a"]) Argo.Null @?= Nothing
+            evaluate (pointer ["a"]) (Argo.Object []) @?= Nothing
+            evaluate (pointer ["a"]) (Argo.Array [Argo.Null]) @?= Nothing
+            evaluate (pointer ["0"]) (Argo.Array []) @?= Nothing
+            evaluate (pointer ["-"]) (Argo.Array []) @?= Nothing
+            evaluate (pointer ["00"]) (Argo.Array [Argo.Null]) @?= Nothing
         ]
     ]
 
@@ -584,3 +636,11 @@ instance Tasty.Arbitrary LazyText.Text where
 instance Tasty.Arbitrary a => Tasty.Arbitrary (NonEmpty a) where
     arbitrary = (:|) <$> Tasty.arbitrary <*> Tasty.arbitrary
     shrink (x :| xs) = uncurry (:|) <$> Tasty.shrink (x, xs)
+
+instance Tasty.Arbitrary Argo.Pointer where
+    arbitrary = Argo.Pointer <$> Tasty.arbitrary
+    shrink (Argo.Pointer x) = Argo.Pointer <$> Tasty.shrink x
+
+instance Tasty.Arbitrary Argo.Token where
+    arbitrary = Argo.Token <$> Tasty.arbitrary
+    shrink (Argo.Token x) = Argo.Token <$> Tasty.shrink x

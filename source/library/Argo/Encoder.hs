@@ -9,10 +9,19 @@ import qualified Data.Semigroup as Semigroup
 
 type Encoder = Trans.ReaderT Config (Trans.WriterT Builder.Builder Identity.Identity)
 
+run :: Config -> Encoder a -> (a, Builder.Builder)
+run c = Identity.runIdentity . Trans.runWriterT . flip Trans.runReaderT c
+
 data Config = Config
     { indent :: Indent
     , level :: Int
     } deriving (Eq, Show)
+
+defaultConfig :: Config
+defaultConfig = Config
+    { indent = Spaces 0
+    , level = 0
+    }
 
 data Indent
     = Spaces Int

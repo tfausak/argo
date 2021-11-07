@@ -86,6 +86,8 @@ library
         Argo.Literal
         Argo.Main
         Argo.Pattern
+        Argo.Pointer.Pointer
+        Argo.Pointer.Token
         Argo.QuasiQuoter
         Argo.Result
     hs-source-dirs: source/library

@@ -14,7 +14,9 @@ module Argo.Vendor.ByteString
     , ByteString.stripPrefix
     , ByteString.take
     , ByteString.takeWhileEnd
+    , LazyByteString.toStrict
     , ByteString.uncons
     ) where
 
 import qualified Data.ByteString as ByteString
+import qualified Data.ByteString.Lazy as LazyByteString

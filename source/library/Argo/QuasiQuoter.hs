@@ -6,15 +6,21 @@ import qualified Argo.Result as Result
 import qualified Argo.Vendor.TemplateHaskell as TH
 import qualified Argo.Vendor.Text as Text
 
-value :: TH.QuasiQuoter
-value = TH.QuasiQuoter
+pointer :: TH.QuasiQuoter
+pointer = TH.QuasiQuoter
     { TH.quoteDec = const $ fail "cannot be used as a declaration"
-    , TH.quoteExp = quoteExp
+    , TH.quoteExp = Result.result fail TH.lift . Decode.decodePointer . Text.encodeUtf8 . Text.pack
     , TH.quotePat = const $ fail "cannot be used as a pattern"
     , TH.quoteType = const $ fail "cannot be used as a type"
     }
 
-quoteExp :: String -> TH.Q TH.Exp
-quoteExp x = case Decode.decode . Text.encodeUtf8 $ Text.pack x of
-    Result.Failure e -> fail e
-    Result.Success y -> TH.lift (y :: Value.Value)
+value :: TH.QuasiQuoter
+value = TH.QuasiQuoter
+    { TH.quoteDec = const $ fail "cannot be used as a declaration"
+    , TH.quoteExp = Result.result fail TH.lift . fmap asValue . Decode.decode . Text.encodeUtf8 . Text.pack
+    , TH.quotePat = const $ fail "cannot be used as a pattern"
+    , TH.quoteType = const $ fail "cannot be used as a type"
+    }
+
+asValue :: Value.Value -> Value.Value
+asValue = id

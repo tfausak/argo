@@ -2,9 +2,11 @@
 
 module Argo.Class.FromValue where
 
+import qualified Argo.Decoder as Decoder
 import qualified Argo.Json.Number as Number
 import qualified Argo.Json.Value as Value
 import qualified Argo.Pattern as Pattern
+import qualified Argo.Pointer.Pointer as Pointer
 import qualified Argo.Result as Result
 import qualified Argo.Vendor.Text as Text
 import qualified Data.Bits as Bits
@@ -109,6 +111,12 @@ instance FromValue a => FromValue (Map.Map Text.Text a) where
     fromValue = withObject "Map"
         $ fmap Map.fromList
         . traverse (\ (Pattern.Member (Pattern.Name k) v) -> (,) k <$> fromValue v)
+
+instance FromValue Pointer.Pointer where
+    fromValue = withString "Pointer"
+        $ fmap snd
+        . Decoder.run (Pointer.decode <* Decoder.eof)
+        . Text.encodeUtf8
 
 withBoolean :: String -> (Bool -> Result.Result a) -> Value.Value -> Result.Result a
 withBoolean s f x = case x of
