@@ -4,10 +4,12 @@
 
 module Argo.Pointer.Token where
 
-import qualified Argo.Decoder as Decoder
-import qualified Argo.Encoder as Encoder
 import qualified Argo.Literal as Literal
+import qualified Argo.Type.Decoder as Decoder
+import qualified Argo.Type.Encoder as Encoder
+import qualified Argo.Type.Result as Result
 import qualified Argo.Vendor.Builder as Builder
+import qualified Argo.Vendor.ByteString as ByteString
 import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.TemplateHaskell as TH
 import qualified Argo.Vendor.Text as Text
@@ -28,25 +30,24 @@ toText (Token x) = x
 decode :: Decoder.Decoder Token
 decode = do
     x <- Decoder.takeWhile $ (/=) Literal.solidus
-    y <- case Text.decodeUtf8' x of
+    y <- Result.result fail pure $ unescape x
+    case Text.decodeUtf8' y of
         Left e -> fail $ show e
-        Right y -> pure y
-    case unescapeText y of
-        Nothing -> fail "invalid escape"
-        Just z -> pure $ fromText z
+        Right z -> pure $ fromText z
 
-unescapeText :: Text.Text -> Maybe Text.Text
-unescapeText = fmap Text.pack . unescapeString . Text.unpack
+unescape :: ByteString.ByteString -> Result.Result ByteString.ByteString
+unescape = fmap ByteString.pack . unescapeHelper . ByteString.unpack
 
-unescapeString :: String -> Maybe String
-unescapeString xs = case xs of
-    "" -> pure xs
-    x : ys -> case x of
-        '~' -> case ys of
-            '0' : zs -> ('~' :) <$> unescapeString zs
-            '1' : zs -> ('/' :) <$> unescapeString zs
+unescapeHelper :: [Word.Word8] -> Result.Result [Word.Word8]
+unescapeHelper xs = case xs of
+    [] -> pure xs
+    x : ys -> if x == Literal.tilde
+        then case ys of
+            y : zs
+                | y == Literal.digitZero -> (:) Literal.tilde <$> unescapeHelper zs
+                | y == Literal.digitOne -> (:) Literal.solidus <$> unescapeHelper zs
             _ -> fail "invalid escape"
-        _ -> (x :) <$> unescapeString ys
+        else (:) x <$> unescapeHelper ys
 
 encode :: Token -> Encoder.Encoder ()
 encode = Trans.lift

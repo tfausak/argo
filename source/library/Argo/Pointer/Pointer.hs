@@ -4,22 +4,22 @@
 
 module Argo.Pointer.Pointer where
 
-import qualified Argo.Decoder as Decoder
-import qualified Argo.Encoder as Encoder
-import qualified Argo.Json.Value as Value
-import qualified Argo.Json.Object as Object
 import qualified Argo.Json.Array as Array
 import qualified Argo.Json.Member as Member
 import qualified Argo.Json.Name as Name
+import qualified Argo.Json.Object as Object
 import qualified Argo.Json.String as String
+import qualified Argo.Json.Value as Value
 import qualified Argo.Literal as Literal
 import qualified Argo.Pointer.Token as Token
-import qualified Argo.Result as Result
+import qualified Argo.Type.Decoder as Decoder
+import qualified Argo.Type.Encoder as Encoder
+import qualified Argo.Type.Result as Result
 import qualified Argo.Vendor.Builder as Builder
 import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.TemplateHaskell as TH
-import qualified Argo.Vendor.Transformers as Trans
 import qualified Argo.Vendor.Text as Text
+import qualified Argo.Vendor.Transformers as Trans
 import qualified Control.Applicative as Applicative
 import qualified Data.List as List
 import qualified GHC.Generics as Generics

@@ -4,7 +4,7 @@ FROM ubuntu:"$UBUNTU_TAG"
 ENV LANG=C.UTF-8
 RUN \
     apt-get update && \
-    apt-get install --assume-yes curl gcc git libgmp-dev make sudo
+    apt-get install --assume-yes curl gcc git libgmp-dev nano make sudo
 
 ARG GHCUP_VERSION=0.1.17.3
 RUN \
@@ -12,7 +12,7 @@ RUN \
     chmod +x /usr/local/bin/ghcup && \
     ghcup --version
 
-ARG USER_NAME=me
+ARG USER_NAME=haskell
 RUN \
     useradd --create-home --shell "$( which bash )" "$USER_NAME" && \
     echo "$USER_NAME ALL=(ALL) NOPASSWD: ALL" | tee "/etc/sudoers.d/$USER_NAME"
@@ -28,8 +28,3 @@ ARG CABAL_VERSION=3.6.2.0
 RUN \
     ghcup install cabal "$CABAL_VERSION" --set && \
     cabal --version
-
-ARG HLS_VERSION=1.4.0
-RUN \
-    ghcup install hls "$HLS_VERSION" --set && \
-    haskell-language-server-wrapper --version

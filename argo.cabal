@@ -69,11 +69,8 @@ library
         Argo
         Argo.Class.FromValue
         Argo.Class.ToValue
-        Argo.Codec
         Argo.Decode
-        Argo.Decoder
         Argo.Encode
-        Argo.Encoder
         Argo.Json.Array
         Argo.Json.Boolean
         Argo.Json.Member
@@ -89,11 +86,19 @@ library
         Argo.Pointer.Pointer
         Argo.Pointer.Token
         Argo.QuasiQuoter
-        Argo.Result
+        Argo.Type.Codec
+        Argo.Type.Config
+        Argo.Type.Decoder
+        Argo.Type.Encoder
+        Argo.Type.Flag
+        Argo.Type.Indent
+        Argo.Type.Permission
+        Argo.Type.Result
+        Argo.Type.Settings
     hs-source-dirs: source/library
     other-modules:
-        Argo.Vendor.ByteString
         Argo.Vendor.Builder
+        Argo.Vendor.ByteString
         Argo.Vendor.DeepSeq
         Argo.Vendor.TemplateHaskell
         Argo.Vendor.Text
@@ -113,6 +118,7 @@ test-suite argo-test-suite
         , tasty >= 1.4.2 && < 1.5
         , tasty-hunit >= 0.10.0 && < 0.11
         , tasty-quickcheck >= 0.10.1 && < 0.11
+    ghc-options: -Wno-orphans
     hs-source-dirs: source/test-suite
     main-is: Main.hs
     type: exitcode-stdio-1.0

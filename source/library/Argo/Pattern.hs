@@ -26,24 +26,13 @@ pattern Number x y <- Value.Number (Number.Number x y) where
 pattern String :: Text.Text -> Value.Value
 pattern String x = Value.String (String.String x)
 
-type Array = [Value.Value]
-
-pattern Array :: Array -> Value.Value
+pattern Array :: [Value.Value] -> Value.Value
 pattern Array x = Value.Array (Array.Array x)
 
-type Object = [Member]
-
-pattern Object :: Object -> Value.Value
+pattern Object :: [Member.MemberOf Value.Value] -> Value.Value
 pattern Object x = Value.Object (Object.Object x)
 
 {-# COMPLETE Null, Boolean, Number, String, Array, Object #-}
-
-type Member = Member.MemberOf Value.Value
-
-pattern Member :: Name.Name -> Value.Value -> Member
-pattern Member k v = Member.Member k v
-
-{-# COMPLETE Member #-}
 
 pattern Name :: Text.Text -> Name.Name
 pattern Name x = Name.Name (String.String x)

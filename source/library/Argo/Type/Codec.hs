@@ -1,4 +1,4 @@
-module Argo.Codec where
+module Argo.Type.Codec where
 
 import Control.Applicative ((<|>))
 
@@ -11,7 +11,8 @@ import qualified Argo.Json.Number as Number
 import qualified Argo.Json.Object as Object
 import qualified Argo.Json.String as String
 import qualified Argo.Json.Value as Value
-import qualified Argo.Result as Result
+import qualified Argo.Type.Permission as Permission
+import qualified Argo.Type.Result as Result
 import qualified Argo.Vendor.Transformers as Trans
 import qualified Control.Applicative as Applicative
 import qualified Control.Monad as Monad
@@ -185,7 +186,7 @@ mapBoth f g c = Codec
     }
 
 tagged :: String -> ValueCodec a -> ValueCodec a
-tagged t c = dimap snd ((,) ()) . fromObjectCodec Allow $ (,)
+tagged t c = dimap snd ((,) ()) . fromObjectCodec Permission.Allow $ (,)
     <$> project fst (required (Name.fromString . String.fromText $ Text.pack "type") (literalCodec (Value.String . String.fromText $ Text.pack t)))
     <*> project snd (required (Name.fromString . String.fromText $ Text.pack "value") c)
 
@@ -200,17 +201,12 @@ literalCodec expected = Codec
     , encode = const . Trans.lift $ Trans.put expected
     }
 
-data Permission
-    = Allow
-    | Forbid
-    deriving (Eq, Show)
-
 type ListCodec e a = Codec
     (Trans.StateT [e] (Trans.ExceptT String Identity.Identity))
     (Trans.WriterT [e] Identity.Identity)
     a
 
-fromListCodec :: ValueCodec [e] -> Permission -> ListCodec e a -> ValueCodec a
+fromListCodec :: ValueCodec [e] -> Permission.Permission -> ListCodec e a -> ValueCodec a
 fromListCodec ce p ca = Codec
     { decode = do
         xs <- decode ce
@@ -218,7 +214,7 @@ fromListCodec ce p ca = Codec
             Left x -> Trans.lift $ Trans.throwE x
             Right (x, ys) -> do
                 case (p, ys) of
-                    (Forbid, _ : _) -> Trans.lift $ Trans.throwE "leftover elements"
+                    (Permission.Forbid, _ : _) -> Trans.lift $ Trans.throwE "leftover elements"
                     _ -> pure ()
                 pure x
     , encode = \ x -> do
@@ -233,7 +229,7 @@ fromListCodec ce p ca = Codec
 
 type ArrayCodec a = ListCodec Value.Value a
 
-fromArrayCodec :: Permission -> ArrayCodec a -> ValueCodec a
+fromArrayCodec :: Permission.Permission -> ArrayCodec a -> ValueCodec a
 fromArrayCodec = fromListCodec $ dimap Array.toList Array.fromList arrayCodec
 
 element :: ValueCodec a -> ArrayCodec a
@@ -253,13 +249,13 @@ element c = Codec
     }
 
 tupleCodec :: ValueCodec a -> ValueCodec b -> ValueCodec (a, b)
-tupleCodec cx cy = fromArrayCodec Forbid $ (,)
+tupleCodec cx cy = fromArrayCodec Permission.Forbid $ (,)
     <$> project fst (element cx)
     <*> project snd (element cy)
 
 type ObjectCodec a = ListCodec (Member.MemberOf Value.Value) a
 
-fromObjectCodec :: Permission -> ObjectCodec a -> ValueCodec a
+fromObjectCodec :: Permission.Permission -> ObjectCodec a -> ValueCodec a
 fromObjectCodec = fromListCodec $ dimap Object.toList Object.fromList objectCodec
 
 required :: Name.Name -> ValueCodec a -> ObjectCodec a

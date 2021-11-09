@@ -2,12 +2,13 @@
 
 module Argo.Class.FromValue where
 
-import qualified Argo.Decoder as Decoder
+import qualified Argo.Json.Member as Member
 import qualified Argo.Json.Number as Number
 import qualified Argo.Json.Value as Value
 import qualified Argo.Pattern as Pattern
 import qualified Argo.Pointer.Pointer as Pointer
-import qualified Argo.Result as Result
+import qualified Argo.Type.Decoder as Decoder
+import qualified Argo.Type.Result as Result
 import qualified Argo.Vendor.Text as Text
 import qualified Data.Bits as Bits
 import qualified Data.Int as Int
@@ -110,12 +111,11 @@ instance FromValue a => FromValue (NonEmpty.NonEmpty a) where
 instance FromValue a => FromValue (Map.Map Text.Text a) where
     fromValue = withObject "Map"
         $ fmap Map.fromList
-        . traverse (\ (Pattern.Member (Pattern.Name k) v) -> (,) k <$> fromValue v)
+        . traverse (\ (Member.Member (Pattern.Name k) v) -> (,) k <$> fromValue v)
 
 instance FromValue Pointer.Pointer where
     fromValue = withString "Pointer"
-        $ fmap snd
-        . Decoder.run (Pointer.decode <* Decoder.eof)
+        $ Decoder.run Pointer.decode
         . Text.encodeUtf8
 
 withBoolean :: String -> (Bool -> Result.Result a) -> Value.Value -> Result.Result a
@@ -133,12 +133,12 @@ withString s f x = case x of
     Pattern.String y -> f y
     _ -> fail $ "expected " <> s <> " but got " <> show x
 
-withArray :: String -> (Pattern.Array -> Result.Result a) -> Value.Value -> Result.Result a
+withArray :: String -> ([Value.Value] -> Result.Result a) -> Value.Value -> Result.Result a
 withArray s f x = case x of
     Pattern.Array y -> f y
     _ -> fail $ "expected " <> s <> " but got " <> show x
 
-withObject :: String -> (Pattern.Object -> Result.Result a) -> Value.Value -> Result.Result a
+withObject :: String -> ([Member.MemberOf Value.Value] -> Result.Result a) -> Value.Value -> Result.Result a
 withObject s f x = case x of
     Pattern.Object y -> f y
     _ -> fail $ "expected " <> s <> " but got " <> show x

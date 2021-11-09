@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 
-module Argo.Result where
+module Argo.Type.Result where
 
 import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Control.Applicative as Applicative

@@ -4,10 +4,10 @@
 
 module Argo.Json.Object where
 
-import qualified Argo.Decoder as Decoder
-import qualified Argo.Encoder as Encoder
 import qualified Argo.Json.Member as Member
 import qualified Argo.Literal as Literal
+import qualified Argo.Type.Decoder as Decoder
+import qualified Argo.Type.Encoder as Encoder
 import qualified Argo.Vendor.Builder as Builder
 import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.TemplateHaskell as TH

@@ -4,9 +4,9 @@
 
 module Argo.Json.Name where
 
-import qualified Argo.Decoder as Decoder
-import qualified Argo.Encoder as Encoder
 import qualified Argo.Json.String as String
+import qualified Argo.Type.Decoder as Decoder
+import qualified Argo.Type.Encoder as Encoder
 import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.TemplateHaskell as TH
 import qualified GHC.Generics as Generics
