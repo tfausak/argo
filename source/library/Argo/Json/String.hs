@@ -15,12 +15,16 @@ import qualified Argo.Vendor.Text as Text
 import qualified Argo.Vendor.Transformers as Trans
 import qualified Control.Monad as Monad
 import qualified Data.Char as Char
+import qualified Data.String as String
 import qualified Data.Word as Word
 import qualified GHC.Generics as Generics
 
 newtype String
     = String Text.Text
     deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
+
+instance String.IsString Argo.Json.String.String where
+    fromString = fromText . String.fromString
 
 fromText :: Text.Text -> Argo.Json.String.String
 fromText = String
