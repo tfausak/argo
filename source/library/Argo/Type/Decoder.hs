@@ -1,4 +1,4 @@
-module Argo.Decoder where
+module Argo.Type.Decoder where
 
 import qualified Argo.Literal as Literal
 import qualified Argo.Type.Result as Result
@@ -98,7 +98,7 @@ satisfy f = do
         _ -> fail "satisfy"
 
 spaces :: Decoder ()
-spaces = Argo.Decoder.dropWhile isSpace
+spaces = Argo.Type.Decoder.dropWhile isSpace
 
 takeWhile :: (Word.Word8 -> Bool) -> Decoder ByteString.ByteString
 takeWhile f = do
@@ -109,7 +109,7 @@ takeWhile f = do
 
 takeWhile1 :: (Word.Word8 -> Bool) -> Decoder ByteString.ByteString
 takeWhile1 f = do
-    x <- Argo.Decoder.takeWhile f
+    x <- Argo.Type.Decoder.takeWhile f
     Monad.when (ByteString.null x) $ fail "takeWhile1"
     pure x
 

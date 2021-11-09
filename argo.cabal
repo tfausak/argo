@@ -71,7 +71,6 @@ library
         Argo.Class.ToValue
         Argo.Codec
         Argo.Decode
-        Argo.Decoder
         Argo.Encode
         Argo.Json.Array
         Argo.Json.Boolean
@@ -89,6 +88,7 @@ library
         Argo.Pointer.Token
         Argo.QuasiQuoter
         Argo.Type.Config
+        Argo.Type.Decoder
         Argo.Type.Encoder
         Argo.Type.Flag
         Argo.Type.Indent

@@ -4,8 +4,8 @@
 
 module Argo.Pointer.Token where
 
-import qualified Argo.Decoder as Decoder
 import qualified Argo.Literal as Literal
+import qualified Argo.Type.Decoder as Decoder
 import qualified Argo.Type.Encoder as Encoder
 import qualified Argo.Type.Result as Result
 import qualified Argo.Vendor.Builder as Builder

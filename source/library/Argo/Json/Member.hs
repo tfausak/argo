@@ -4,10 +4,10 @@
 
 module Argo.Json.Member where
 
-import qualified Argo.Decoder as Decoder
 import qualified Argo.Json.Name as Name
 import qualified Argo.Literal as Literal
 import qualified Argo.Type.Config as Config
+import qualified Argo.Type.Decoder as Decoder
 import qualified Argo.Type.Encoder as Encoder
 import qualified Argo.Vendor.Builder as Builder
 import qualified Argo.Vendor.DeepSeq as DeepSeq
