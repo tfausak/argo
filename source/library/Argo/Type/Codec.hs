@@ -1,4 +1,4 @@
-module Argo.Codec where
+module Argo.Type.Codec where
 
 import Control.Applicative ((<|>))
 

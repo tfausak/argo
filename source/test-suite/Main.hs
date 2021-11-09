@@ -7,7 +7,7 @@ import Test.Tasty.HUnit ((@?=))
 import Test.Tasty.QuickCheck ((===))
 
 import qualified Argo
-import qualified Argo.Codec as Codec
+import qualified Argo.Type.Codec as Codec
 import qualified Argo.Type.Permission as Permission
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Builder as Builder
