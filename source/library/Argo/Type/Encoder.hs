@@ -1,4 +1,4 @@
-module Argo.Encoder where
+module Argo.Type.Encoder where
 
 import qualified Argo.Literal as Literal
 import qualified Argo.Type.Config as Config

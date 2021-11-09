@@ -5,7 +5,6 @@
 module Argo.Pointer.Pointer where
 
 import qualified Argo.Decoder as Decoder
-import qualified Argo.Encoder as Encoder
 import qualified Argo.Json.Array as Array
 import qualified Argo.Json.Member as Member
 import qualified Argo.Json.Name as Name
@@ -14,6 +13,7 @@ import qualified Argo.Json.String as String
 import qualified Argo.Json.Value as Value
 import qualified Argo.Literal as Literal
 import qualified Argo.Pointer.Token as Token
+import qualified Argo.Type.Encoder as Encoder
 import qualified Argo.Type.Result as Result
 import qualified Argo.Vendor.Builder as Builder
 import qualified Argo.Vendor.DeepSeq as DeepSeq

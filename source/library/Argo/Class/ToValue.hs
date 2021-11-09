@@ -2,13 +2,13 @@
 
 module Argo.Class.ToValue where
 
-import qualified Argo.Encoder as Encoder
 import qualified Argo.Json.Member as Member
 import qualified Argo.Json.Number as Number
 import qualified Argo.Json.Value as Value
 import qualified Argo.Pattern as Pattern
 import qualified Argo.Pointer.Pointer as Pointer
 import qualified Argo.Type.Config as Config
+import qualified Argo.Type.Encoder as Encoder
 import qualified Argo.Vendor.Builder as Builder
 import qualified Argo.Vendor.ByteString as ByteString
 import qualified Argo.Vendor.Text as Text
