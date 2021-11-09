@@ -8,6 +8,7 @@ import Test.Tasty.QuickCheck ((===))
 
 import qualified Argo
 import qualified Argo.Codec as Codec
+import qualified Argo.Type.Permission as Permission
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Builder as Builder
 import qualified Data.ByteString.Lazy as LazyByteString
@@ -568,7 +569,7 @@ data Record = Record
     } deriving (Eq, Show)
 
 recordCodec :: Codec.ValueCodec Record
-recordCodec = Codec.fromObjectCodec Codec.Allow $ Record
+recordCodec = Codec.fromObjectCodec Permission.Allow $ Record
     <$> Codec.project recordBool (Codec.required (Argo.Name "bool") Codec.boolCodec)
     <*> Codec.project recordText (Codec.optional (Argo.Name "text") Codec.textCodec)
 

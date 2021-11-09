@@ -92,6 +92,7 @@ library
         Argo.Type.Encoder
         Argo.Type.Flag
         Argo.Type.Indent
+        Argo.Type.Permission
         Argo.Type.Result
         Argo.Type.Settings
     hs-source-dirs: source/library
