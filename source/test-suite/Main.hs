@@ -9,6 +9,7 @@ import Test.Tasty.QuickCheck ((===))
 import qualified Argo
 import qualified Argo.Type.Codec as Codec
 import qualified Argo.Type.Permission as Permission
+import qualified Argo.Json.String as String
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Builder as Builder
 import qualified Data.ByteString.Lazy as LazyByteString
@@ -560,6 +561,16 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
             evaluate (pointer ["0"]) (Argo.Array []) @?= Nothing
             evaluate (pointer ["-"]) (Argo.Array []) @?= Nothing
             evaluate (pointer ["00"]) (Argo.Array [Argo.Null]) @?= Nothing
+        ]
+    , Tasty.testGroup "OverloadedStrings"
+        [ Tasty.testCase "Value" $ do
+            "" @?= Argo.String ""
+        , Tasty.testCase "String" $ do
+            "" @?= String.String ""
+        , Tasty.testCase "Name" $ do
+            "" @?= Argo.Name ""
+        , Tasty.testCase "Token" $ do
+            "" @?= Argo.Token ""
         ]
     ]
 

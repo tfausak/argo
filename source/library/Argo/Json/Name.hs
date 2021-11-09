@@ -9,11 +9,15 @@ import qualified Argo.Type.Decoder as Decoder
 import qualified Argo.Type.Encoder as Encoder
 import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.TemplateHaskell as TH
+import qualified Data.String
 import qualified GHC.Generics as Generics
 
 newtype Name
     = Name String.String
     deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
+
+instance Data.String.IsString Name where
+    fromString = fromString . Data.String.fromString
 
 fromString :: String.String -> Name
 fromString = Name

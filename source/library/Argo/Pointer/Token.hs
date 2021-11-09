@@ -14,12 +14,16 @@ import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.TemplateHaskell as TH
 import qualified Argo.Vendor.Text as Text
 import qualified Argo.Vendor.Transformers as Trans
+import qualified Data.String as String
 import qualified Data.Word as Word
 import qualified GHC.Generics as Generics
 
 newtype Token
     = Token Text.Text
     deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
+
+instance String.IsString Token where
+    fromString = fromText . String.fromString
 
 fromText :: Text.Text -> Token
 fromText = Token
