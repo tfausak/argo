@@ -9,8 +9,7 @@ module Argo
         , Pattern.Array
         , Pattern.Object
         )
-    , Name.Name
-    , pattern Pattern.Name
+    , Name.Name(Pattern.Name)
     , Member.MemberOf(Member)
     , Encode.encode
     , Encode.encodeWith
@@ -25,10 +24,7 @@ module Argo
     , Pointer.evaluate
     , Encode.encodePointer
     , Decode.decodePointer
-    , Decimal.Decimal
-    , Decimal.decimal
-    , Decimal.significand
-    , Decimal.exponent
+    , Decimal.Decimal(Pattern.Decimal)
     ) where
 
 import qualified Argo.Class.FromValue as FromValue

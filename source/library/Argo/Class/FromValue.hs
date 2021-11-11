@@ -60,12 +60,9 @@ instance FromValue Word.Word64 where
     fromValue = viaInteger
 
 instance FromValue Integer where
-    fromValue = withNumber "Integer" $ \x ->
-        let e = Decimal.exponent x
-        in
-            if e < 0
-                then Left $ "expected integer but got " <> show x
-                else pure $ Decimal.significand x * 10 ^ e
+    fromValue = withNumber "Integer" $ \x@(Decimal.Decimal s e) -> if e < 0
+        then Left $ "expected integer but got " <> show x
+        else pure $ s * 10 ^ e
 
 instance FromValue Float where
     fromValue = withNumber "Float" $ pure . fromRational . Decimal.toRational

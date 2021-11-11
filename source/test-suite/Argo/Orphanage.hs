@@ -43,9 +43,8 @@ genValueSized size =
             ]
 
 instance Tasty.Arbitrary Argo.Decimal where
-    arbitrary = Argo.decimal <$> Tasty.arbitrary <*> Tasty.arbitrary
-    shrink x = uncurry Argo.decimal
-        <$> Tasty.shrink (Argo.significand x, Argo.exponent x)
+    arbitrary = Argo.Decimal <$> Tasty.arbitrary <*> Tasty.arbitrary
+    shrink (Argo.Decimal s e) = uncurry Argo.Decimal <$> Tasty.shrink (s, e)
 
 instance Tasty.Arbitrary Text.Text where
     arbitrary = Text.pack <$> Tasty.arbitrary

@@ -32,9 +32,8 @@ toDecimal (Number x) = x
 
 encode :: Number -> Encoder.Encoder ()
 encode x = do
-    let d = toDecimal x
-    Trans.lift . Trans.tell . Builder.integerDec $ Decimal.significand d
-    let e = Decimal.exponent d
+    let Decimal.Decimal s e = toDecimal x
+    Trans.lift . Trans.tell $ Builder.integerDec s
     Monad.when (e /= 0)
         . Trans.lift
         . Trans.tell

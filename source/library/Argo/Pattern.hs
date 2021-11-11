@@ -38,3 +38,9 @@ pattern Name :: Text.Text -> Name.Name
 pattern Name x = Name.Name (String.String x)
 
 {-# COMPLETE Name #-}
+
+pattern Decimal :: Integer -> Integer -> Decimal.Decimal
+pattern Decimal s e <- Decimal.Decimal s e where
+    Decimal s e = Decimal.decimal s e
+
+{-# COMPLETE Decimal #-}

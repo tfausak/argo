@@ -14,12 +14,6 @@ import qualified GHC.Generics as Generics
 data Decimal = Decimal Integer Integer
     deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
 
-significand :: Decimal -> Integer
-significand (Decimal s _) = s
-
-exponent :: Decimal -> Integer
-exponent (Decimal _ e) = e
-
 negate :: Decimal -> Decimal
 negate (Decimal s e) = Decimal (-s) e
 

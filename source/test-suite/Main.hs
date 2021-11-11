@@ -571,7 +571,7 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
     ]
 
 number :: Integer -> Integer -> Argo.Value
-number s = Argo.Number . Argo.decimal s
+number s = Argo.Number . Argo.Decimal s
 
 data Record = Record
     { recordBool :: Bool
