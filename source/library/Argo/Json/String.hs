@@ -82,8 +82,8 @@ decode = do
     case Text.decodeUtf8' xs of
         Left e -> Trans.lift . Trans.throwE $ show e
         Right x -> case unescapeText x of
-            Nothing -> Trans.lift $ Trans.throwE "invalid escape"
-            Just y -> pure $ fromText y
+            Left e -> Trans.lift $ Trans.throwE e
+            Right y -> pure $ fromText y
 
 findAt :: Word.Word8 -> Int -> ByteString.ByteString -> Maybe Int
 findAt x i = fmap (+ i) . ByteString.elemIndex x . ByteString.drop i
@@ -97,7 +97,7 @@ getClose b i = do
     let n = countConsecutive Literal.reverseSolidus j b
     if even n then Just j else getClose b $ j + 1
 
-unescapeText :: Text.Text -> Maybe Text.Text
+unescapeText :: Text.Text -> Either Prelude.String Text.Text
 unescapeText = fmap (Text.pack . combineSurrogatePairs) . unescapeString . Text.unpack
 
 combineSurrogatePairs :: Prelude.String -> Prelude.String
@@ -119,11 +119,11 @@ isHighSurrogate x = '\xd800' <= x && x <= '\xdbff'
 isLowSurrogate :: Char -> Bool
 isLowSurrogate x = '\xdc00' <= x && x <= '\xdfff'
 
-unescapeString :: Prelude.String -> Maybe Prelude.String
+unescapeString :: Prelude.String -> Either Prelude.String Prelude.String
 unescapeString xs = case xs of
     "" -> pure xs
     '\\' : ys -> case ys of
-        "" -> fail "empty escape"
+        "" -> Left "empty escape"
         x : zs -> case x of
             '"' -> ('"' :) <$> unescapeString zs
             '\\' -> ('\\' :) <$> unescapeString zs
@@ -136,8 +136,8 @@ unescapeString xs = case xs of
             'u' -> case zs of
                 a : b : c : d : es | Just y <- fromLongEscape a b c d ->
                     (y :) <$> unescapeString es
-                _ -> fail "invalid long escape"
-            _ -> fail "invalid short escape"
+                _ -> Left "invalid long escape"
+            _ -> Left "invalid short escape"
     x : ys -> (x :) <$> unescapeString ys
 
 fromLongEscape :: Char -> Char -> Char -> Char -> Maybe Char
