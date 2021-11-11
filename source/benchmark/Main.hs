@@ -17,7 +17,7 @@ main = Tasty.defaultMain
             [ Tasty.bench "false" . Tasty.nf encode $ Argo.Boolean False
             ]
         , Tasty.bgroup "Number"
-            [ Tasty.bench "zero" . Tasty.nf encode $ Argo.Number 0 0
+            [ Tasty.bench "zero" . Tasty.nf encode . Argo.Number $ Argo.decimal 0 0
             ]
         , Tasty.bgroup "String"
             [ Tasty.bench "empty" . Tasty.nf encode $ Argo.String ""
