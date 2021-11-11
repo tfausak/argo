@@ -47,25 +47,26 @@ unescapeHelper xs = case xs of
     x : ys -> if x == Literal.tilde
         then case ys of
             y : zs
-                | y == Literal.digitZero -> (:) Literal.tilde <$> unescapeHelper zs
-                | y == Literal.digitOne -> (:) Literal.solidus <$> unescapeHelper zs
+                | y == Literal.digitZero
+                -> (:) Literal.tilde <$> unescapeHelper zs
+                | y == Literal.digitOne
+                -> (:) Literal.solidus <$> unescapeHelper zs
             _ -> Left "invalid escape"
         else (:) x <$> unescapeHelper ys
 
 encode :: Token -> Encoder.Encoder ()
-encode = Trans.lift
-    . Trans.tell
-    . Text.encodeUtf8BuilderEscaped encodeChar
-    . toText
+encode =
+    Trans.lift . Trans.tell . Text.encodeUtf8BuilderEscaped encodeChar . toText
 
 encodeChar :: Builder.BoundedPrim Word.Word8
 encodeChar =
     Builder.condB (== Literal.tilde) (encodeEscape Literal.digitZero)
-    . Builder.condB (== Literal.solidus) (encodeEscape Literal.digitOne)
-    $ Builder.liftFixedToBounded Builder.word8F
+        . Builder.condB (== Literal.solidus) (encodeEscape Literal.digitOne)
+        $ Builder.liftFixedToBounded Builder.word8F
 
 encodeEscape :: Word.Word8 -> Builder.BoundedPrim a
-encodeEscape x = Builder.liftFixedToBounded
-    $ const (Literal.tilde, x)
-    Builder.>$< Builder.word8F
-    Builder.>*< Builder.word8F
+encodeEscape x =
+    Builder.liftFixedToBounded
+        $ const (Literal.tilde, x)
+        Builder.>$< Builder.word8F
+        Builder.>*< Builder.word8F

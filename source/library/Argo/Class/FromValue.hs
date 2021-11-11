@@ -25,7 +25,7 @@ instance FromValue Bool where
     fromValue = withBoolean "Bool" pure
 
 instance FromValue Char where
-    fromValue = withString "Char" $ \ x -> case Text.uncons x of
+    fromValue = withString "Char" $ \x -> case Text.uncons x of
         Just (y, z) | Text.null z -> pure y
         _ -> Left $ "expected single character but got " <> show x
 
@@ -60,17 +60,16 @@ instance FromValue Word.Word64 where
     fromValue = viaInteger
 
 instance FromValue Integer where
-    fromValue = withNumber "Integer" $ \ x y ->
-        if y < 0
+    fromValue = withNumber "Integer" $ \x y -> if y < 0
         then Left $ "expected integer but got " <> show (Pattern.Number x y)
         else pure $ x * 10 ^ y
 
 instance FromValue Float where
-    fromValue = withNumber "Float" $ \ x y ->
+    fromValue = withNumber "Float" $ \x y ->
         pure . fromRational . Number.toRational $ Number.Number x y
 
 instance FromValue Double where
-    fromValue = withNumber "Double" $ \ x y ->
+    fromValue = withNumber "Double" $ \x y ->
         pure . fromRational . Number.toRational $ Number.Number x y
 
 instance {-# OVERLAPPING #-} FromValue String where
@@ -88,12 +87,12 @@ instance FromValue a => FromValue (Maybe a) where
         _ -> Just <$> fromValue x
 
 instance FromValue () where
-    fromValue = withArray "()" $ \ xs -> case xs of
+    fromValue = withArray "()" $ \xs -> case xs of
         [] -> pure ()
         _ -> Left $ "expected empty list but got " <> show xs
 
 instance (FromValue a, FromValue b) => FromValue (a, b) where
-    fromValue = withArray "(a, b)" $ \ xs -> case xs of
+    fromValue = withArray "(a, b)" $ \xs -> case xs of
         [x, y] -> (,) <$> fromValue x <*> fromValue y
         _ -> Left $ "expected tuple but got " <> show xs
 
@@ -108,36 +107,51 @@ instance FromValue a => FromValue (NonEmpty.NonEmpty a) where
             Just nonEmpty -> pure nonEmpty
 
 instance FromValue a => FromValue (Map.Map Text.Text a) where
-    fromValue = withObject "Map"
-        $ fmap Map.fromList
-        . traverse (\ (Member.Member (Pattern.Name k) v) -> (,) k <$> fromValue v)
+    fromValue = withObject "Map" $ fmap Map.fromList . traverse
+        (\(Member.Member (Pattern.Name k) v) -> (,) k <$> fromValue v)
 
 instance FromValue Pointer.Pointer where
-    fromValue = withString "Pointer"
-        $ Decoder.run Pointer.decode
-        . Text.encodeUtf8
+    fromValue =
+        withString "Pointer" $ Decoder.run Pointer.decode . Text.encodeUtf8
 
-withBoolean :: String -> (Bool -> Either String a) -> Value.Value -> Either String a
+withBoolean
+    :: String -> (Bool -> Either String a) -> Value.Value -> Either String a
 withBoolean s f x = case x of
     Pattern.Boolean y -> f y
     _ -> Left $ "expected " <> s <> " but got " <> show x
 
-withNumber :: String -> (Integer -> Integer -> Either String a) -> Value.Value -> Either String a
+withNumber
+    :: String
+    -> (Integer -> Integer -> Either String a)
+    -> Value.Value
+    -> Either String a
 withNumber s f x = case x of
     Pattern.Number y z -> f y z
     _ -> Left $ "expected " <> s <> " but got " <> show x
 
-withString :: String -> (Text.Text -> Either String a) -> Value.Value -> Either String a
+withString
+    :: String
+    -> (Text.Text -> Either String a)
+    -> Value.Value
+    -> Either String a
 withString s f x = case x of
     Pattern.String y -> f y
     _ -> Left $ "expected " <> s <> " but got " <> show x
 
-withArray :: String -> ([Value.Value] -> Either String a) -> Value.Value -> Either String a
+withArray
+    :: String
+    -> ([Value.Value] -> Either String a)
+    -> Value.Value
+    -> Either String a
 withArray s f x = case x of
     Pattern.Array y -> f y
     _ -> Left $ "expected " <> s <> " but got " <> show x
 
-withObject :: String -> ([Member.MemberOf Value.Value] -> Either String a) -> Value.Value -> Either String a
+withObject
+    :: String
+    -> ([Member.MemberOf Value.Value] -> Either String a)
+    -> Value.Value
+    -> Either String a
 withObject s f x = case x of
     Pattern.Object y -> f y
     _ -> Left $ "expected " <> s <> " but got " <> show x

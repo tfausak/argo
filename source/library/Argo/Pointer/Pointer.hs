@@ -71,14 +71,17 @@ atIndex t a = do
 
 tokenToIndex :: Token.Token -> Either String Int
 tokenToIndex token = do
-    let
-        text = Token.toText token
+    let text = Token.toText token
         invalid = "invalid index: " <> show token
     case Text.uncons text of
         Just ('0', rest) -> if Text.null rest then pure 0 else Left invalid
         _ -> maybe (Left invalid) pure . Read.readMaybe $ Text.unpack text
 
 atKey :: Token.Token -> Object.ObjectOf value -> Either String value
-atKey t = maybe (Left $ "missing key: " <> show t) (\ (Member.Member _ v) -> pure v)
-    . List.find (\ (Member.Member k _) -> String.toText (Name.toString k) == Token.toText t)
-    . Object.toList
+atKey t =
+    maybe (Left $ "missing key: " <> show t) (\(Member.Member _ v) -> pure v)
+        . List.find
+              (\(Member.Member k _) ->
+                  String.toText (Name.toString k) == Token.toText t
+              )
+        . Object.toList

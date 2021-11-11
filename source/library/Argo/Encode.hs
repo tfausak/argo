@@ -17,14 +17,13 @@ encode = encodeWith $ Indent.Spaces 0
 encodeWith :: ToValue.ToValue a => Indent.Indent -> a -> Builder.Builder
 encodeWith i x =
     let c = Config.initial { Config.indent = i }
-    in Encoder.run c $ do
-        Value.encode $ ToValue.toValue x
-        Monad.when (Config.hasIndent c)
-            . Trans.lift
-            . Trans.tell
-            $ Builder.word8 Literal.newLine
+    in
+        Encoder.run c $ do
+            Value.encode $ ToValue.toValue x
+            Monad.when (Config.hasIndent c)
+                . Trans.lift
+                . Trans.tell
+                $ Builder.word8 Literal.newLine
 
 encodePointer :: Pointer.Pointer -> Builder.Builder
-encodePointer =
-    let c = Config.initial
-    in Encoder.run c . Pointer.encode
+encodePointer = Encoder.run Config.initial . Pointer.encode

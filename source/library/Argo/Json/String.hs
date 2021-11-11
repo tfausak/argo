@@ -33,36 +33,57 @@ toText :: Argo.Json.String.String -> Text.Text
 toText (String x) = x
 
 encode :: Argo.Json.String.String -> Encoder.Encoder ()
-encode x = Trans.lift
-    . Trans.tell
-    $ Builder.word8 Literal.quotationMark
-    <> Text.encodeUtf8BuilderEscaped encodeChar (toText x)
-    <> Builder.word8 Literal.quotationMark
+encode x =
+    Trans.lift
+        . Trans.tell
+        $ Builder.word8 Literal.quotationMark
+        <> Text.encodeUtf8BuilderEscaped encodeChar (toText x)
+        <> Builder.word8 Literal.quotationMark
 
 encodeChar :: Builder.BoundedPrim Word.Word8
 encodeChar =
-    Builder.condB (== Literal.quotationMark) (encodeShortEscape Literal.quotationMark)
-    . Builder.condB (== Literal.reverseSolidus) (encodeShortEscape Literal.reverseSolidus)
-    . Builder.condB (== Literal.backspace) (encodeShortEscape Literal.latinSmallLetterB)
-    . Builder.condB (== Literal.formFeed) (encodeShortEscape Literal.latinSmallLetterF)
-    . Builder.condB (== Literal.newLine) (encodeShortEscape Literal.latinSmallLetterN)
-    . Builder.condB (== Literal.carriageReturn) (encodeShortEscape Literal.latinSmallLetterR)
-    . Builder.condB (== Literal.horizontalTabulation) (encodeShortEscape Literal.latinSmallLetterT)
-    . Builder.condB (< Literal.space) encodeLongEscape
-    $ Builder.liftFixedToBounded Builder.word8F
+    Builder.condB
+            (== Literal.quotationMark)
+            (encodeShortEscape Literal.quotationMark)
+        . Builder.condB
+              (== Literal.reverseSolidus)
+              (encodeShortEscape Literal.reverseSolidus)
+        . Builder.condB
+              (== Literal.backspace)
+              (encodeShortEscape Literal.latinSmallLetterB)
+        . Builder.condB
+              (== Literal.formFeed)
+              (encodeShortEscape Literal.latinSmallLetterF)
+        . Builder.condB
+              (== Literal.newLine)
+              (encodeShortEscape Literal.latinSmallLetterN)
+        . Builder.condB
+              (== Literal.carriageReturn)
+              (encodeShortEscape Literal.latinSmallLetterR)
+        . Builder.condB
+              (== Literal.horizontalTabulation)
+              (encodeShortEscape Literal.latinSmallLetterT)
+        . Builder.condB (< Literal.space) encodeLongEscape
+        $ Builder.liftFixedToBounded Builder.word8F
 
 encodeShortEscape :: Word.Word8 -> Builder.BoundedPrim a
-encodeShortEscape x = Builder.liftFixedToBounded
-    $ const (Literal.reverseSolidus, x)
-    Builder.>$< Builder.word8F
-    Builder.>*< Builder.word8F
+encodeShortEscape x =
+    Builder.liftFixedToBounded
+        $ const (Literal.reverseSolidus, x)
+        Builder.>$< Builder.word8F
+        Builder.>*< Builder.word8F
 
 encodeLongEscape :: Builder.BoundedPrim Word.Word8
-encodeLongEscape = Builder.liftFixedToBounded
-    $ (\ x -> (Literal.reverseSolidus, (Literal.latinSmallLetterU, word8ToWord16 x)))
-    Builder.>$< Builder.word8F
-    Builder.>*< Builder.word8F
-    Builder.>*< Builder.word16HexFixed
+encodeLongEscape =
+    Builder.liftFixedToBounded
+        $ (\x ->
+              ( Literal.reverseSolidus
+              , (Literal.latinSmallLetterU, word8ToWord16 x)
+              )
+          )
+        Builder.>$< Builder.word8F
+        Builder.>*< Builder.word8F
+        Builder.>*< Builder.word16HexFixed
 
 word8ToWord16 :: Word.Word8 -> Word.Word16
 word8ToWord16 = fromIntegral
@@ -75,7 +96,9 @@ decode = do
         Nothing -> Trans.lift $ Trans.throwE "unterminated string"
         Just i -> pure i
     let (xs, b2) = ByteString.splitAt i b1
-    Monad.when (ByteString.any (< Literal.space) xs) . Trans.lift $ Trans.throwE "unescaped control character"
+    Monad.when (ByteString.any (< Literal.space) xs)
+        . Trans.lift
+        $ Trans.throwE "unescaped control character"
     Trans.put b2
     Decoder.word8 Literal.quotationMark
     Decoder.spaces
@@ -89,7 +112,8 @@ findAt :: Word.Word8 -> Int -> ByteString.ByteString -> Maybe Int
 findAt x i = fmap (+ i) . ByteString.elemIndex x . ByteString.drop i
 
 countConsecutive :: Word.Word8 -> Int -> ByteString.ByteString -> Int
-countConsecutive x i = ByteString.length . ByteString.takeWhileEnd (== x) . ByteString.take i
+countConsecutive x i =
+    ByteString.length . ByteString.takeWhileEnd (== x) . ByteString.take i
 
 getClose :: ByteString.ByteString -> Int -> Maybe Int
 getClose b i = do
@@ -98,7 +122,8 @@ getClose b i = do
     if even n then Just j else getClose b $ j + 1
 
 unescapeText :: Text.Text -> Either Prelude.String Text.Text
-unescapeText = fmap (Text.pack . combineSurrogatePairs) . unescapeString . Text.unpack
+unescapeText =
+    fmap (Text.pack . combineSurrogatePairs) . unescapeString . Text.unpack
 
 combineSurrogatePairs :: Prelude.String -> Prelude.String
 combineSurrogatePairs xs = case xs of
@@ -108,10 +133,11 @@ combineSurrogatePairs xs = case xs of
     x : ys -> x : combineSurrogatePairs ys
 
 combineSurrogatePair :: Char -> Char -> Char
-combineSurrogatePair hi lo = Char.chr
-    $ 0x10000
-    + ((Char.ord hi - 0xd800) * 0x400)
-    + (Char.ord lo - 0xdc00)
+combineSurrogatePair hi lo =
+    Char.chr
+        $ 0x10000
+        + ((Char.ord hi - 0xd800) * 0x400)
+        + (Char.ord lo - 0xdc00)
 
 isHighSurrogate :: Char -> Bool
 isHighSurrogate x = '\xd800' <= x && x <= '\xdbff'

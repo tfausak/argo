@@ -24,12 +24,14 @@ toList :: ArrayOf value -> [value]
 toList (Array x) = x
 
 encode :: (value -> Encoder.Encoder ()) -> ArrayOf value -> Encoder.Encoder ()
-encode f = Encoder.list
-    (Trans.lift . Trans.tell $ Builder.word8 Literal.leftSquareBracket)
-    (Trans.lift . Trans.tell $ Builder.word8 Literal.rightSquareBracket)
-    (Trans.lift . Trans.tell $ Builder.word8 Literal.comma)
-    f
-    . toList
+encode f =
+    Encoder.list
+            (Trans.lift . Trans.tell $ Builder.word8 Literal.leftSquareBracket)
+            (Trans.lift . Trans.tell $ Builder.word8 Literal.rightSquareBracket
+            )
+            (Trans.lift . Trans.tell $ Builder.word8 Literal.comma)
+            f
+        . toList
 
 decode :: Decoder.Decoder value -> Decoder.Decoder (ArrayOf value)
 decode f = do

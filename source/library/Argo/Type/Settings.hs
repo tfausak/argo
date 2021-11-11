@@ -8,14 +8,11 @@ data Settings = Settings
     { help :: Bool
     , indent :: Indent.Indent
     , version :: Bool
-    } deriving (Eq, Show)
+    }
+    deriving (Eq, Show)
 
 initial :: Settings
-initial = Settings
-    { help = False
-    , indent = Indent.Spaces 0
-    , version = False
-    }
+initial = Settings { help = False, indent = Indent.Spaces 0, version = False }
 
 applyFlag :: Settings -> Flag.Flag -> Either String Settings
 applyFlag settings flag = case flag of

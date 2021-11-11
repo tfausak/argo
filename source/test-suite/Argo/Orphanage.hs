@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 
-module Argo.Orphanage () where
+module Argo.Orphanage where
 
 import Data.List.NonEmpty (NonEmpty((:|)))
 
@@ -28,14 +28,19 @@ instance Tasty.Arbitrary Argo.Value where
         Argo.Object y -> Argo.Object <$> Tasty.shrink y
 
 genValueSized :: Int -> Tasty.Gen Argo.Value
-genValueSized size = let newSize = div size 3 in Tasty.oneof
-    [ pure Argo.Null
-    , Argo.Boolean <$> Tasty.arbitrary
-    , Argo.Number <$> Tasty.arbitrary <*> Tasty.arbitrary
-    , Argo.String <$> Tasty.arbitrary
-    , Argo.Array <$> Tasty.vectorOf size (genValueSized newSize)
-    , Argo.Object <$> Tasty.vectorOf size (Argo.Member <$> Tasty.arbitrary <*> genValueSized newSize)
-    ]
+genValueSized size =
+    let newSize = div size 3
+    in
+        Tasty.oneof
+            [ pure Argo.Null
+            , Argo.Boolean <$> Tasty.arbitrary
+            , Argo.Number <$> Tasty.arbitrary <*> Tasty.arbitrary
+            , Argo.String <$> Tasty.arbitrary
+            , Argo.Array <$> Tasty.vectorOf size (genValueSized newSize)
+            , Argo.Object <$> Tasty.vectorOf
+                size
+                (Argo.Member <$> Tasty.arbitrary <*> genValueSized newSize)
+            ]
 
 instance Tasty.Arbitrary Text.Text where
     arbitrary = Text.pack <$> Tasty.arbitrary

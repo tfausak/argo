@@ -44,9 +44,9 @@ encode x = case x of
 
 decode :: Decoder.Decoder Value
 decode =
-    Null <$> Null.decode
-    <|> Boolean <$> Boolean.decode
-    <|> Number <$> Number.decode
-    <|> String <$> String.decode
-    <|> Array <$> Array.decode decode
-    <|> Object <$> Object.decode decode
+    (Null <$> Null.decode)
+        <|> (Boolean <$> Boolean.decode)
+        <|> (Number <$> Number.decode)
+        <|> (String <$> String.decode)
+        <|> (Array <$> Array.decode decode)
+        <|> (Object <$> Object.decode decode)

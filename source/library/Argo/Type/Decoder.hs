@@ -8,9 +8,15 @@ import qualified Control.Monad as Monad
 import qualified Data.Functor.Identity as Identity
 import qualified Data.Word as Word
 
-type Decoder = Trans.StateT ByteString.ByteString (Trans.ExceptT String Identity.Identity)
+type Decoder
+    = Trans.StateT
+          ByteString.ByteString
+          (Trans.ExceptT String Identity.Identity)
 
-unwrap :: Decoder a -> ByteString.ByteString -> Either String (a, ByteString.ByteString)
+unwrap
+    :: Decoder a
+    -> ByteString.ByteString
+    -> Either String (a, ByteString.ByteString)
 unwrap d = Identity.runIdentity . Trans.runExceptT . Trans.runStateT d
 
 run :: Decoder a -> ByteString.ByteString -> Either String a
@@ -52,10 +58,10 @@ isDigit x = Literal.digitZero <= x && x <= Literal.digitNine
 
 isSpace :: Word.Word8 -> Bool
 isSpace x =
-    x == Literal.space
-    || x == Literal.horizontalTabulation
-    || x == Literal.newLine
-    || x == Literal.carriageReturn
+    (x == Literal.space)
+        || (x == Literal.horizontalTabulation)
+        || (x == Literal.newLine)
+        || (x == Literal.carriageReturn)
 
 satisfy :: (Word.Word8 -> Bool) -> Decoder Word.Word8
 satisfy f = do

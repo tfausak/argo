@@ -7,12 +7,20 @@ import qualified Argo.Vendor.Text as Text
 
 pointer :: TH.QuasiQuoter
 pointer = defaultQuasiQuoter
-    { TH.quoteExp = either fail TH.lift . Decode.decodePointer . Text.encodeUtf8 . Text.pack
+    { TH.quoteExp =
+        either fail TH.lift
+        . Decode.decodePointer
+        . Text.encodeUtf8
+        . Text.pack
     }
 
 value :: TH.QuasiQuoter
 value = defaultQuasiQuoter
-    { TH.quoteExp = either fail (TH.lift . asValue) . Decode.decode . Text.encodeUtf8 . Text.pack
+    { TH.quoteExp =
+        either fail (TH.lift . asValue)
+        . Decode.decode
+        . Text.encodeUtf8
+        . Text.pack
     }
 
 asValue :: Value.Value -> Value.Value
