@@ -26,16 +26,17 @@ toBool :: Boolean -> Bool
 toBool (Boolean x) = x
 
 encode :: Boolean -> Encoder.Encoder ()
-encode x = Trans.lift
-    . Trans.tell
-    . Builder.byteString
-    $ if toBool x then Literal.true else Literal.false
+encode x = Trans.lift . Trans.tell . Builder.byteString $ if toBool x
+    then Literal.true
+    else Literal.false
 
 decode :: Decoder.Decoder Boolean
 decode = decodeFalse <|> decodeTrue
 
 decodeFalse :: Decoder.Decoder Boolean
-decodeFalse = fromBool False <$ Decoder.byteString Literal.false <* Decoder.spaces
+decodeFalse =
+    fromBool False <$ Decoder.byteString Literal.false <* Decoder.spaces
 
 decodeTrue :: Decoder.Decoder Boolean
-decodeTrue = fromBool True <$ Decoder.byteString Literal.true <* Decoder.spaces
+decodeTrue =
+    fromBool True <$ Decoder.byteString Literal.true <* Decoder.spaces

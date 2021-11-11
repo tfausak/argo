@@ -5,13 +5,11 @@ import qualified Argo.Type.Indent as Indent
 data Config = Config
     { indent :: Indent.Indent
     , level :: Int
-    } deriving (Eq, Show)
+    }
+    deriving (Eq, Show)
 
 initial :: Config
-initial = Config
-    { indent = Indent.Spaces 0
-    , level = 0
-    }
+initial = Config { indent = Indent.Spaces 0, level = 0 }
 
 hasIndent :: Config -> Bool
 hasIndent x = case indent x of

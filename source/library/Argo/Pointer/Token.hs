@@ -7,7 +7,6 @@ module Argo.Pointer.Token where
 import qualified Argo.Literal as Literal
 import qualified Argo.Type.Decoder as Decoder
 import qualified Argo.Type.Encoder as Encoder
-import qualified Argo.Type.Result as Result
 import qualified Argo.Vendor.Builder as Builder
 import qualified Argo.Vendor.ByteString as ByteString
 import qualified Argo.Vendor.DeepSeq as DeepSeq
@@ -34,39 +33,40 @@ toText (Token x) = x
 decode :: Decoder.Decoder Token
 decode = do
     x <- Decoder.takeWhile $ (/=) Literal.solidus
-    y <- Result.result fail pure $ unescape x
+    y <- either (Trans.lift . Trans.throwE) pure $ unescape x
     case Text.decodeUtf8' y of
-        Left e -> fail $ show e
+        Left e -> Trans.lift . Trans.throwE $ show e
         Right z -> pure $ fromText z
 
-unescape :: ByteString.ByteString -> Result.Result ByteString.ByteString
+unescape :: ByteString.ByteString -> Either String ByteString.ByteString
 unescape = fmap ByteString.pack . unescapeHelper . ByteString.unpack
 
-unescapeHelper :: [Word.Word8] -> Result.Result [Word.Word8]
+unescapeHelper :: [Word.Word8] -> Either String [Word.Word8]
 unescapeHelper xs = case xs of
     [] -> pure xs
     x : ys -> if x == Literal.tilde
         then case ys of
             y : zs
-                | y == Literal.digitZero -> (:) Literal.tilde <$> unescapeHelper zs
-                | y == Literal.digitOne -> (:) Literal.solidus <$> unescapeHelper zs
-            _ -> fail "invalid escape"
+                | y == Literal.digitZero
+                -> (:) Literal.tilde <$> unescapeHelper zs
+                | y == Literal.digitOne
+                -> (:) Literal.solidus <$> unescapeHelper zs
+            _ -> Left "invalid escape"
         else (:) x <$> unescapeHelper ys
 
 encode :: Token -> Encoder.Encoder ()
-encode = Trans.lift
-    . Trans.tell
-    . Text.encodeUtf8BuilderEscaped encodeChar
-    . toText
+encode =
+    Trans.lift . Trans.tell . Text.encodeUtf8BuilderEscaped encodeChar . toText
 
 encodeChar :: Builder.BoundedPrim Word.Word8
 encodeChar =
     Builder.condB (== Literal.tilde) (encodeEscape Literal.digitZero)
-    . Builder.condB (== Literal.solidus) (encodeEscape Literal.digitOne)
-    $ Builder.liftFixedToBounded Builder.word8F
+        . Builder.condB (== Literal.solidus) (encodeEscape Literal.digitOne)
+        $ Builder.liftFixedToBounded Builder.word8F
 
 encodeEscape :: Word.Word8 -> Builder.BoundedPrim a
-encodeEscape x = Builder.liftFixedToBounded
-    $ const (Literal.tilde, x)
-    Builder.>$< Builder.word8F
-    Builder.>*< Builder.word8F
+encodeEscape x =
+    Builder.liftFixedToBounded
+        $ const (Literal.tilde, x)
+        Builder.>$< Builder.word8F
+        Builder.>*< Builder.word8F

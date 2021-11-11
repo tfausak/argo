@@ -44,7 +44,7 @@ main = Tasty.defaultMain
             , Tasty.bench "10000 elements" . Tasty.nf encode . Argo.Object . replicate 10000 $ Argo.Member (Argo.Name "") Argo.Null
             ]
         ]
-    , Tasty.bgroup "decode" $ let decode = Argo.decode :: ByteString.ByteString -> Argo.Result Argo.Value in
+    , Tasty.bgroup "decode" $ let decode = Argo.decode :: ByteString.ByteString -> Either String Argo.Value in
         [ Tasty.bgroup "Null"
             [ Tasty.bench "null" $ Tasty.nf decode "null"
             ]

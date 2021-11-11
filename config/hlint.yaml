@@ -1,0 +1,24 @@
+- extensions:
+  - default: false
+  - name:
+    - DeriveAnyClass
+    - DeriveGeneric
+    - DeriveLift
+    - FlexibleInstances
+    - PatternSynonyms
+  - name:
+    - OverloadedStrings
+    - QuasiQuotes
+    within: Main
+- flags:
+  - default: false
+  - name: -Wno-orphans
+    within: Argo.Orphanage
+- group:
+    name: dollar
+    enabled: true
+- group:
+    name: generalise
+    enabled: true
+- ignore:
+    name: Use tuple-section

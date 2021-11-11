@@ -25,15 +25,21 @@ fromList = Object
 toList :: ObjectOf value -> [Member.MemberOf value]
 toList (Object x) = x
 
-encode :: (value -> Encoder.Encoder ()) -> ObjectOf value -> Encoder.Encoder ()
-encode f = Encoder.list
-    (Trans.lift . Trans.tell $ Builder.word8 Literal.leftCurlyBracket)
-    (Trans.lift . Trans.tell $ Builder.word8 Literal.rightCurlyBracket)
-    (Trans.lift . Trans.tell $ Builder.word8 Literal.comma)
-    (Member.encode f)
-    . toList
+encode
+    :: (value -> Encoder.Encoder ()) -> ObjectOf value -> Encoder.Encoder ()
+encode f =
+    Encoder.list
+            (Trans.lift . Trans.tell $ Builder.word8 Literal.leftCurlyBracket)
+            (Trans.lift . Trans.tell $ Builder.word8 Literal.rightCurlyBracket)
+            (Trans.lift . Trans.tell $ Builder.word8 Literal.comma)
+            (Member.encode f)
+        . toList
 
-encodeElement :: (value -> Encoder.Encoder ()) -> Int -> Member.MemberOf value -> Encoder.Encoder ()
+encodeElement
+    :: (value -> Encoder.Encoder ())
+    -> Int
+    -> Member.MemberOf value
+    -> Encoder.Encoder ()
 encodeElement f i x = do
     Monad.when (i > 0) . Trans.lift . Trans.tell $ Builder.word8 Literal.comma
     Member.encode f x

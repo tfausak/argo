@@ -20,7 +20,6 @@ module Argo
     , ToValue.ToValue(toValue)
     , QuasiQuoter.value
     , QuasiQuoter.pointer
-    , Result.Result(Failure, Success)
     , Pointer.Pointer(Pointer)
     , Token.Token(Token)
     , Pointer.evaluate
@@ -40,4 +39,3 @@ import qualified Argo.Pointer.Pointer as Pointer
 import qualified Argo.Pointer.Token as Token
 import qualified Argo.QuasiQuoter as QuasiQuoter
 import qualified Argo.Type.Indent as Indent
-import qualified Argo.Type.Result as Result

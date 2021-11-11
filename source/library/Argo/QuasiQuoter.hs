@@ -2,18 +2,25 @@ module Argo.QuasiQuoter where
 
 import qualified Argo.Decode as Decode
 import qualified Argo.Json.Value as Value
-import qualified Argo.Type.Result as Result
 import qualified Argo.Vendor.TemplateHaskell as TH
 import qualified Argo.Vendor.Text as Text
 
 pointer :: TH.QuasiQuoter
 pointer = defaultQuasiQuoter
-    { TH.quoteExp = Result.result fail TH.lift . Decode.decodePointer . Text.encodeUtf8 . Text.pack
+    { TH.quoteExp =
+        either fail TH.lift
+        . Decode.decodePointer
+        . Text.encodeUtf8
+        . Text.pack
     }
 
 value :: TH.QuasiQuoter
 value = defaultQuasiQuoter
-    { TH.quoteExp = Result.result fail TH.lift . fmap asValue . Decode.decode . Text.encodeUtf8 . Text.pack
+    { TH.quoteExp =
+        either fail (TH.lift . asValue)
+        . Decode.decode
+        . Text.encodeUtf8
+        . Text.pack
     }
 
 asValue :: Value.Value -> Value.Value

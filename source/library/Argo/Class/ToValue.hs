@@ -95,35 +95,40 @@ instance ToValue a => ToValue (NonEmpty.NonEmpty a) where
     toValue = toValue . NonEmpty.toList
 
 instance ToValue a => ToValue (Map.Map Text.Text a) where
-    toValue x = Pattern.Object
-        . fmap (\ (k, v) -> Member.Member (Pattern.Name k) (toValue v))
-        $ Map.toAscList x
+    toValue x =
+        Pattern.Object
+            . fmap (\(k, v) -> Member.Member (Pattern.Name k) (toValue v))
+            $ Map.toAscList x
 
 instance ToValue Pointer.Pointer where
-    toValue = either (error . mappend "Pointer.toValue: " . show) toValue
-        . Text.decodeUtf8'
-        . ByteString.toStrict
-        . Builder.toLazyByteString
-        . Encoder.run Config.initial
-        . Pointer.encode
+    toValue =
+        either (error . mappend "Pointer.toValue: " . show) toValue
+            . Text.decodeUtf8'
+            . ByteString.toStrict
+            . Builder.toLazyByteString
+            . Encoder.run Config.initial
+            . Pointer.encode
 
 realFloatToValue :: RealFloat a => a -> Value.Value
 realFloatToValue x
-    | isNaN x = Pattern.Null
-    | isInfinite x = Pattern.Null
-    | otherwise =
-        let isNegative = x < 0
-        in Value.Number
-        . (if isNegative then negateNumber else id)
-        . uncurry digitsToNumber
-        . Numeric.floatToDigits 10
-        $ abs x
+    | isNaN x
+    = Pattern.Null
+    | isInfinite x
+    = Pattern.Null
+    | otherwise
+    = let isNegative = x < 0
+      in
+          Value.Number
+          . (if isNegative then negateNumber else id)
+          . uncurry digitsToNumber
+          . Numeric.floatToDigits 10
+          $ abs x
 
 negateNumber :: Number.Number -> Number.Number
 negateNumber (Number.Number x y) = Number.Number (-x) y
 
 digitsToNumber :: [Int] -> Int -> Number.Number
 digitsToNumber ds e = uncurry Number.number $ List.foldl'
-    (\ (a, n) d -> (a * 10 + toInteger d, n - 1))
+    (\(a, n) d -> (a * 10 + toInteger d, n - 1))
     (0, toInteger e)
     ds

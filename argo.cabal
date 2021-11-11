@@ -93,7 +93,6 @@ library
         Argo.Type.Flag
         Argo.Type.Indent
         Argo.Type.Permission
-        Argo.Type.Result
         Argo.Type.Settings
     hs-source-dirs: source/library
     other-modules:
@@ -118,9 +117,9 @@ test-suite argo-test-suite
         , tasty >= 1.4.2 && < 1.5
         , tasty-hunit >= 0.10.0 && < 0.11
         , tasty-quickcheck >= 0.10.1 && < 0.11
-    ghc-options: -Wno-orphans
     hs-source-dirs: source/test-suite
     main-is: Main.hs
+    other-modules: Argo.Orphanage
     type: exitcode-stdio-1.0
 
 benchmark argo-benchmark
