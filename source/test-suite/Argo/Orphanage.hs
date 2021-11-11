@@ -22,7 +22,7 @@ instance Tasty.Arbitrary Argo.Value where
     shrink x = case x of
         Argo.Null -> []
         Argo.Boolean y -> Argo.Boolean <$> Tasty.shrink y
-        Argo.Number y z -> uncurry Argo.Number <$> Tasty.shrink (y, z)
+        Argo.Number y -> Argo.Number <$> Tasty.shrink y
         Argo.String y -> Argo.String <$> Tasty.shrink y
         Argo.Array y -> Argo.Array <$> Tasty.shrink y
         Argo.Object y -> Argo.Object <$> Tasty.shrink y
@@ -34,13 +34,18 @@ genValueSized size =
         Tasty.oneof
             [ pure Argo.Null
             , Argo.Boolean <$> Tasty.arbitrary
-            , Argo.Number <$> Tasty.arbitrary <*> Tasty.arbitrary
+            , Argo.Number <$> Tasty.arbitrary
             , Argo.String <$> Tasty.arbitrary
             , Argo.Array <$> Tasty.vectorOf size (genValueSized newSize)
             , Argo.Object <$> Tasty.vectorOf
                 size
                 (Argo.Member <$> Tasty.arbitrary <*> genValueSized newSize)
             ]
+
+instance Tasty.Arbitrary Argo.Decimal where
+    arbitrary = Argo.decimal <$> Tasty.arbitrary <*> Tasty.arbitrary
+    shrink x = uncurry Argo.decimal
+        <$> Tasty.shrink (Argo.significand x, Argo.exponent x)
 
 instance Tasty.Arbitrary Text.Text where
     arbitrary = Text.pack <$> Tasty.arbitrary

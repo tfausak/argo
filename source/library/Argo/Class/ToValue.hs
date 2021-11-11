@@ -8,6 +8,7 @@ import qualified Argo.Json.Value as Value
 import qualified Argo.Pattern as Pattern
 import qualified Argo.Pointer.Pointer as Pointer
 import qualified Argo.Type.Config as Config
+import qualified Argo.Type.Decimal as Decimal
 import qualified Argo.Type.Encoder as Encoder
 import qualified Argo.Vendor.Builder as Builder
 import qualified Argo.Vendor.ByteString as ByteString
@@ -62,7 +63,7 @@ instance ToValue Word.Word64 where
     toValue = toValue . toInteger
 
 instance ToValue Integer where
-    toValue = flip Pattern.Number 0
+    toValue x = Pattern.Number $ Decimal.decimal x 0
 
 instance ToValue Float where
     toValue = realFloatToValue
@@ -119,16 +120,14 @@ realFloatToValue x
     = let isNegative = x < 0
       in
           Value.Number
-          . (if isNegative then negateNumber else id)
-          . uncurry digitsToNumber
+          . Number.fromDecimal
+          . (if isNegative then Decimal.negate else id)
+          . uncurry digitsToDecimal
           . Numeric.floatToDigits 10
           $ abs x
 
-negateNumber :: Number.Number -> Number.Number
-negateNumber (Number.Number x y) = Number.Number (-x) y
-
-digitsToNumber :: [Int] -> Int -> Number.Number
-digitsToNumber ds e = uncurry Number.number $ List.foldl'
+digitsToDecimal :: [Int] -> Int -> Decimal.Decimal
+digitsToDecimal ds e = uncurry Decimal.decimal $ List.foldl'
     (\(a, n) d -> (a * 10 + toInteger d, n - 1))
     (0, toInteger e)
     ds

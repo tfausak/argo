@@ -11,6 +11,7 @@ import qualified Argo.Json.Number as Number
 import qualified Argo.Json.Object as Object
 import qualified Argo.Json.String as String
 import qualified Argo.Json.Value as Value
+import qualified Argo.Type.Decimal as Decimal
 import qualified Argo.Vendor.Text as Text
 
 pattern Null :: Value.Value
@@ -19,9 +20,8 @@ pattern Null = Value.Null (Null.Null ())
 pattern Boolean :: Bool -> Value.Value
 pattern Boolean x = Value.Boolean (Boolean.Boolean x)
 
-pattern Number :: Integer -> Integer -> Value.Value
-pattern Number x y <- Value.Number (Number.Number x y) where
-    Number x y = Value.Number $ Number.number x y
+pattern Number :: Decimal.Decimal -> Value.Value
+pattern Number x = Value.Number (Number.Number x)
 
 pattern String :: Text.Text -> Value.Value
 pattern String x = Value.String (String.String x)
