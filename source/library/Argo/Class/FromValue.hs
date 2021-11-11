@@ -3,10 +3,10 @@
 module Argo.Class.FromValue where
 
 import qualified Argo.Json.Member as Member
-import qualified Argo.Json.Number as Number
 import qualified Argo.Json.Value as Value
 import qualified Argo.Pattern as Pattern
 import qualified Argo.Pointer.Pointer as Pointer
+import qualified Argo.Type.Decimal as Decimal
 import qualified Argo.Type.Decoder as Decoder
 import qualified Argo.Vendor.Text as Text
 import qualified Data.Bits as Bits
@@ -60,17 +60,15 @@ instance FromValue Word.Word64 where
     fromValue = viaInteger
 
 instance FromValue Integer where
-    fromValue = withNumber "Integer" $ \x y -> if y < 0
-        then Left $ "expected integer but got " <> show (Pattern.Number x y)
-        else pure $ x * 10 ^ y
+    fromValue = withNumber "Integer" $ \x@(Decimal.Decimal s e) -> if e < 0
+        then Left $ "expected integer but got " <> show x
+        else pure $ s * 10 ^ e
 
 instance FromValue Float where
-    fromValue = withNumber "Float" $ \x y ->
-        pure . fromRational . Number.toRational $ Number.Number x y
+    fromValue = withNumber "Float" $ pure . fromRational . Decimal.toRational
 
 instance FromValue Double where
-    fromValue = withNumber "Double" $ \x y ->
-        pure . fromRational . Number.toRational $ Number.Number x y
+    fromValue = withNumber "Double" $ pure . fromRational . Decimal.toRational
 
 instance {-# OVERLAPPING #-} FromValue String where
     fromValue = fmap Text.unpack . fromValue
@@ -122,11 +120,11 @@ withBoolean s f x = case x of
 
 withNumber
     :: String
-    -> (Integer -> Integer -> Either String a)
+    -> (Decimal.Decimal -> Either String a)
     -> Value.Value
     -> Either String a
 withNumber s f x = case x of
-    Pattern.Number y z -> f y z
+    Pattern.Number y -> f y
     _ -> Left $ "expected " <> s <> " but got " <> show x
 
 withString

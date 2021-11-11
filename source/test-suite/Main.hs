@@ -37,19 +37,19 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
             ]
         , Tasty.testGroup "Number"
             [ Tasty.testCase "zero" $ do
-                encode (Argo.Number 0 0) @?= "0"
+                encode (number 0 0) @?= "0"
             , Tasty.testCase "positive integer" $ do
-                encode (Argo.Number 1 0) @?= "1"
+                encode (number 1 0) @?= "1"
             , Tasty.testCase "negative integer" $ do
-                encode (Argo.Number (-1) 0) @?= "-1"
+                encode (number (-1) 0) @?= "-1"
             , Tasty.testCase "positive exponent" $ do
-                encode (Argo.Number 1 1) @?= "1e1"
+                encode (number 1 1) @?= "1e1"
             , Tasty.testCase "negative exponent" $ do
-                encode (Argo.Number 1 (-1)) @?= "1e-1"
+                encode (number 1 (-1)) @?= "1e-1"
             , Tasty.testCase "multiple integer digits" $ do
-                encode (Argo.Number 12 0) @?= "12"
+                encode (number 12 0) @?= "12"
             , Tasty.testCase "multiple exponent digits" $ do
-                encode (Argo.Number 1 12) @?= "1e12"
+                encode (number 1 12) @?= "1e12"
             ]
         , Tasty.testGroup "String"
             [ Tasty.testCase "empty" $ do
@@ -89,17 +89,17 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
             [ Tasty.testCase "empty" $ do
                 encode (Argo.Array []) @?= "[]"
             , Tasty.testCase "one element" $ do
-                encode (Argo.Array [Argo.Number 1 0]) @?= "[1]"
+                encode (Argo.Array [number 1 0]) @?= "[1]"
             , Tasty.testCase "two elements" $ do
-                encode (Argo.Array [Argo.Number 1 0, Argo.Number 2 0]) @?= "[1,2]"
+                encode (Argo.Array [number 1 0, number 2 0]) @?= "[1,2]"
             ]
         , Tasty.testGroup "Object"
             [ Tasty.testCase "empty" $ do
                 encode (Argo.Object []) @?= "{}"
             , Tasty.testCase "one element" $ do
-                encode (Argo.Object [Argo.Member (Argo.Name "a") $ Argo.Number 1 0]) @?= "{\"a\":1}"
+                encode (Argo.Object [Argo.Member (Argo.Name "a") $ number 1 0]) @?= "{\"a\":1}"
             , Tasty.testCase "two elements" $ do
-                encode (Argo.Object [Argo.Member (Argo.Name "a") $ Argo.Number 1 0, Argo.Member (Argo.Name "b") $ Argo.Number 2 0]) @?= "{\"a\":1,\"b\":2}"
+                encode (Argo.Object [Argo.Member (Argo.Name "a") $ number 1 0, Argo.Member (Argo.Name "b") $ number 2 0]) @?= "{\"a\":1,\"b\":2}"
             ]
         ]
     , Tasty.testGroup "decode" $ let decode = hush . Argo.decode :: ByteString.ByteString -> Maybe Argo.Value in
@@ -125,37 +125,37 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
             ]
         , Tasty.testGroup "Number"
             [ Tasty.testCase "zero" $ do
-                decode "0" @?= Just (Argo.Number 0 0)
+                decode "0" @?= Just (number 0 0)
             , Tasty.testCase "negative zero" $ do
-                decode "-0" @?= Just (Argo.Number 0 0)
+                decode "-0" @?= Just (number 0 0)
             , Tasty.testCase "positive integer" $ do
-                decode "1" @?= Just (Argo.Number 1 0)
+                decode "1" @?= Just (number 1 0)
             , Tasty.testCase "multiple integer digits" $ do
-                decode "12" @?= Just (Argo.Number 12 0)
+                decode "12" @?= Just (number 12 0)
             , Tasty.testCase "negative integer" $ do
-                decode "-1" @?= Just (Argo.Number (-1) 0)
+                decode "-1" @?= Just (number (-1) 0)
             , Tasty.testCase "fraction" $ do
-                decode "0.1" @?= Just (Argo.Number 1 (-1))
+                decode "0.1" @?= Just (number 1 (-1))
             , Tasty.testCase "multiple fraction digits" $ do
-                decode "0.12" @?= Just (Argo.Number 12 (-2))
+                decode "0.12" @?= Just (number 12 (-2))
             , Tasty.testCase "leading zero fraction" $ do
-                decode "0.01" @?= Just (Argo.Number 1 (-2))
+                decode "0.01" @?= Just (number 1 (-2))
             , Tasty.testCase "positive exponent" $ do
-                decode "1e1" @?= Just (Argo.Number 1 1)
+                decode "1e1" @?= Just (number 1 1)
             , Tasty.testCase "capital exponent" $ do
-                decode "1E1" @?= Just (Argo.Number 1 1)
+                decode "1E1" @?= Just (number 1 1)
             , Tasty.testCase "leading zero exponent" $ do
-                decode "1e01" @?= Just (Argo.Number 1 1)
+                decode "1e01" @?= Just (number 1 1)
             , Tasty.testCase "explicit positive exponent" $ do
-                decode "1e+1" @?= Just (Argo.Number 1 1)
+                decode "1e+1" @?= Just (number 1 1)
             , Tasty.testCase "negative exponent" $ do
-                decode "1e-1" @?= Just (Argo.Number 1 (-1))
+                decode "1e-1" @?= Just (number 1 (-1))
             , Tasty.testCase "multiple exponent digits" $ do
-                decode "1e12" @?= Just (Argo.Number 1 12)
+                decode "1e12" @?= Just (number 1 12)
             , Tasty.testCase "kitchen sink" $ do
-                decode "12.34e56" @?= Just (Argo.Number 1234 54)
+                decode "12.34e56" @?= Just (number 1234 54)
             , Tasty.testCase "normalized" $ do
-                decode "10" @?= Just (Argo.Number 1 1)
+                decode "10" @?= Just (number 1 1)
             , Tasty.testCase "leading zero" $ do
                 decode "01" @?= Nothing
             , Tasty.testCase "trailing fraction" $ do
@@ -241,11 +241,11 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
             [ Tasty.testCase "empty" $ do
                 decode "[]" @?= Just (Argo.Array [])
             , Tasty.testCase "one element" $ do
-                decode "[1]" @?= Just (Argo.Array [Argo.Number 1 0])
+                decode "[1]" @?= Just (Argo.Array [number 1 0])
             , Tasty.testCase "two elements" $ do
-                decode "[1,2]" @?= Just (Argo.Array [Argo.Number 1 0, Argo.Number 2 0])
+                decode "[1,2]" @?= Just (Argo.Array [number 1 0, number 2 0])
             , Tasty.testCase "nested" $ do
-                decode "[1,[2]]" @?= Just (Argo.Array [Argo.Number 1 0, Argo.Array [Argo.Number 2 0]])
+                decode "[1,[2]]" @?= Just (Argo.Array [number 1 0, Argo.Array [number 2 0]])
             , Tasty.testCase "not closed" $ do
                 decode "[" @?= Nothing
             , Tasty.testCase "not opened" $ do
@@ -263,11 +263,11 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
             [ Tasty.testCase "empty" $ do
                 decode "{}" @?= Just (Argo.Object [])
             , Tasty.testCase "one element" $ do
-                decode "{\"a\":1}" @?= Just (Argo.Object [Argo.Member (Argo.Name "a") $ Argo.Number 1 0])
+                decode "{\"a\":1}" @?= Just (Argo.Object [Argo.Member (Argo.Name "a") $ number 1 0])
             , Tasty.testCase "two elements" $ do
-                decode "{\"a\":1,\"b\":2}" @?= Just (Argo.Object [Argo.Member (Argo.Name "a") $ Argo.Number 1 0, Argo.Member (Argo.Name "b") $ Argo.Number 2 0])
+                decode "{\"a\":1,\"b\":2}" @?= Just (Argo.Object [Argo.Member (Argo.Name "a") $ number 1 0, Argo.Member (Argo.Name "b") $ number 2 0])
             , Tasty.testCase "nested" $ do
-                decode "{\"a\":{\"b\":2}}" @?= Just (Argo.Object [Argo.Member (Argo.Name "a") $ Argo.Object [Argo.Member (Argo.Name "b") $ Argo.Number 2 0]])
+                decode "{\"a\":{\"b\":2}}" @?= Just (Argo.Object [Argo.Member (Argo.Name "a") $ Argo.Object [Argo.Member (Argo.Name "b") $ number 2 0]])
             , Tasty.testCase "not closed" $ do
                 decode "{" @?= Nothing
             , Tasty.testCase "not opened" $ do
@@ -300,31 +300,31 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
         , Tasty.testCase "Char" $ do
             Argo.fromValue (Argo.String "a") @?= Right 'a'
         , Tasty.testCase "Int" $ do
-            Argo.fromValue (Argo.Number 0 0) @?= Right (0 :: Int)
+            Argo.fromValue (number 0 0) @?= Right (0 :: Int)
         , Tasty.testCase "Int8" $ do
-            Argo.fromValue (Argo.Number 0 0) @?= Right (0 :: Int.Int8)
+            Argo.fromValue (number 0 0) @?= Right (0 :: Int.Int8)
         , Tasty.testCase "Int16" $ do
-            Argo.fromValue (Argo.Number 0 0) @?= Right (0 :: Int.Int16)
+            Argo.fromValue (number 0 0) @?= Right (0 :: Int.Int16)
         , Tasty.testCase "Int32" $ do
-            Argo.fromValue (Argo.Number 0 0) @?= Right (0 :: Int.Int32)
+            Argo.fromValue (number 0 0) @?= Right (0 :: Int.Int32)
         , Tasty.testCase "Int64" $ do
-            Argo.fromValue (Argo.Number 0 0) @?= Right (0 :: Int.Int64)
+            Argo.fromValue (number 0 0) @?= Right (0 :: Int.Int64)
         , Tasty.testCase "Word" $ do
-            Argo.fromValue (Argo.Number 0 0) @?= Right (0 :: Word)
+            Argo.fromValue (number 0 0) @?= Right (0 :: Word)
         , Tasty.testCase "Word8" $ do
-            Argo.fromValue (Argo.Number 0 0) @?= Right (0 :: Word.Word8)
+            Argo.fromValue (number 0 0) @?= Right (0 :: Word.Word8)
         , Tasty.testCase "Word16" $ do
-            Argo.fromValue (Argo.Number 0 0) @?= Right (0 :: Word.Word16)
+            Argo.fromValue (number 0 0) @?= Right (0 :: Word.Word16)
         , Tasty.testCase "Word32" $ do
-            Argo.fromValue (Argo.Number 0 0) @?= Right (0 :: Word.Word32)
+            Argo.fromValue (number 0 0) @?= Right (0 :: Word.Word32)
         , Tasty.testCase "Word64" $ do
-            Argo.fromValue (Argo.Number 0 0) @?= Right (0 :: Word.Word64)
+            Argo.fromValue (number 0 0) @?= Right (0 :: Word.Word64)
         , Tasty.testCase "Integer" $ do
-            Argo.fromValue (Argo.Number 0 0) @?= Right (0 :: Integer)
+            Argo.fromValue (number 0 0) @?= Right (0 :: Integer)
         , Tasty.testCase "Float" $ do
-            Argo.fromValue (Argo.Number 0 0) @?= Right (0 :: Float)
+            Argo.fromValue (number 0 0) @?= Right (0 :: Float)
         , Tasty.testCase "Double" $ do
-            Argo.fromValue (Argo.Number 0 0) @?= Right (0 :: Double)
+            Argo.fromValue (number 0 0) @?= Right (0 :: Double)
         , Tasty.testCase "String" $ do
             Argo.fromValue (Argo.String "") @?= Right ("" :: String)
         , Tasty.testCase "Text" $ do
@@ -354,31 +354,31 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
         , Tasty.testCase "Char" $ do
             Argo.toValue 'a' @?= Argo.String "a"
         , Tasty.testCase "Int" $ do
-            Argo.toValue (0 :: Int) @?= Argo.Number 0 0
+            Argo.toValue (0 :: Int) @?= number 0 0
         , Tasty.testCase "Int8" $ do
-            Argo.toValue (0 :: Int.Int8) @?= Argo.Number 0 0
+            Argo.toValue (0 :: Int.Int8) @?= number 0 0
         , Tasty.testCase "Int16" $ do
-            Argo.toValue (0 :: Int.Int16) @?= Argo.Number 0 0
+            Argo.toValue (0 :: Int.Int16) @?= number 0 0
         , Tasty.testCase "Int32" $ do
-            Argo.toValue (0 :: Int.Int32) @?= Argo.Number 0 0
+            Argo.toValue (0 :: Int.Int32) @?= number 0 0
         , Tasty.testCase "Int64" $ do
-            Argo.toValue (0 :: Int.Int64) @?= Argo.Number 0 0
+            Argo.toValue (0 :: Int.Int64) @?= number 0 0
         , Tasty.testCase "Word" $ do
-            Argo.toValue (0 :: Word) @?= Argo.Number 0 0
+            Argo.toValue (0 :: Word) @?= number 0 0
         , Tasty.testCase "Word8" $ do
-            Argo.toValue (0 :: Word.Word8) @?= Argo.Number 0 0
+            Argo.toValue (0 :: Word.Word8) @?= number 0 0
         , Tasty.testCase "Word16" $ do
-            Argo.toValue (0 :: Word.Word16) @?= Argo.Number 0 0
+            Argo.toValue (0 :: Word.Word16) @?= number 0 0
         , Tasty.testCase "Word32" $ do
-            Argo.toValue (0 :: Word.Word32) @?= Argo.Number 0 0
+            Argo.toValue (0 :: Word.Word32) @?= number 0 0
         , Tasty.testCase "Word64" $ do
-            Argo.toValue (0 :: Word.Word64) @?= Argo.Number 0 0
+            Argo.toValue (0 :: Word.Word64) @?= number 0 0
         , Tasty.testCase "Integer" $ do
-            Argo.toValue (0 :: Integer) @?= Argo.Number 0 0
+            Argo.toValue (0 :: Integer) @?= number 0 0
         , Tasty.testCase "Float" $ do
-            Argo.toValue (0 :: Float) @?= Argo.Number 0 0
+            Argo.toValue (0 :: Float) @?= number 0 0
         , Tasty.testCase "Double" $ do
-            Argo.toValue (0 :: Double) @?= Argo.Number 0 0
+            Argo.toValue (0 :: Double) @?= number 0 0
         , Tasty.testCase "String" $ do
             Argo.toValue ("" :: String) @?= Argo.String ""
         , Tasty.testCase "Text" $ do
@@ -406,7 +406,7 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
         , Tasty.testCase "Boolean" $ do
             [Argo.value| false |] @?= Argo.Boolean False
         , Tasty.testCase "Number" $ do
-            [Argo.value| 0 |] @?= Argo.Number 0 0
+            [Argo.value| 0 |] @?= number 0 0
         , Tasty.testCase "String" $ do
             [Argo.value| "" |] @?= Argo.String ""
         , Tasty.testCase "Array" $ do
@@ -569,6 +569,9 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
             "" @?= Argo.Token ""
         ]
     ]
+
+number :: Integer -> Integer -> Argo.Value
+number s = Argo.Number . Argo.Decimal s
 
 data Record = Record
     { recordBool :: Bool

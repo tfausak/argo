@@ -4,9 +4,8 @@
 
 module Argo.Json.Number where
 
-import Data.Ratio ((%))
-
 import qualified Argo.Literal as Literal
+import qualified Argo.Type.Decimal as Decimal
 import qualified Argo.Type.Decoder as Decoder
 import qualified Argo.Type.Encoder as Encoder
 import qualified Argo.Vendor.Builder as Builder
@@ -18,31 +17,28 @@ import qualified Control.Applicative as Applicative
 import qualified Control.Monad as Monad
 import qualified Data.Bool as Bool
 import qualified Data.Maybe as Maybe
-import qualified Data.Ratio as Ratio
 import qualified Data.Word as Word
 import qualified GHC.Generics as Generics
 
-data Number = Number Integer Integer
+newtype Number
+    = Number Decimal.Decimal
     deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
 
-number :: Integer -> Integer -> Number
-number x = normalize . Number x
+fromDecimal :: Decimal.Decimal -> Number
+fromDecimal = Number
 
-normalize :: Number -> Number
-normalize (Number x y) = if x == 0
-    then Number 0 0
-    else
-        let (q, r) = quotRem x 10
-        in if r == 0 then normalize $ Number q (y + 1) else Number x y
+toDecimal :: Number -> Decimal.Decimal
+toDecimal (Number x) = x
 
 encode :: Number -> Encoder.Encoder ()
-encode (Number x y) = do
-    Trans.lift . Trans.tell $ Builder.integerDec x
-    Monad.when (y /= 0)
+encode x = do
+    let Decimal.Decimal s e = toDecimal x
+    Trans.lift . Trans.tell $ Builder.integerDec s
+    Monad.when (e /= 0)
         . Trans.lift
         . Trans.tell
         $ Builder.word8 Literal.latinSmallLetterE
-        <> Builder.integerDec y
+        <> Builder.integerDec e
 
 decode :: Decoder.Decoder Number
 decode = do
@@ -77,7 +73,7 @@ decode = do
               e <- Decoder.takeWhile1 Decoder.isDigit
               pure (ne, e)
     Decoder.spaces
-    pure $ number
+    pure . fromDecimal $ Decimal.decimal
         (negateIf ni $ (fromDigits i * 10 ^ ByteString.length f) + fromDigits f
         )
         (negateIf ne (fromDigits e) - intToInteger (ByteString.length f))
@@ -94,25 +90,3 @@ intToInteger = fromIntegral
 
 word8ToInteger :: Word.Word8 -> Integer
 word8ToInteger = fromIntegral
-
-toRational :: Number -> Rational
-toRational (Number x y) =
-    if y < 0 then x % (10 ^ (-y)) else fromInteger $ x * 10 ^ y
-
-fromRational :: Rational -> Maybe Number
-fromRational r =
-    let
-        n = Ratio.numerator r
-        d1 = Ratio.denominator r
-        (t, d2) = factor 2 (0 :: Integer) d1
-        (f, d3) = factor 5 (0 :: Integer) d2
-        p = max t f
-    in if d3 == 1
-        then Just $ number (n * 2 ^ (p - t) * 5 ^ (p - f)) (-p)
-        else Nothing
-
--- factor d 0 x = (p, y) <=> x = (d ^ p) * y
-factor :: (Num a, Integral b) => b -> a -> b -> (a, b)
-factor d n x =
-    let (q, r) = quotRem x d
-    in if x /= 0 && r == 0 then factor d (n + 1) q else (n, x)
