@@ -29,8 +29,8 @@ mainWith name arguments = do
     withSettings name flags $ \ settings -> do
         contents <- ByteString.getContents
         value <- case Argo.decode contents of
-            Argo.Failure e -> fail e
-            Argo.Success x -> pure (x :: Argo.Value)
+            Left e -> fail e
+            Right x -> pure (x :: Argo.Value)
         Builder.hPutBuilder IO.stdout $ Argo.encodeWith (Settings.indent settings) value
 
 getFlags :: [String] -> (([String], [String]), [Flag.Flag])

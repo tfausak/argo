@@ -1,7 +1,6 @@
 module Argo.Type.Decoder where
 
 import qualified Argo.Literal as Literal
-import qualified Argo.Type.Result as Result
 import qualified Argo.Vendor.ByteString as ByteString
 import qualified Argo.Vendor.Transformers as Trans
 import qualified Control.Applicative as Applicative
@@ -14,8 +13,8 @@ type Decoder = Trans.StateT ByteString.ByteString (Trans.ExceptT String Identity
 unwrap :: Decoder a -> ByteString.ByteString -> Either String (a, ByteString.ByteString)
 unwrap d = Identity.runIdentity . Trans.runExceptT . Trans.runStateT d
 
-run :: Decoder a -> ByteString.ByteString -> Result.Result a
-run d = either Result.Failure Result.Success . fmap fst . unwrap (d <* eof)
+run :: Decoder a -> ByteString.ByteString -> Either String a
+run d = fmap fst . unwrap (d <* eof)
 
 list :: Decoder a -> Decoder [a]
 list f = listWith f []

@@ -12,16 +12,14 @@ import qualified Argo.Json.Object as Object
 import qualified Argo.Json.String as String
 import qualified Argo.Json.Value as Value
 import qualified Argo.Type.Permission as Permission
-import qualified Argo.Type.Result as Result
 import qualified Argo.Vendor.Transformers as Trans
 import qualified Control.Applicative as Applicative
 import qualified Control.Monad as Monad
 import qualified Data.Functor.Identity as Identity
 import qualified Data.Text as Text
 
-decodeWith :: ValueCodec a -> Value.Value -> Result.Result a
-decodeWith c = either fail pure
-    . Identity.runIdentity
+decodeWith :: ValueCodec a -> Value.Value -> Either String a
+decodeWith c = Identity.runIdentity
     . Trans.runExceptT
     . Trans.runReaderT (decode c)
 
@@ -239,8 +237,8 @@ element c = Codec
         case l of
             [] -> Trans.lift $ Trans.throwE "unexpected empty list"
             h : t -> case decodeWith c h of
-                Result.Failure y -> Trans.lift $ Trans.throwE y
-                Result.Success y -> do
+                Left y -> Trans.lift $ Trans.throwE y
+                Right y -> do
                     Trans.put t
                     pure y
     , encode = \ x -> do
@@ -277,8 +275,8 @@ optional k c = Codec
         case detect (\ (Member.Member j _) -> j == k) xs of
             Nothing -> pure Nothing
             Just (Member.Member _ x, ys) -> case decodeWith c x of
-                Result.Failure y -> Trans.lift $ Trans.throwE y
-                Result.Success y -> do
+                Left y -> Trans.lift $ Trans.throwE y
+                Right y -> do
                     Trans.put ys
                     pure $ Just y
     , encode = \ x -> do

@@ -14,7 +14,6 @@ import qualified Argo.Literal as Literal
 import qualified Argo.Pointer.Token as Token
 import qualified Argo.Type.Decoder as Decoder
 import qualified Argo.Type.Encoder as Encoder
-import qualified Argo.Type.Result as Result
 import qualified Argo.Vendor.Builder as Builder
 import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.TemplateHaskell as TH
@@ -53,33 +52,33 @@ encodeToken x = do
     Trans.lift . Trans.tell $ Builder.word8 Literal.solidus
     Token.encode x
 
-evaluate :: Pointer -> Value.Value -> Result.Result Value.Value
+evaluate :: Pointer -> Value.Value -> Either String Value.Value
 evaluate p v = case toList p of
     [] -> pure v
     t : ts -> do
         w <- case v of
             Value.Array a -> atIndex t a
             Value.Object o -> atKey t o
-            _ -> fail "not indexable"
+            _ -> Left "not indexable"
         evaluate (fromList ts) w
 
-atIndex :: Token.Token -> Array.ArrayOf value -> Result.Result value
+atIndex :: Token.Token -> Array.ArrayOf value -> Either String value
 atIndex t a = do
     i <- tokenToIndex t
     case drop i $ Array.toList a of
-        [] -> fail $ "missing index: " <> show t
+        [] -> Left $ "missing index: " <> show t
         e : _ -> pure e
 
-tokenToIndex :: Token.Token -> Result.Result Int
+tokenToIndex :: Token.Token -> Either String Int
 tokenToIndex token = do
     let
         text = Token.toText token
         invalid = "invalid index: " <> show token
     case Text.uncons text of
-        Just ('0', rest) -> if Text.null rest then pure 0 else fail invalid
-        _ -> maybe (fail invalid) pure . Read.readMaybe $ Text.unpack text
+        Just ('0', rest) -> if Text.null rest then pure 0 else Left invalid
+        _ -> maybe (Left invalid) pure . Read.readMaybe $ Text.unpack text
 
-atKey :: Token.Token -> Object.ObjectOf value -> Result.Result value
-atKey t = maybe (fail $ "missing key: " <> show t) (\ (Member.Member _ v) -> pure v)
+atKey :: Token.Token -> Object.ObjectOf value -> Either String value
+atKey t = maybe (Left $ "missing key: " <> show t) (\ (Member.Member _ v) -> pure v)
     . List.find (\ (Member.Member k _) -> String.toText (Name.toString k) == Token.toText t)
     . Object.toList
