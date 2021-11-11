@@ -34,9 +34,9 @@ toText (Token x) = x
 decode :: Decoder.Decoder Token
 decode = do
     x <- Decoder.takeWhile $ (/=) Literal.solidus
-    y <- Result.result fail pure $ unescape x
+    y <- Result.result (Trans.lift . Trans.throwE) pure $ unescape x
     case Text.decodeUtf8' y of
-        Left e -> fail $ show e
+        Left e -> Trans.lift . Trans.throwE $ show e
         Right z -> pure $ fromText z
 
 unescape :: ByteString.ByteString -> Result.Result ByteString.ByteString

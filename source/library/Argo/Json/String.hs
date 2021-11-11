@@ -70,19 +70,19 @@ word8ToWord16 = fromIntegral
 decode :: Decoder.Decoder Argo.Json.String.String
 decode = do
     Decoder.word8 Literal.quotationMark
-    b1 <- Decoder.get
+    b1 <- Trans.get
     i <- case getClose b1 0 of
-        Nothing -> fail "unterminated string"
+        Nothing -> Trans.lift $ Trans.throwE "unterminated string"
         Just i -> pure i
     let (xs, b2) = ByteString.splitAt i b1
-    Monad.when (ByteString.any (< Literal.space) xs) $ fail "unescaped control character"
-    Decoder.put b2
+    Monad.when (ByteString.any (< Literal.space) xs) . Trans.lift $ Trans.throwE "unescaped control character"
+    Trans.put b2
     Decoder.word8 Literal.quotationMark
     Decoder.spaces
     case Text.decodeUtf8' xs of
-        Left e -> fail $ show e
+        Left e -> Trans.lift . Trans.throwE $ show e
         Right x -> case unescapeText x of
-            Nothing -> fail "invalid escape"
+            Nothing -> Trans.lift $ Trans.throwE "invalid escape"
             Just y -> pure $ fromText y
 
 findAt :: Word.Word8 -> Int -> ByteString.ByteString -> Maybe Int

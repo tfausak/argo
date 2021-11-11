@@ -51,7 +51,7 @@ decode = do
     ni <- fmap Maybe.isJust . Applicative.optional $ Decoder.word8 Literal.hyphenMinus
     i <- Decoder.takeWhile1 Decoder.isDigit
     Monad.when (ByteString.length i > 1 && ByteString.elemIndex Literal.digitZero i == Just 0)
-        $ fail "leading zero"
+        . Trans.lift $ Trans.throwE "leading zero"
     f <- fmap (Maybe.fromMaybe ByteString.empty) . Applicative.optional $ do
         Decoder.word8 Literal.fullStop
         Decoder.takeWhile1 Decoder.isDigit
