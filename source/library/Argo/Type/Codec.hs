@@ -40,7 +40,7 @@ data CodecOf r w i o = Codec
 
 instance (Functor r, Functor w) => Functor (CodecOf r w i) where
     fmap f c = Codec
-        { decode = fmap f $ decode c
+        { decode = f <$> decode c
         , encode = fmap f . encode c
         }
 
@@ -68,7 +68,7 @@ type Codec r w a = CodecOf r w a a
 
 dimap :: (Functor r, Functor w) => (a -> b) -> (b -> a) -> Codec r w a -> Codec r w b
 dimap f g c = Codec
-    { decode = fmap f $ decode c
+    { decode = f <$> decode c
     , encode = fmap f . encode c . g
     }
 
@@ -177,10 +177,10 @@ mapBoth
     :: (Functor r, Applicative.Alternative w)
     => (o2 -> o1) -> (i1 -> Maybe i2) -> CodecOf r w i2 o2 -> CodecOf r w i1 o1
 mapBoth f g c = Codec
-    { decode = fmap f $ decode c
+    { decode = f <$> decode c
     , encode = \ x -> case g x of
         Nothing -> Applicative.empty
-        Just y -> fmap f $ encode c y
+        Just y -> f <$> encode c y
     }
 
 tagged :: String -> ValueCodec a -> ValueCodec a

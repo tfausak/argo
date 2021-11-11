@@ -12,7 +12,7 @@ pointer = defaultQuasiQuoter
 
 value :: TH.QuasiQuoter
 value = defaultQuasiQuoter
-    { TH.quoteExp = either fail TH.lift . fmap asValue . Decode.decode . Text.encodeUtf8 . Text.pack
+    { TH.quoteExp = either fail (TH.lift . asValue) . Decode.decode . Text.encodeUtf8 . Text.pack
     }
 
 asValue :: Value.Value -> Value.Value
