@@ -67,6 +67,9 @@ dimap
 dimap f g c =
     Codec { decode = f <$> decode c, encode = fmap f . encode c . g }
 
+tap :: Functor f => (a -> f b) -> a -> f a
+tap f x = x <$ f x
+
 type ValueCodec a
     = Codec
           (Trans.ReaderT Value.Value (Trans.ExceptT String Identity.Identity))

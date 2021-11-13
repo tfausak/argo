@@ -68,6 +68,7 @@ library
     exposed-modules:
         Argo
         Argo.Class.FromValue
+        Argo.Class.HasCodec
         Argo.Class.ToValue
         Argo.Decode
         Argo.Encode
