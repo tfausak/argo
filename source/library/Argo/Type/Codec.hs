@@ -104,18 +104,24 @@ objectCodec = Codec
         pure x
     }
 
-mapBoth
-    :: (Functor r, Applicative.Alternative w)
-    => (o2 -> o1)
+mapMaybe
+    :: (Applicative.Alternative r, Applicative.Alternative w, Monad r, Monad w)
+    => (o2 -> Maybe o1)
     -> (i1 -> Maybe i2)
     -> CodecOf r w i2 o2
     -> CodecOf r w i1 o1
-mapBoth f g c = Codec
-    { decode = f <$> decode c
-    , encode = \x -> case g x of
-        Nothing -> Applicative.empty
-        Just y -> f <$> encode c y
+mapMaybe f g c = Codec
+    { decode = do
+        o2 <- decode c
+        toAlternative $ f o2
+    , encode = \ i1 -> do
+        i2 <- toAlternative $ g i1
+        o2 <- encode c i2
+        toAlternative $ f o2
     }
+
+toAlternative :: Applicative.Alternative m => Maybe a -> m a
+toAlternative = maybe Applicative.empty pure
 
 tagged :: String -> ValueCodec a -> ValueCodec a
 tagged t c =

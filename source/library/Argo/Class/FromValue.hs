@@ -65,10 +65,10 @@ instance FromValue Integer where
         else pure $ s * 10 ^ e
 
 instance FromValue Float where
-    fromValue = withNumber "Float" $ pure . fromRational . Decimal.toRational
+    fromValue = withNumber "Float" $ pure . Decimal.toRealFloat
 
 instance FromValue Double where
-    fromValue = withNumber "Double" $ pure . fromRational . Decimal.toRational
+    fromValue = withNumber "Double" $ pure . Decimal.toRealFloat
 
 instance {-# OVERLAPPING #-} FromValue String where
     fromValue = fmap Text.unpack . fromValue

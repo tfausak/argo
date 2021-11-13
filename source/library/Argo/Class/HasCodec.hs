@@ -13,13 +13,23 @@ import qualified Argo.Json.Number as Number
 import qualified Argo.Json.Object as Object
 import qualified Argo.Json.String as String
 import qualified Argo.Json.Value as Value
+import qualified Argo.Pointer.Pointer as Pointer
 import qualified Argo.Type.Codec as Codec
+import qualified Argo.Type.Config as Config
 import qualified Argo.Type.Decimal as Decimal
+import qualified Argo.Type.Decoder as Decoder
+import qualified Argo.Type.Encoder as Encoder
 import qualified Argo.Type.Permission as Permission
+import qualified Argo.Vendor.Builder as Builder
+import qualified Argo.Vendor.ByteString as ByteString
 import qualified Argo.Vendor.Map as Map
 import qualified Argo.Vendor.Text as Text
 import qualified Argo.Vendor.Transformers as Trans
+import qualified Data.Bits as Bits
 import qualified Data.Functor.Identity as Identity
+import qualified Data.Int as Int
+import qualified Data.List.NonEmpty as NonEmpty
+import qualified Data.Word as Word
 
 class HasCodec a where
     codec :: Codec.ValueCodec a
@@ -87,12 +97,12 @@ instance HasCodec a => HasCodec (Object.ObjectOf a) where
         }
 
 instance HasCodec a => HasCodec (Maybe a) where
-    codec = Codec.mapBoth Just id codec
+    codec = Codec.mapMaybe (Just . Just) id codec
         <|> Codec.dimap (const Nothing) (const $ Null.fromUnit ()) codec
 
 instance (HasCodec a, HasCodec b) => HasCodec (Either a b) where
-    codec = Codec.mapBoth Left (either Just $ const Nothing) (Codec.tagged "Left" codec)
-        <|> Codec.mapBoth Right (either (const Nothing) Just) (Codec.tagged "Right" codec)
+    codec = Codec.mapMaybe (Just . Left) (either Just $ const Nothing) (Codec.tagged "Left" codec)
+        <|> Codec.mapMaybe (Just . Right) (either (const Nothing) Just) (Codec.tagged "Right" codec)
 
 instance HasCodec () where
     codec = Codec.fromArrayCodec Permission.Forbid $ pure ()
@@ -111,13 +121,111 @@ instance HasCodec Decimal.Decimal where
 instance HasCodec Text.Text where
     codec = Codec.dimap String.toText String.fromText codec
 
-instance HasCodec a => HasCodec [a] where
+instance {-# OVERLAPPABLE #-} HasCodec a => HasCodec [a] where
     codec = Codec.dimap Array.toList Array.fromList codec
 
 instance HasCodec a => HasCodec (Map.Map Name.Name a) where
     codec = Codec.dimap
         (Map.fromList . fmap Member.toTuple . Object.toList)
         (Object.fromList . fmap Member.fromTuple . Map.toList)
+        codec
+
+instance HasCodec String where
+    codec = Codec.dimap Text.unpack Text.pack codec
+
+instance HasCodec Char where
+    codec = Codec.mapMaybe (\ x -> case Text.uncons x of
+        Just (y, z) | Text.null z -> Just y
+        _ -> Nothing) (Just . Text.singleton) codec
+
+instance HasCodec Text.LazyText where
+    codec = Codec.dimap Text.fromStrict Text.toStrict codec
+
+instance HasCodec a => HasCodec (NonEmpty.NonEmpty a) where
+    codec = Codec.mapMaybe NonEmpty.nonEmpty (Just . NonEmpty.toList) codec
+
+instance HasCodec Integer where
+    codec = Codec.mapMaybe Decimal.toInteger (Just . Decimal.fromInteger) codec
+
+instance HasCodec Int where
+    codec = let
+        from = Bits.toIntegralSized :: Integer -> Maybe Int
+        into = fromIntegral :: Int -> Integer
+        in Codec.mapMaybe from (Just . into) codec
+
+instance HasCodec Int.Int8 where
+    codec = let
+        from = Bits.toIntegralSized :: Integer -> Maybe Int.Int8
+        into = fromIntegral :: Int.Int8 -> Integer
+        in Codec.mapMaybe from (Just . into) codec
+
+instance HasCodec Int.Int16 where
+    codec = let
+        from = Bits.toIntegralSized :: Integer -> Maybe Int.Int16
+        into = fromIntegral :: Int.Int16 -> Integer
+        in Codec.mapMaybe from (Just . into) codec
+
+instance HasCodec Int.Int32 where
+    codec = let
+        from = Bits.toIntegralSized :: Integer -> Maybe Int.Int32
+        into = fromIntegral :: Int.Int32 -> Integer
+        in Codec.mapMaybe from (Just . into) codec
+
+instance HasCodec Int.Int64 where
+    codec = let
+        from = Bits.toIntegralSized :: Integer -> Maybe Int.Int64
+        into = fromIntegral :: Int.Int64 -> Integer
+        in Codec.mapMaybe from (Just . into) codec
+
+instance HasCodec Word where
+    codec = let
+        from = Bits.toIntegralSized :: Integer -> Maybe Word
+        into = fromIntegral :: Word -> Integer
+        in Codec.mapMaybe from (Just . into) codec
+
+instance HasCodec Word.Word8 where
+    codec = let
+        from = Bits.toIntegralSized :: Integer -> Maybe Word.Word8
+        into = fromIntegral :: Word.Word8 -> Integer
+        in Codec.mapMaybe from (Just . into) codec
+
+instance HasCodec Word.Word16 where
+    codec = let
+        from = Bits.toIntegralSized :: Integer -> Maybe Word.Word16
+        into = fromIntegral :: Word.Word16 -> Integer
+        in Codec.mapMaybe from (Just . into) codec
+
+instance HasCodec Word.Word32 where
+    codec = let
+        from = Bits.toIntegralSized :: Integer -> Maybe Word.Word32
+        into = fromIntegral :: Word.Word32 -> Integer
+        in Codec.mapMaybe from (Just . into) codec
+
+instance HasCodec Word.Word64 where
+    codec = let
+        from = Bits.toIntegralSized :: Integer -> Maybe Word.Word64
+        into = fromIntegral :: Word.Word64 -> Integer
+        in Codec.mapMaybe from (Just . into) codec
+
+instance HasCodec Float where
+    codec = Codec.mapMaybe (Just . Decimal.toRealFloat) Decimal.fromRealFloat codec
+
+instance HasCodec Double where
+    codec = Codec.mapMaybe (Just . Decimal.toRealFloat) Decimal.fromRealFloat codec
+
+instance HasCodec Pointer.Pointer where
+    codec = Codec.mapMaybe
+        ( either (const Nothing) Just
+        . Decoder.run Pointer.decode
+        . Text.encodeUtf8
+        )
+        ( either (const Nothing) Just
+        . Text.decodeUtf8'
+        . ByteString.toStrict
+        . Builder.toLazyByteString
+        . Encoder.run Config.initial
+        . Pointer.encode
+        )
         codec
 
 basicCodec :: String -> (a -> Value.Value) -> (Value.Value -> Maybe a) -> Codec.ValueCodec a

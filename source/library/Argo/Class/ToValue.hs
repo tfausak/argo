@@ -3,7 +3,6 @@
 module Argo.Class.ToValue where
 
 import qualified Argo.Json.Member as Member
-import qualified Argo.Json.Number as Number
 import qualified Argo.Json.Value as Value
 import qualified Argo.Pattern as Pattern
 import qualified Argo.Pointer.Pointer as Pointer
@@ -14,11 +13,9 @@ import qualified Argo.Vendor.Builder as Builder
 import qualified Argo.Vendor.ByteString as ByteString
 import qualified Argo.Vendor.Text as Text
 import qualified Data.Int as Int
-import qualified Data.List as List
 import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Map as Map
 import qualified Data.Word as Word
-import qualified Numeric
 
 class ToValue a where
     toValue :: a -> Value.Value
@@ -111,23 +108,4 @@ instance ToValue Pointer.Pointer where
             . Pointer.encode
 
 realFloatToValue :: RealFloat a => a -> Value.Value
-realFloatToValue x
-    | isNaN x
-    = Pattern.Null
-    | isInfinite x
-    = Pattern.Null
-    | otherwise
-    = let isNegative = x < 0
-      in
-          Value.Number
-          . Number.fromDecimal
-          . (if isNegative then Decimal.negate else id)
-          . uncurry digitsToDecimal
-          . Numeric.floatToDigits 10
-          $ abs x
-
-digitsToDecimal :: [Int] -> Int -> Decimal.Decimal
-digitsToDecimal ds e = uncurry Decimal.decimal $ List.foldl'
-    (\(a, n) d -> (a * 10 + toInteger d, n - 1))
-    (0, toInteger e)
-    ds
+realFloatToValue = maybe Pattern.Null Pattern.Number . Decimal.fromRealFloat
