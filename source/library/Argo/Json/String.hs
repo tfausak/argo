@@ -21,7 +21,7 @@ import qualified GHC.Generics as Generics
 
 newtype String
     = String Text.Text
-    deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
+    deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Ord, Show)
 
 instance String.IsString Argo.Json.String.String where
     fromString = fromText . String.fromString

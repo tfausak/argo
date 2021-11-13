@@ -1,14 +1,23 @@
+{-# LANGUAGE FlexibleInstances #-}
+
 module Argo.Class.HasCodec where
+
+import Control.Applicative ((<|>))
 
 import qualified Argo.Json.Array as Array
 import qualified Argo.Json.Boolean as Boolean
 import qualified Argo.Json.Member as Member
+import qualified Argo.Json.Name as Name
 import qualified Argo.Json.Null as Null
 import qualified Argo.Json.Number as Number
 import qualified Argo.Json.Object as Object
 import qualified Argo.Json.String as String
 import qualified Argo.Json.Value as Value
 import qualified Argo.Type.Codec as Codec
+import qualified Argo.Type.Decimal as Decimal
+import qualified Argo.Type.Permission as Permission
+import qualified Argo.Vendor.Map as Map
+import qualified Argo.Vendor.Text as Text
 import qualified Argo.Vendor.Transformers as Trans
 import qualified Data.Functor.Identity as Identity
 
@@ -76,6 +85,40 @@ instance HasCodec a => HasCodec (Object.ObjectOf a) where
             . fmap (\ (Member.Member k v) -> Member.Member k $ Codec.encodeWith codec v)
             . Object.toList
         }
+
+instance HasCodec a => HasCodec (Maybe a) where
+    codec = Codec.mapBoth Just id codec
+        <|> Codec.dimap (const Nothing) (const $ Null.fromUnit ()) codec
+
+instance (HasCodec a, HasCodec b) => HasCodec (Either a b) where
+    codec = Codec.mapBoth Left (either Just $ const Nothing) (Codec.tagged "Left" codec)
+        <|> Codec.mapBoth Right (either (const Nothing) Just) (Codec.tagged "Right" codec)
+
+instance HasCodec () where
+    codec = Codec.fromArrayCodec Permission.Forbid $ pure ()
+
+instance (HasCodec a, HasCodec b) => HasCodec (a, b) where
+    codec = Codec.fromArrayCodec Permission.Forbid $ (,)
+        <$> Codec.project fst (Codec.element codec)
+        <*> Codec.project snd (Codec.element codec)
+
+instance HasCodec Bool where
+    codec = Codec.dimap Boolean.toBool Boolean.fromBool codec
+
+instance HasCodec Decimal.Decimal where
+    codec = Codec.dimap Number.toDecimal Number.fromDecimal codec
+
+instance HasCodec Text.Text where
+    codec = Codec.dimap String.toText String.fromText codec
+
+instance HasCodec a => HasCodec [a] where
+    codec = Codec.dimap Array.toList Array.fromList codec
+
+instance HasCodec a => HasCodec (Map.Map Name.Name a) where
+    codec = Codec.dimap
+        (Map.fromList . fmap Member.toTuple . Object.toList)
+        (Object.fromList . fmap Member.fromTuple . Map.toList)
+        codec
 
 basicCodec :: String -> (a -> Value.Value) -> (Value.Value -> Maybe a) -> Codec.ValueCodec a
 basicCodec expected toValue fromValue = Codec.Codec

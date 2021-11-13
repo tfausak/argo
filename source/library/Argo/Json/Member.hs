@@ -19,6 +19,12 @@ import qualified GHC.Generics as Generics
 data MemberOf value = Member Name.Name value
     deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
 
+fromTuple :: (Name.Name, value) -> MemberOf value
+fromTuple = uncurry Member
+
+toTuple :: MemberOf value -> (Name.Name, value)
+toTuple (Member k v) = (k, v)
+
 encode
     :: (value -> Encoder.Encoder ()) -> MemberOf value -> Encoder.Encoder ()
 encode f (Member x y) = do
