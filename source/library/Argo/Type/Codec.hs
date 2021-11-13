@@ -3,11 +3,9 @@ module Argo.Type.Codec where
 import Control.Applicative ((<|>))
 
 import qualified Argo.Json.Array as Array
-import qualified Argo.Json.Boolean as Boolean
 import qualified Argo.Json.Member as Member
 import qualified Argo.Json.Name as Name
 import qualified Argo.Json.Null as Null
-import qualified Argo.Json.Number as Number
 import qualified Argo.Json.Object as Object
 import qualified Argo.Json.String as String
 import qualified Argo.Json.Value as Value
@@ -77,75 +75,6 @@ type ValueCodec a
           (Trans.MaybeT (Trans.StateT Value.Value Identity.Identity))
           a
 
-valueCodec :: ValueCodec Value.Value
-valueCodec = Codec
-    { decode = Trans.ask
-    , encode = \x -> do
-        Trans.lift $ Trans.put x
-        pure x
-    }
-
-nullCodec :: ValueCodec Null.Null
-nullCodec = Codec
-    { decode = do
-        x <- Trans.ask
-        case x of
-            Value.Null y -> pure y
-            _ ->
-                Trans.lift . Trans.throwE $ "expected Null but got " <> show x
-    , encode = \x -> do
-        Trans.lift . Trans.put $ Value.Null x
-        pure x
-    }
-
-booleanCodec :: ValueCodec Boolean.Boolean
-booleanCodec = Codec
-    { decode = do
-        x <- Trans.ask
-        case x of
-            Value.Boolean y -> pure y
-            _ ->
-                Trans.lift
-                    . Trans.throwE
-                    $ "expected Boolean but got "
-                    <> show x
-    , encode = \x -> do
-        Trans.lift . Trans.put $ Value.Boolean x
-        pure x
-    }
-
-numberCodec :: ValueCodec Number.Number
-numberCodec = Codec
-    { decode = do
-        x <- Trans.ask
-        case x of
-            Value.Number y -> pure y
-            _ ->
-                Trans.lift
-                    . Trans.throwE
-                    $ "expected Number but got "
-                    <> show x
-    , encode = \x -> do
-        Trans.lift . Trans.put $ Value.Number x
-        pure x
-    }
-
-stringCodec :: ValueCodec String.String
-stringCodec = Codec
-    { decode = do
-        x <- Trans.ask
-        case x of
-            Value.String y -> pure y
-            _ ->
-                Trans.lift
-                    . Trans.throwE
-                    $ "expected String but got "
-                    <> show x
-    , encode = \x -> do
-        Trans.lift . Trans.put $ Value.String x
-        pure x
-    }
-
 arrayCodec :: ValueCodec (Array.ArrayOf Value.Value)
 arrayCodec = Codec
     { decode = do
@@ -174,22 +103,6 @@ objectCodec = Codec
         Trans.lift . Trans.put $ Value.Object x
         pure x
     }
-
-boolCodec :: ValueCodec Bool
-boolCodec = dimap Boolean.toBool Boolean.fromBool booleanCodec
-
-textCodec :: ValueCodec Text.Text
-textCodec = dimap String.toText String.fromText stringCodec
-
-maybeCodec :: ValueCodec a -> ValueCodec (Maybe a)
-maybeCodec c =
-    mapBoth Just id c
-        <|> dimap (const Nothing) (const $ Null.fromUnit ()) nullCodec
-
-eitherCodec :: ValueCodec a -> ValueCodec b -> ValueCodec (Either a b)
-eitherCodec cx cy =
-    mapBoth Left (either Just (const Nothing)) (tagged "Left" cx)
-        <|> mapBoth Right (either (const Nothing) Just) (tagged "Right" cy)
 
 mapBoth
     :: (Functor r, Applicative.Alternative w)
@@ -291,13 +204,6 @@ element c = Codec
         Trans.tell [encodeWith c x]
         pure x
     }
-
-tupleCodec :: ValueCodec a -> ValueCodec b -> ValueCodec (a, b)
-tupleCodec cx cy =
-    fromArrayCodec Permission.Forbid
-        $ (,)
-        <$> project fst (element cx)
-        <*> project snd (element cy)
 
 type ObjectCodec a = ListCodec (Member.MemberOf Value.Value) a
 

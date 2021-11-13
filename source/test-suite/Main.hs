@@ -482,35 +482,35 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
         ]
     , Tasty.testGroup "Codec"
         [ Tasty.testCase "encode text" $ do
-            Codec.encodeWith Codec.textCodec "" @?= Argo.String ""
+            Codec.encodeWith Argo.codec ("" :: Text.Text) @?= Argo.String ""
         , Tasty.testCase "decode text" $ do
-            Codec.decodeWith Codec.textCodec (Argo.String "") @?= Right ""
+            Codec.decodeWith Argo.codec (Argo.String "") @?= Right ("" :: Text.Text)
         , Tasty.testCase "encode bool" $ do
-            Codec.encodeWith Codec.boolCodec False @?= Argo.Boolean False
+            Codec.encodeWith Argo.codec False @?= Argo.Boolean False
         , Tasty.testCase "decode bool" $ do
-            Codec.decodeWith Codec.boolCodec (Argo.Boolean False) @?= Right False
-        , Tasty.testCase "encode maybe text" $ do
-            Codec.encodeWith (Codec.maybeCodec Codec.textCodec) Nothing @?= Argo.Null
-            Codec.encodeWith (Codec.maybeCodec Codec.textCodec) (Just "") @?= Argo.String ""
-        , Tasty.testCase "decode maybe text" $ do
-            Codec.decodeWith (Codec.maybeCodec Codec.textCodec) Argo.Null @?= Right Nothing
-            Codec.decodeWith (Codec.maybeCodec Codec.textCodec) (Argo.String "") @?= Right (Just "")
+            Codec.decodeWith Argo.codec (Argo.Boolean False) @?= Right False
+        , Tasty.testCase "encode maybe bool" $ do
+            Codec.encodeWith Argo.codec (Nothing :: Maybe Bool) @?= Argo.Null
+            Codec.encodeWith Argo.codec (Just False) @?= Argo.Boolean False
+        , Tasty.testCase "decode maybe bool" $ do
+            Codec.decodeWith Argo.codec Argo.Null @?= Right (Nothing :: Maybe Bool)
+            Codec.decodeWith Argo.codec (Argo.Boolean False) @?= Right (Just False)
         , Tasty.testCase "encode either text bool" $ do
-            Codec.encodeWith (Codec.eitherCodec Codec.textCodec Codec.boolCodec) (Left "") @?= Argo.Object [Argo.Member (Argo.Name "type") $ Argo.String "Left", Argo.Member (Argo.Name "value") $ Argo.String ""]
-            Codec.encodeWith (Codec.eitherCodec Codec.textCodec Codec.boolCodec) (Right False) @?= Argo.Object [Argo.Member (Argo.Name "type") $ Argo.String "Right", Argo.Member (Argo.Name "value") $ Argo.Boolean False]
+            Codec.encodeWith Argo.codec (Left "" :: Either Text.Text Bool) @?= Argo.Object [Argo.Member (Argo.Name "type") $ Argo.String "Left", Argo.Member (Argo.Name "value") $ Argo.String ""]
+            Codec.encodeWith Argo.codec (Right False :: Either Text.Text Bool) @?= Argo.Object [Argo.Member (Argo.Name "type") $ Argo.String "Right", Argo.Member (Argo.Name "value") $ Argo.Boolean False]
         , Tasty.testCase "decode either text bool" $ do
-            Codec.decodeWith (Codec.eitherCodec Codec.textCodec Codec.boolCodec) (Argo.Object [Argo.Member (Argo.Name "type") $ Argo.String "Left", Argo.Member (Argo.Name "value") $ Argo.String ""]) @?= Right (Left "")
-            Codec.decodeWith (Codec.eitherCodec Codec.textCodec Codec.boolCodec) (Argo.Object [Argo.Member (Argo.Name "type") $ Argo.String "Right", Argo.Member (Argo.Name "value") $ Argo.Boolean False]) @?= Right (Right False)
+            Codec.decodeWith Argo.codec (Argo.Object [Argo.Member (Argo.Name "type") $ Argo.String "Left", Argo.Member (Argo.Name "value") $ Argo.String ""]) @?= Right (Left "" :: Either Text.Text Bool)
+            Codec.decodeWith Argo.codec (Argo.Object [Argo.Member (Argo.Name "type") $ Argo.String "Right", Argo.Member (Argo.Name "value") $ Argo.Boolean False]) @?= Right (Right False :: Either Text.Text Bool)
         , Tasty.testCase "encode tuple text bool" $ do
-            Codec.encodeWith (Codec.tupleCodec Codec.textCodec Codec.boolCodec) ("", False) @?= Argo.Array [Argo.String "", Argo.Boolean False]
+            Codec.encodeWith Argo.codec ("" :: Text.Text, False) @?= Argo.Array [Argo.String "", Argo.Boolean False]
         , Tasty.testCase "decode tuple text bool" $ do
-            Codec.decodeWith (Codec.tupleCodec Codec.textCodec Codec.boolCodec) (Argo.Array [Argo.String "", Argo.Boolean False]) @?= Right ("", False)
+            Codec.decodeWith Argo.codec (Argo.Array [Argo.String "", Argo.Boolean False]) @?= Right ("" :: Text.Text, False)
         , Tasty.testCase "encode record" $ do
-            Codec.encodeWith recordCodec (Record False Nothing) @?= Argo.Object [Argo.Member (Argo.Name "bool") $ Argo.Boolean False]
-            Codec.encodeWith recordCodec (Record False $ Just "") @?= Argo.Object [Argo.Member (Argo.Name "bool") $ Argo.Boolean False, Argo.Member (Argo.Name "text") $ Argo.String ""]
+            Codec.encodeWith Argo.codec (Record False Nothing) @?= Argo.Object [Argo.Member (Argo.Name "bool") $ Argo.Boolean False]
+            Codec.encodeWith Argo.codec (Record False $ Just "") @?= Argo.Object [Argo.Member (Argo.Name "bool") $ Argo.Boolean False, Argo.Member (Argo.Name "text") $ Argo.String ""]
         , Tasty.testCase "decode record" $ do
-            Codec.decodeWith recordCodec (Argo.Object [Argo.Member (Argo.Name "bool") $ Argo.Boolean False]) @?= Right (Record False Nothing)
-            Codec.decodeWith recordCodec (Argo.Object [Argo.Member (Argo.Name "bool") $ Argo.Boolean False, Argo.Member (Argo.Name "text") $ Argo.String ""]) @?= Right (Record False $ Just "")
+            Codec.decodeWith Argo.codec (Argo.Object [Argo.Member (Argo.Name "bool") $ Argo.Boolean False]) @?= Right (Record False Nothing)
+            Codec.decodeWith Argo.codec (Argo.Object [Argo.Member (Argo.Name "bool") $ Argo.Boolean False, Argo.Member (Argo.Name "text") $ Argo.String ""]) @?= Right (Record False $ Just "")
         ]
     , Tasty.testGroup "Pointer"
         $ let pointer = Argo.Pointer . fmap Argo.Token in
@@ -578,10 +578,10 @@ data Record = Record
     , recordText :: Maybe Text.Text
     } deriving (Eq, Show)
 
-recordCodec :: Codec.ValueCodec Record
-recordCodec = Codec.fromObjectCodec Permission.Allow $ Record
-    <$> Codec.project recordBool (Codec.required (Argo.Name "bool") Codec.boolCodec)
-    <*> Codec.project recordText (Codec.optional (Argo.Name "text") Codec.textCodec)
+instance Argo.HasCodec Record where
+    codec = Codec.fromObjectCodec Permission.Allow $ Record
+        <$> Codec.project recordBool (Codec.required (Argo.Name "bool") Argo.codec)
+        <*> Codec.project recordText (Codec.optional (Argo.Name "text") Argo.codec)
 
 property
     :: (Show t, Tasty.Testable prop, Tasty.Arbitrary t)
