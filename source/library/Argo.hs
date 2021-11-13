@@ -15,8 +15,8 @@ module Argo
     , Encode.encodeWith
     , Indent.Indent(Spaces, Tab)
     , Decode.decode
-    , FromValue.FromValue(fromValue)
-    , ToValue.ToValue(toValue)
+    , FromValue.fromValue
+    , ToValue.toValue
     , HasCodec.HasCodec(codec)
     , QuasiQuoter.value
     , QuasiQuoter.pointer

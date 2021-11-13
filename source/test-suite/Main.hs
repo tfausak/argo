@@ -341,8 +341,8 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
             Argo.fromValue (Argo.Array []) @?= Right ([] :: [Bool])
         , Tasty.testCase "NonEmpty a" $ do
             Argo.fromValue (Argo.Array [Argo.Boolean False]) @?= Right (False :| [])
-        , Tasty.testCase "Map Text a" $ do
-            Argo.fromValue (Argo.Object [Argo.Member (Argo.Name "a") $ Argo.Boolean False]) @?= Right (Map.fromList [("a" :: Text.Text, False)])
+        , Tasty.testCase "Map Name a" $ do
+            Argo.fromValue (Argo.Object [Argo.Member (Argo.Name "a") $ Argo.Boolean False]) @?= Right (Map.fromList [(Argo.Name "a", False)])
         , Tasty.testCase "Pointer" $ do
             Argo.fromValue (Argo.String "") @?= Right (Argo.Pointer [])
         ]
@@ -395,8 +395,8 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
             Argo.toValue ([] :: [Bool]) @?= Argo.Array []
         , Tasty.testCase "NonEmpty a" $ do
             Argo.toValue (False :| []) @?= Argo.Array [Argo.Boolean False]
-        , Tasty.testCase "Map Text a" $ do
-            Argo.toValue (Map.fromList [("a" :: Text.Text, False)]) @?= Argo.Object [Argo.Member (Argo.Name "a") $ Argo.Boolean False]
+        , Tasty.testCase "Map Name a" $ do
+            Argo.toValue (Map.fromList [(Argo.Name "a", False)]) @?= Argo.Object [Argo.Member (Argo.Name "a") $ Argo.Boolean False]
         , Tasty.testCase "Pointer" $ do
             Argo.toValue (Argo.Pointer []) @?= Argo.String ""
         ]
@@ -474,8 +474,8 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
                 Argo.fromValue (Argo.toValue x) === Right (x :: [Bool])
             , property "NonEmpty a" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Right (x :: NonEmpty Bool)
-            , property "Map Text a" $ \ x ->
-                Argo.fromValue (Argo.toValue x) === Right (x :: Map.Map Text.Text Bool)
+            , property "Map Name a" $ \ x ->
+                Argo.fromValue (Argo.toValue x) === Right (x :: Map.Map Argo.Name Bool)
             , property "Pointer" $ \ x ->
                 Argo.fromValue (Argo.toValue x) === Right (x :: Argo.Pointer)
             ]
