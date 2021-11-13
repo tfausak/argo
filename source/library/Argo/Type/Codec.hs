@@ -16,6 +16,7 @@ import qualified Argo.Vendor.Transformers as Trans
 import qualified Control.Applicative as Applicative
 import qualified Control.Monad as Monad
 import qualified Data.Functor.Identity as Identity
+import qualified Data.List as List
 import qualified Data.Text as Text
 
 decodeWith :: ValueCodec a -> Value.Value -> Either String a
@@ -324,24 +325,16 @@ optional :: Name.Name -> ValueCodec a -> ObjectCodec (Maybe a)
 optional k c = Codec
     { decode = do
         xs <- Trans.get
-        case detect (\(Member.Member j _) -> j == k) xs of
-            Nothing -> pure Nothing
-            Just (Member.Member _ x, ys) -> case decodeWith c x of
+        case List.partition (\(Member.Member j _) -> j == k) xs of
+            (Member.Member _ x : _, ys) -> case decodeWith c x of
                 Left y -> Trans.lift $ Trans.throwE y
                 Right y -> do
                     Trans.put ys
                     pure $ Just y
+            _ -> pure Nothing
     , encode = \x -> do
         case x of
             Nothing -> pure ()
             Just y -> Trans.tell [Member.Member k $ encodeWith c y]
         pure x
     }
-
-detect :: (a -> Bool) -> [a] -> Maybe (a, [a])
-detect = detectWith id
-
-detectWith :: ([a] -> [a]) -> (a -> Bool) -> [a] -> Maybe (a, [a])
-detectWith f p xs = case xs of
-    [] -> Nothing
-    x : ys -> if p x then Just (x, f ys) else detectWith (f . (x :)) p ys
