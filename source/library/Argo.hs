@@ -15,8 +15,9 @@ module Argo
     , Encode.encodeWith
     , Indent.Indent(Spaces, Tab)
     , Decode.decode
-    , FromValue.FromValue(fromValue)
-    , ToValue.ToValue(toValue)
+    , FromValue.fromValue
+    , ToValue.toValue
+    , HasCodec.HasCodec(codec)
     , QuasiQuoter.value
     , QuasiQuoter.pointer
     , Pointer.Pointer(Pointer)
@@ -28,6 +29,7 @@ module Argo
     ) where
 
 import qualified Argo.Class.FromValue as FromValue
+import qualified Argo.Class.HasCodec as HasCodec
 import qualified Argo.Class.ToValue as ToValue
 import qualified Argo.Decode as Decode
 import qualified Argo.Encode as Encode

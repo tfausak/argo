@@ -3,11 +3,9 @@ module Argo.Type.Codec where
 import Control.Applicative ((<|>))
 
 import qualified Argo.Json.Array as Array
-import qualified Argo.Json.Boolean as Boolean
 import qualified Argo.Json.Member as Member
 import qualified Argo.Json.Name as Name
 import qualified Argo.Json.Null as Null
-import qualified Argo.Json.Number as Number
 import qualified Argo.Json.Object as Object
 import qualified Argo.Json.String as String
 import qualified Argo.Json.Value as Value
@@ -16,6 +14,7 @@ import qualified Argo.Vendor.Transformers as Trans
 import qualified Control.Applicative as Applicative
 import qualified Control.Monad as Monad
 import qualified Data.Functor.Identity as Identity
+import qualified Data.List as List
 import qualified Data.Text as Text
 
 decodeWith :: ValueCodec a -> Value.Value -> Either String a
@@ -67,80 +66,14 @@ dimap
 dimap f g c =
     Codec { decode = f <$> decode c, encode = fmap f . encode c . g }
 
+tap :: Functor f => (a -> f b) -> a -> f a
+tap f x = x <$ f x
+
 type ValueCodec a
     = Codec
           (Trans.ReaderT Value.Value (Trans.ExceptT String Identity.Identity))
           (Trans.MaybeT (Trans.StateT Value.Value Identity.Identity))
           a
-
-valueCodec :: ValueCodec Value.Value
-valueCodec = Codec
-    { decode = Trans.ask
-    , encode = \x -> do
-        Trans.lift $ Trans.put x
-        pure x
-    }
-
-nullCodec :: ValueCodec Null.Null
-nullCodec = Codec
-    { decode = do
-        x <- Trans.ask
-        case x of
-            Value.Null y -> pure y
-            _ ->
-                Trans.lift . Trans.throwE $ "expected Null but got " <> show x
-    , encode = \x -> do
-        Trans.lift . Trans.put $ Value.Null x
-        pure x
-    }
-
-booleanCodec :: ValueCodec Boolean.Boolean
-booleanCodec = Codec
-    { decode = do
-        x <- Trans.ask
-        case x of
-            Value.Boolean y -> pure y
-            _ ->
-                Trans.lift
-                    . Trans.throwE
-                    $ "expected Boolean but got "
-                    <> show x
-    , encode = \x -> do
-        Trans.lift . Trans.put $ Value.Boolean x
-        pure x
-    }
-
-numberCodec :: ValueCodec Number.Number
-numberCodec = Codec
-    { decode = do
-        x <- Trans.ask
-        case x of
-            Value.Number y -> pure y
-            _ ->
-                Trans.lift
-                    . Trans.throwE
-                    $ "expected Number but got "
-                    <> show x
-    , encode = \x -> do
-        Trans.lift . Trans.put $ Value.Number x
-        pure x
-    }
-
-stringCodec :: ValueCodec String.String
-stringCodec = Codec
-    { decode = do
-        x <- Trans.ask
-        case x of
-            Value.String y -> pure y
-            _ ->
-                Trans.lift
-                    . Trans.throwE
-                    $ "expected String but got "
-                    <> show x
-    , encode = \x -> do
-        Trans.lift . Trans.put $ Value.String x
-        pure x
-    }
 
 arrayCodec :: ValueCodec (Array.ArrayOf Value.Value)
 arrayCodec = Codec
@@ -171,34 +104,24 @@ objectCodec = Codec
         pure x
     }
 
-boolCodec :: ValueCodec Bool
-boolCodec = dimap Boolean.toBool Boolean.fromBool booleanCodec
-
-textCodec :: ValueCodec Text.Text
-textCodec = dimap String.toText String.fromText stringCodec
-
-maybeCodec :: ValueCodec a -> ValueCodec (Maybe a)
-maybeCodec c =
-    mapBoth Just id c
-        <|> dimap (const Nothing) (const $ Null.fromUnit ()) nullCodec
-
-eitherCodec :: ValueCodec a -> ValueCodec b -> ValueCodec (Either a b)
-eitherCodec cx cy =
-    mapBoth Left (either Just (const Nothing)) (tagged "Left" cx)
-        <|> mapBoth Right (either (const Nothing) Just) (tagged "Right" cy)
-
-mapBoth
-    :: (Functor r, Applicative.Alternative w)
-    => (o2 -> o1)
+mapMaybe
+    :: (Applicative.Alternative r, Applicative.Alternative w, Monad r, Monad w)
+    => (o2 -> Maybe o1)
     -> (i1 -> Maybe i2)
     -> CodecOf r w i2 o2
     -> CodecOf r w i1 o1
-mapBoth f g c = Codec
-    { decode = f <$> decode c
-    , encode = \x -> case g x of
-        Nothing -> Applicative.empty
-        Just y -> f <$> encode c y
+mapMaybe f g c = Codec
+    { decode = do
+        o2 <- decode c
+        toAlternative $ f o2
+    , encode = \ i1 -> do
+        i2 <- toAlternative $ g i1
+        o2 <- encode c i2
+        toAlternative $ f o2
     }
+
+toAlternative :: Applicative.Alternative m => Maybe a -> m a
+toAlternative = maybe Applicative.empty pure
 
 tagged :: String -> ValueCodec a -> ValueCodec a
 tagged t c =
@@ -288,13 +211,6 @@ element c = Codec
         pure x
     }
 
-tupleCodec :: ValueCodec a -> ValueCodec b -> ValueCodec (a, b)
-tupleCodec cx cy =
-    fromArrayCodec Permission.Forbid
-        $ (,)
-        <$> project fst (element cx)
-        <*> project snd (element cy)
-
 type ObjectCodec a = ListCodec (Member.MemberOf Value.Value) a
 
 fromObjectCodec :: Permission.Permission -> ObjectCodec a -> ValueCodec a
@@ -321,24 +237,16 @@ optional :: Name.Name -> ValueCodec a -> ObjectCodec (Maybe a)
 optional k c = Codec
     { decode = do
         xs <- Trans.get
-        case detect (\(Member.Member j _) -> j == k) xs of
-            Nothing -> pure Nothing
-            Just (Member.Member _ x, ys) -> case decodeWith c x of
+        case List.partition (\(Member.Member j _) -> j == k) xs of
+            (Member.Member _ x : _, ys) -> case decodeWith c x of
                 Left y -> Trans.lift $ Trans.throwE y
                 Right y -> do
                     Trans.put ys
                     pure $ Just y
+            _ -> pure Nothing
     , encode = \x -> do
         case x of
             Nothing -> pure ()
             Just y -> Trans.tell [Member.Member k $ encodeWith c y]
         pure x
     }
-
-detect :: (a -> Bool) -> [a] -> Maybe (a, [a])
-detect = detectWith id
-
-detectWith :: ([a] -> [a]) -> (a -> Bool) -> [a] -> Maybe (a, [a])
-detectWith f p xs = case xs of
-    [] -> Nothing
-    x : ys -> if p x then Just (x, f ys) else detectWith (f . (x :)) p ys

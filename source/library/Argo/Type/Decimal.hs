@@ -8,8 +8,10 @@ import Data.Ratio ((%))
 
 import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.TemplateHaskell as TH
+import qualified Data.List as List
 import qualified Data.Ratio as Ratio
 import qualified GHC.Generics as Generics
+import qualified Numeric
 
 data Decimal = Decimal Integer Integer
     deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
@@ -27,9 +29,32 @@ normalize (Decimal s e) = if s == 0
         let (q, r) = quotRem s 10
         in if r == 0 then normalize $ Decimal q (e + 1) else Decimal s e
 
+fromInteger :: Integer -> Decimal
+fromInteger = flip decimal 0
+
+toInteger :: Decimal -> Maybe Integer
+toInteger (Decimal s e) = if e < 0 then Nothing else Just $ s * 10 ^ e
+
+fromRealFloat :: RealFloat a => a -> Maybe Decimal
+fromRealFloat x = if isNaN x || isInfinite x then Nothing else
+    Just
+    . (if x < 0 then Argo.Type.Decimal.negate else id)
+    . uncurry fromDigits
+    . Numeric.floatToDigits 10
+    $ abs x
+
+toRealFloat :: RealFloat a => Decimal -> a
+toRealFloat = Prelude.fromRational . Argo.Type.Decimal.toRational
+
+fromDigits :: [Int] -> Int -> Decimal
+fromDigits ds e = uncurry decimal $ List.foldl'
+    (\(a, n) d -> (a * 10 + Prelude.toInteger d, n - 1))
+    (0, Prelude.toInteger e)
+    ds
+
 toRational :: Decimal -> Rational
-toRational (Decimal s e) =
-    if e < 0 then s % (10 ^ (-e)) else fromInteger $ s * 10 ^ e
+toRational d@(Decimal s e) =
+    maybe (s % (10 ^ (-e))) fromIntegral $ Argo.Type.Decimal.toInteger d
 
 fromRational :: Rational -> Maybe Decimal
 fromRational r =

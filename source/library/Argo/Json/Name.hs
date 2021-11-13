@@ -14,7 +14,7 @@ import qualified GHC.Generics as Generics
 
 newtype Name
     = Name String.String
-    deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
+    deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Ord, Show)
 
 instance Data.String.IsString Name where
     fromString = fromString . Data.String.fromString

@@ -1,5 +1,6 @@
 module Argo.Encode where
 
+import qualified Argo.Class.HasCodec as HasCodec
 import qualified Argo.Class.ToValue as ToValue
 import qualified Argo.Json.Value as Value
 import qualified Argo.Literal as Literal
@@ -11,10 +12,10 @@ import qualified Argo.Vendor.Builder as Builder
 import qualified Argo.Vendor.Transformers as Trans
 import qualified Control.Monad as Monad
 
-encode :: ToValue.ToValue a => a -> Builder.Builder
+encode :: HasCodec.HasCodec a => a -> Builder.Builder
 encode = encodeWith $ Indent.Spaces 0
 
-encodeWith :: ToValue.ToValue a => Indent.Indent -> a -> Builder.Builder
+encodeWith :: HasCodec.HasCodec a => Indent.Indent -> a -> Builder.Builder
 encodeWith i x =
     let c = Config.initial { Config.indent = i }
     in
