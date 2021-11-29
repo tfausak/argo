@@ -1,5 +1,3 @@
-{-# LANGUAGE PatternSynonyms #-}
-
 module Argo
     ( Value.Value
         ( Pattern.Null
