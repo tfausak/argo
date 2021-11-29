@@ -9,7 +9,7 @@ import qualified Test.Tasty.Bench as Tasty
 
 main :: IO ()
 main = Tasty.defaultMain
-    [ Tasty.bgroup "encode" $ let encode = Builder.toLazyByteString . Argo.encode :: Argo.Value -> LazyByteString.ByteString in
+    [ Tasty.bgroup "encode"
         [ Tasty.bgroup "Null"
             [ Tasty.bench "null" $ Tasty.nf encode Argo.Null
             ]
@@ -44,7 +44,7 @@ main = Tasty.defaultMain
             , Tasty.bench "10000 elements" . Tasty.nf encode . Argo.Object . replicate 10000 $ Argo.Member (Argo.Name "") Argo.Null
             ]
         ]
-    , Tasty.bgroup "decode" $ let decode = Argo.decode :: ByteString.ByteString -> Either String Argo.Value in
+    , Tasty.bgroup "decode"
         [ Tasty.bgroup "Null"
             [ Tasty.bench "null" $ Tasty.nf decode "null"
             ]
@@ -91,3 +91,9 @@ main = Tasty.defaultMain
         , Tasty.bench "encode" . Tasty.nf Builder.toLazyByteString . Argo.encodePointer $ Argo.Pointer []
         ]
     ]
+
+encode :: Argo.Value -> LazyByteString.ByteString
+encode = Builder.toLazyByteString . Argo.encode
+
+decode :: ByteString.ByteString -> Either String Argo.Value
+decode = Argo.decode

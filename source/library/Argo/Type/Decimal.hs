@@ -36,12 +36,14 @@ toInteger :: Decimal -> Maybe Integer
 toInteger (Decimal s e) = if e < 0 then Nothing else Just $ s * 10 ^ e
 
 fromRealFloat :: RealFloat a => a -> Maybe Decimal
-fromRealFloat x = if isNaN x || isInfinite x then Nothing else
-    Just
-    . (if x < 0 then Argo.Type.Decimal.negate else id)
-    . uncurry fromDigits
-    . Numeric.floatToDigits 10
-    $ abs x
+fromRealFloat x = if isNaN x || isInfinite x
+    then Nothing
+    else
+        Just
+        . (if x < 0 then Argo.Type.Decimal.negate else id)
+        . uncurry fromDigits
+        . Numeric.floatToDigits 10
+        $ abs x
 
 toRealFloat :: RealFloat a => Decimal -> a
 toRealFloat = Prelude.fromRational . Argo.Type.Decimal.toRational

@@ -47,7 +47,10 @@ instance (Applicative r, Applicative w) => Applicative (CodecOf r w i) where
         , encode = \i -> encode cf i <*> encode cx i
         }
 
-instance (Applicative.Alternative r, Applicative.Alternative w) => Applicative.Alternative (CodecOf r w i) where
+instance
+    ( Applicative.Alternative r
+    , Applicative.Alternative w
+    ) => Applicative.Alternative (CodecOf r w i) where
     empty =
         Codec { decode = Applicative.empty, encode = const Applicative.empty }
     cx <|> cy = Codec
@@ -114,7 +117,7 @@ mapMaybe f g c = Codec
     { decode = do
         o2 <- decode c
         toAlternative $ f o2
-    , encode = \ i1 -> do
+    , encode = \i1 -> do
         i2 <- toAlternative $ g i1
         o2 <- encode c i2
         toAlternative $ f o2

@@ -1,11 +1,11 @@
 module Argo
     ( Value.Value
-        ( Pattern.Null
+        ( Pattern.Array
         , Pattern.Boolean
+        , Pattern.Null
         , Pattern.Number
-        , Pattern.String
-        , Pattern.Array
         , Pattern.Object
+        , Pattern.String
         )
     , Name.Name(Pattern.Name)
     , Member.MemberOf(Member)
