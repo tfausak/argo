@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
-      - uses: tfausak/brittany-action@83f5543b93d79a7b83fc5e929c8ff5fc6a8e3706
+      - uses: tfausak/brittany-action@7ab2ad574f566b93217164216b469e2552ab55e9
         with:
           config: config/brittany.yaml
           pattern: source/library/**/*.hs
