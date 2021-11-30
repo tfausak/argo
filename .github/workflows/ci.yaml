@@ -23,10 +23,10 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
-      - run: curl --location --output brittany https://github.com/tfausak/brittany/releases/download/0.14.0.0/brittany-0.14.0.0-ubuntu
-      - run: chmod +x brittany
-      - run: echo '::add-matcher::config/brittany-problem-matcher.json'
-      - run: git ls-files 'source/library/*.hs' | xargs ./brittany --check-mode --config-file config/brittany.yaml
+      - uses: tfausak/brittany-action@7ab2ad574f566b93217164216b469e2552ab55e9
+        with:
+          config: config/brittany.yaml
+          pattern: source/library/**/*.hs
   ci:
     strategy:
       matrix:
