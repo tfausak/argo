@@ -24,7 +24,7 @@ module Argo
     , Encode.encodePointer
     , Decode.decodePointer
     , Decimal.Decimal(Pattern.Decimal)
-    )  where
+    ) where
 
 import qualified Argo.Class.FromValue as FromValue
 import qualified Argo.Class.HasCodec as HasCodec
