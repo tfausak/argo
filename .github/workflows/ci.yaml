@@ -14,16 +14,14 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
-      - run: curl --location --output hlint.tar.gz https://github.com/ndmitchell/hlint/releases/download/v3.3.4/hlint-3.3.4-x86_64-linux.tar.gz
-      - run: gzip --decompress hlint.tar.gz
-      - run: tar --extract --file hlint.tar
-      - run: echo '::add-matcher::config/hlint-problem-matcher.json'
-      - run: hlint-3.3.4/hlint --hint config/hlint.yaml --threads source
+      - uses: tfausak/hlint-action@v1
+        with:
+          config: config/hlint.yaml
   brittany:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
-      - uses: tfausak/brittany-action@7ab2ad574f566b93217164216b469e2552ab55e9
+      - uses: tfausak/brittany-action@v1
         with:
           config: config/brittany.yaml
           pattern: source/library/**/*.hs
