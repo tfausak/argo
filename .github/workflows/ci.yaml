@@ -14,11 +14,9 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
-      - run: curl --location --output hlint.tar.gz https://github.com/ndmitchell/hlint/releases/download/v3.3.4/hlint-3.3.4-x86_64-linux.tar.gz
-      - run: gzip --decompress hlint.tar.gz
-      - run: tar --extract --file hlint.tar
-      - run: echo '::add-matcher::config/hlint-problem-matcher.json'
-      - run: hlint-3.3.4/hlint --hint config/hlint.yaml --threads source
+      - uses: tfausak/hlint-action@c507c67911ce6d1441482bd76fa01997cf11033b
+        with:
+          config: config/hlint.yaml
   brittany:
     runs-on: ubuntu-20.04
     steps:
