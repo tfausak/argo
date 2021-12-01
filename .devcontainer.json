@@ -1,0 +1,4 @@
+{
+    "image": "ghcr.io/tfausak/haskell-codespace:3f6b99f6e862327eaff2efb1275bbbec3498a1f4",
+    "postCreateCommand": "cabal update"
+}
