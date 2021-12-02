@@ -5,6 +5,6 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
-      - uses: tfausak/hlint-action@ae876b3e33015eb481f47593856ee34eaa6039d9
+      - uses: tfausak/hlint-action@d9c20c1e0ea81f0b514754de2b9d9ab5a82c9ee2
         with:
           config: config/hlint.yaml
