@@ -1,3 +1,5 @@
+{-# language QuasiQuotes #-}
+
 module Argo.QuasiQuoter where
 
 import qualified Argo.Decode as Decode
