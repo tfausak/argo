@@ -1,0 +1,11 @@
+name: Brittany
+on: push
+jobs:
+  brittany:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: tfausak/brittany-action@v1
+        with:
+          config: config/brittany.yaml
+          pattern: source/library/**/*.hs
