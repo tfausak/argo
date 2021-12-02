@@ -10,21 +10,6 @@ on:
     types:
       - created
 jobs:
-  hlint:
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v2
-      - uses: tfausak/hlint-action@v1
-        with:
-          config: config/hlint.yaml
-  brittany:
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v2
-      - uses: tfausak/brittany-action@v1
-        with:
-          config: config/brittany.yaml
-          pattern: source/library/**/*.hs
   ci:
     strategy:
       matrix:
