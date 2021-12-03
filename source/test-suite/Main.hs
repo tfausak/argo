@@ -7,9 +7,9 @@ import Test.Tasty.HUnit ((@?=))
 import Test.Tasty.QuickCheck ((===))
 
 import qualified Argo
-import qualified Argo.Type.Codec as Codec
-import qualified Argo.Type.Permission as Permission
+import qualified Argo.Codec.Codec as Codec
 import qualified Argo.Json.String as String
+import qualified Argo.Type.Permission as Permission
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Builder as Builder
 import qualified Data.ByteString.Lazy as LazyByteString

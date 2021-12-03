@@ -4,6 +4,7 @@ module Argo.Class.HasCodec where
 
 import Control.Applicative ((<|>))
 
+import qualified Argo.Codec.Codec as Codec
 import qualified Argo.Json.Array as Array
 import qualified Argo.Json.Boolean as Boolean
 import qualified Argo.Json.Member as Member
@@ -14,7 +15,6 @@ import qualified Argo.Json.Object as Object
 import qualified Argo.Json.String as String
 import qualified Argo.Json.Value as Value
 import qualified Argo.Pointer.Pointer as Pointer
-import qualified Argo.Type.Codec as Codec
 import qualified Argo.Type.Config as Config
 import qualified Argo.Type.Decimal as Decimal
 import qualified Argo.Type.Decoder as Decoder
