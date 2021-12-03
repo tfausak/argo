@@ -26,7 +26,7 @@ data Value
     | Boolean Boolean.Boolean
     | Number Number.Number
     | String String.String
-    | Array (Array.ArrayOf Value)
+    | Array (Array.Array Value)
     | Object (Object.ObjectOf Value)
     deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
 

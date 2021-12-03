@@ -78,7 +78,7 @@ type ValueCodec a
           (Trans.MaybeT (Trans.StateT Value.Value Identity.Identity))
           a
 
-arrayCodec :: ValueCodec (Array.ArrayOf Value.Value)
+arrayCodec :: ValueCodec (Array.Array Value.Value)
 arrayCodec = Codec
     { decode = do
         x <- Trans.ask

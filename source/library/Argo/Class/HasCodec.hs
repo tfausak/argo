@@ -60,7 +60,7 @@ instance HasCodec String.String where
         Value.String string -> Just string
         _ -> Nothing
 
-instance HasCodec a => HasCodec (Array.ArrayOf a) where
+instance HasCodec a => HasCodec (Array.Array a) where
     codec = Codec.Codec
         { Codec.decode = do
             array <- castValue "Array" $ \value -> case value of

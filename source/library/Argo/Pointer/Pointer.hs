@@ -62,7 +62,7 @@ evaluate p v = case toList p of
             _ -> Left "not indexable"
         evaluate (fromList ts) w
 
-atIndex :: Token.Token -> Array.ArrayOf value -> Either String value
+atIndex :: Token.Token -> Array.Array value -> Either String value
 atIndex t a = do
     i <- tokenToIndex t
     case drop i $ Array.toList a of
