@@ -70,7 +70,12 @@ library
         Argo.Class.FromValue
         Argo.Class.HasCodec
         Argo.Class.ToValue
+        Argo.Codec.Array
         Argo.Codec.Codec
+        Argo.Codec.List
+        Argo.Codec.Object
+        Argo.Codec.Simple
+        Argo.Codec.Value
         Argo.Decode
         Argo.Encode
         Argo.Json.Array

@@ -8,6 +8,8 @@ import Test.Tasty.QuickCheck ((===))
 
 import qualified Argo
 import qualified Argo.Codec.Codec as Codec
+import qualified Argo.Codec.Object as Codec
+import qualified Argo.Codec.Value as Codec
 import qualified Argo.Json.String as String
 import qualified Argo.Type.Permission as Permission
 import qualified Data.ByteString as ByteString

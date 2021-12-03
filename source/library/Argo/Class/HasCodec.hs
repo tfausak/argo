@@ -4,7 +4,10 @@ module Argo.Class.HasCodec where
 
 import Control.Applicative ((<|>))
 
+import qualified Argo.Codec.Array as Codec
 import qualified Argo.Codec.Codec as Codec
+import qualified Argo.Codec.Object as Codec
+import qualified Argo.Codec.Value as Codec
 import qualified Argo.Json.Array as Array
 import qualified Argo.Json.Boolean as Boolean
 import qualified Argo.Json.Member as Member
@@ -32,7 +35,7 @@ import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Word as Word
 
 class HasCodec a where
-    codec :: Codec.ValueCodec a
+    codec :: Codec.Value a
 
 instance HasCodec Value.Value where
     codec = Codec.Codec
@@ -267,7 +270,7 @@ basicCodec
     :: String
     -> (a -> Value.Value)
     -> (Value.Value -> Maybe a)
-    -> Codec.ValueCodec a
+    -> Codec.Value a
 basicCodec expected toValue fromValue = Codec.Codec
     { Codec.decode = castValue expected fromValue
     , Codec.encode = Codec.tap $ Trans.lift . Trans.put . toValue
