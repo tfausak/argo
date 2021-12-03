@@ -79,7 +79,7 @@ instance HasCodec a => HasCodec (Array.Array a) where
             . Array.toList
         }
 
-instance HasCodec a => HasCodec (Object.ObjectOf a) where
+instance HasCodec a => HasCodec (Object.Object a) where
     codec = Codec.Codec
         { Codec.decode = do
             object <- castValue "Object" $ \value -> case value of

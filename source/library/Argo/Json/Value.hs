@@ -27,7 +27,7 @@ data Value
     | Number Number.Number
     | String String.String
     | Array (Array.Array Value)
-    | Object (Object.ObjectOf Value)
+    | Object (Object.Object Value)
     deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
 
 instance Data.String.IsString Value where

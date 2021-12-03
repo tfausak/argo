@@ -91,7 +91,7 @@ arrayCodec = Codec
         pure x
     }
 
-objectCodec :: ValueCodec (Object.ObjectOf Value.Value)
+objectCodec :: ValueCodec (Object.Object Value.Value)
 objectCodec = Codec
     { decode = do
         x <- Trans.ask
