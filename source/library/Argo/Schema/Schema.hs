@@ -24,9 +24,9 @@ newtype Schema
 instance Semigroup Schema where
     x <> y = fromValue . Value.Object $ Object.fromList
         [ Member.fromTuple
-            ( Name.fromString . String.fromText $ Text.pack "oneOf"
-            , Value.Array $ Array.fromList [toValue x, toValue y]
-            )
+              ( Name.fromString . String.fromText $ Text.pack "oneOf"
+              , Value.Array $ Array.fromList [toValue x, toValue y]
+              )
         ]
 
 instance Monoid Schema where

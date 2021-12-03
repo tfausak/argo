@@ -25,8 +25,7 @@ fromTuple = uncurry Member
 toTuple :: Member value -> (Name.Name, value)
 toTuple (Member k v) = (k, v)
 
-encode
-    :: (value -> Encoder.Encoder ()) -> Member value -> Encoder.Encoder ()
+encode :: (value -> Encoder.Encoder ()) -> Member value -> Encoder.Encoder ()
 encode f (Member x y) = do
     Name.encode x
     Trans.lift . Trans.tell $ Builder.word8 Literal.colon

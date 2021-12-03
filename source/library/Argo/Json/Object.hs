@@ -25,8 +25,7 @@ fromList = Object
 toList :: Object value -> [Member.Member value]
 toList (Object x) = x
 
-encode
-    :: (value -> Encoder.Encoder ()) -> Object value -> Encoder.Encoder ()
+encode :: (value -> Encoder.Encoder ()) -> Object value -> Encoder.Encoder ()
 encode f =
     Encoder.list
             (Trans.lift . Trans.tell $ Builder.word8 Literal.leftCurlyBracket)
