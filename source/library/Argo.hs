@@ -24,6 +24,7 @@ module Argo
     , Encode.encodePointer
     , Decode.decodePointer
     , Decimal.Decimal(Pattern.Decimal)
+    , Schema.Schema
     ) where
 
 import qualified Argo.Class.FromValue as FromValue
@@ -38,5 +39,6 @@ import qualified Argo.Pattern as Pattern
 import qualified Argo.Pointer.Pointer as Pointer
 import qualified Argo.Pointer.Token as Token
 import qualified Argo.QuasiQuoter as QuasiQuoter
+import qualified Argo.Schema.Schema as Schema
 import qualified Argo.Type.Decimal as Decimal
 import qualified Argo.Type.Indent as Indent
