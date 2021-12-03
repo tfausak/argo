@@ -16,13 +16,13 @@ import qualified Control.Monad as Monad
 import qualified GHC.Generics as Generics
 
 newtype Object value
-    = Object [Member.MemberOf value]
+    = Object [Member.Member value]
     deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
 
-fromList :: [Member.MemberOf value] -> Object value
+fromList :: [Member.Member value] -> Object value
 fromList = Object
 
-toList :: Object value -> [Member.MemberOf value]
+toList :: Object value -> [Member.Member value]
 toList (Object x) = x
 
 encode
@@ -38,7 +38,7 @@ encode f =
 encodeElement
     :: (value -> Encoder.Encoder ())
     -> Int
-    -> Member.MemberOf value
+    -> Member.Member value
     -> Encoder.Encoder ()
 encodeElement f i x = do
     Monad.when (i > 0) . Trans.lift . Trans.tell $ Builder.word8 Literal.comma

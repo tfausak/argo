@@ -214,7 +214,7 @@ element c = Codec
         pure x
     }
 
-type ObjectCodec a = ListCodec (Member.MemberOf Value.Value) a
+type ObjectCodec a = ListCodec (Member.Member Value.Value) a
 
 fromObjectCodec :: Permission.Permission -> ObjectCodec a -> ValueCodec a
 fromObjectCodec =

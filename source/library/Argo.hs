@@ -8,7 +8,7 @@ module Argo
         , Pattern.String
         )
     , Name.Name(Pattern.Name)
-    , Member.MemberOf(Member)
+    , Member.Member(Member)
     , Encode.encode
     , Encode.encodeWith
     , Indent.Indent(Spaces, Tab)
