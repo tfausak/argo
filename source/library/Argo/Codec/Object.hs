@@ -17,8 +17,8 @@ import qualified Data.Text as Text
 type Object a = Codec.List (Member.Member Value.Value) a
 
 fromObjectCodec :: Permission.Permission -> Object a -> Codec.Value a
-fromObjectCodec =
-    Codec.fromListCodec $ Codec.dimap Object.toList Object.fromList Codec.objectCodec
+fromObjectCodec = Codec.fromListCodec
+    $ Codec.dimap Object.toList Object.fromList Codec.objectCodec
 
 required :: Name.Name -> Codec.Value a -> Object a
 required k c = Codec.Codec

@@ -11,7 +11,8 @@ import qualified Argo.Vendor.Transformers as Trans
 type Array a = Codec.List Value.Value a
 
 fromArrayCodec :: Permission.Permission -> Array a -> Codec.Value a
-fromArrayCodec = Codec.fromListCodec $ Codec.dimap Array.toList Array.fromList Codec.arrayCodec
+fromArrayCodec = Codec.fromListCodec
+    $ Codec.dimap Array.toList Array.fromList Codec.arrayCodec
 
 element :: Codec.Value a -> Array a
 element c = Codec.Codec
