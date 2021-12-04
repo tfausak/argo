@@ -18,6 +18,7 @@ import qualified Argo.Json.Object as Object
 import qualified Argo.Json.String as String
 import qualified Argo.Json.Value as Value
 import qualified Argo.Pointer.Pointer as Pointer
+import qualified Argo.Schema.Schema as Schema
 import qualified Argo.Type.Config as Config
 import qualified Argo.Type.Decimal as Decimal
 import qualified Argo.Type.Decoder as Decoder
@@ -265,6 +266,9 @@ instance HasCodec Pointer.Pointer where
         . Pointer.encode
         )
         codec
+
+instance HasCodec Schema.Schema where
+    codec = Codec.map Schema.fromValue Schema.toValue codec
 
 basicCodec
     :: String
