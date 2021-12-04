@@ -28,4 +28,5 @@ element c = Codec.Codec
     , Codec.encode = \x -> do
         Trans.tell [Codec.encodeWith c x]
         pure x
+    , Codec.schema = ()
     }

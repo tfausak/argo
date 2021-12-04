@@ -10,27 +10,37 @@ project f c = c { encode = encode c . f }
 data Codec r w i o = Codec
     { decode :: r o
     , encode :: i -> w o
+    , schema :: ()
     }
 
 instance (Functor r, Functor w) => Functor (Codec r w i) where
-    fmap f c = Codec { decode = f <$> decode c, encode = fmap f . encode c }
+    fmap f c = Codec
+        { decode = f <$> decode c
+        , encode = fmap f . encode c
+        , schema = ()
+        }
 
 instance (Applicative r, Applicative w) => Applicative (Codec r w i) where
-    pure x = Codec { decode = pure x, encode = const $ pure x }
+    pure x = Codec { decode = pure x, encode = const $ pure x, schema = () }
     cf <*> cx = Codec
         { decode = decode cf <*> decode cx
         , encode = \i -> encode cf i <*> encode cx i
+        , schema = ()
         }
 
 instance
     ( Applicative.Alternative r
     , Applicative.Alternative w
     ) => Applicative.Alternative (Codec r w i) where
-    empty =
-        Codec { decode = Applicative.empty, encode = const Applicative.empty }
+    empty = Codec
+        { decode = Applicative.empty
+        , encode = const Applicative.empty
+        , schema = ()
+        }
     cx <|> cy = Codec
         { decode = decode cx <|> decode cy
         , encode = \i -> encode cx i <|> encode cy i
+        , schema = ()
         }
 
 map
@@ -39,8 +49,11 @@ map
     -> (b -> a)
     -> Codec r w a a
     -> Codec r w b b
-map f g c =
-    Codec { decode = f <$> decode c, encode = fmap f . encode c . g }
+map f g c = Codec
+    { decode = f <$> decode c
+    , encode = fmap f . encode c . g
+    , schema = ()
+    }
 
 tap :: Functor f => (a -> f b) -> a -> f a
 tap f x = x <$ f x
@@ -59,6 +72,7 @@ mapMaybe f g c = Codec
         i2 <- toAlternative $ g i1
         o2 <- encode c i2
         toAlternative $ f o2
+    , schema = ()
     }
 
 toAlternative :: Applicative.Alternative m => Maybe a -> m a

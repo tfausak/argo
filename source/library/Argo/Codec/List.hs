@@ -39,4 +39,5 @@ fromListCodec ce p ca = Codec.Codec
             . Trans.runWriterT
             $ Codec.encode ca x
         pure x
+    , Codec.schema = ()
     }
