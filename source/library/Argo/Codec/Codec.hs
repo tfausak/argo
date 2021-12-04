@@ -4,9 +4,6 @@ import Control.Applicative ((<|>))
 
 import qualified Control.Applicative as Applicative
 
-project :: (i -> f) -> Codec r w s f o -> Codec r w s i o
-project f c = c { encode = encode c . f }
-
 data Codec r w s i o = Codec
     { decode :: r o
     , encode :: i -> w o
@@ -57,9 +54,6 @@ map f g c = Codec
     , schema = schema c
     }
 
-tap :: Functor f => (a -> f b) -> a -> f a
-tap f x = x <$ f x
-
 mapMaybe
     :: (Applicative.Alternative r, Applicative.Alternative w, Monad r, Monad w)
     => (o2 -> Maybe o1)
@@ -76,6 +70,12 @@ mapMaybe f g c = Codec
         toAlternative $ f o2
     , schema = schema c
     }
+
+project :: (i -> f) -> Codec r w s f o -> Codec r w s i o
+project f c = c { encode = encode c . f }
+
+tap :: Functor f => (a -> f b) -> a -> f a
+tap f x = x <$ f x
 
 toAlternative :: Applicative.Alternative m => Maybe a -> m a
 toAlternative = maybe Applicative.empty pure
