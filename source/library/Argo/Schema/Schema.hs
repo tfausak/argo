@@ -5,6 +5,7 @@
 module Argo.Schema.Schema where
 
 import qualified Argo.Json.Array as Array
+import qualified Argo.Json.Boolean as Boolean
 import qualified Argo.Json.Member as Member
 import qualified Argo.Json.Name as Name
 import qualified Argo.Json.Object as Object
@@ -30,10 +31,16 @@ instance Semigroup Schema where
         ]
 
 instance Monoid Schema where
-    mempty = fromValue . Value.Object $ Object.fromList []
+    mempty = true
 
 fromValue :: Value.Value -> Schema
 fromValue = Schema
 
 toValue :: Schema -> Value.Value
 toValue (Schema x) = x
+
+false :: Schema
+false = fromValue . Value.Boolean $ Boolean.fromBool False
+
+true :: Schema
+true = fromValue . Value.Boolean $ Boolean.fromBool True
