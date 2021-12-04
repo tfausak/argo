@@ -33,13 +33,13 @@ instance
         , encode = \i -> encode cx i <|> encode cy i
         }
 
-dimap
+map
     :: (Functor r, Functor w)
     => (a -> b)
     -> (b -> a)
     -> Codec r w a a
     -> Codec r w b b
-dimap f g c =
+map f g c =
     Codec { decode = f <$> decode c, encode = fmap f . encode c . g }
 
 tap :: Functor f => (a -> f b) -> a -> f a

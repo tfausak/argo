@@ -18,7 +18,7 @@ type Object a = Codec.List (Member.Member Value.Value) a
 
 fromObjectCodec :: Permission.Permission -> Object a -> Codec.Value a
 fromObjectCodec = Codec.fromListCodec
-    $ Codec.dimap Object.toList Object.fromList Codec.objectCodec
+    $ Codec.map Object.toList Object.fromList Codec.objectCodec
 
 required :: Name.Name -> Codec.Value a -> Object a
 required k c = Codec.Codec
@@ -56,7 +56,7 @@ optional k c = Codec.Codec
 
 tagged :: String -> Codec.Value a -> Codec.Value a
 tagged t c =
-    Codec.dimap snd ((,) ())
+    Codec.map snd ((,) ())
         . fromObjectCodec Permission.Allow
         $ (,)
         <$> Codec.project

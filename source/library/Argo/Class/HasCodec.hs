@@ -110,7 +110,7 @@ instance HasCodec a => HasCodec (Object.Object a) where
 instance HasCodec a => HasCodec (Maybe a) where
     codec =
         Codec.mapMaybe (Just . Just) id codec
-            <|> Codec.dimap (const Nothing) (const $ Null.fromUnit ()) codec
+            <|> Codec.map (const Nothing) (const $ Null.fromUnit ()) codec
 
 instance (HasCodec a, HasCodec b) => HasCodec (Either a b) where
     codec =
@@ -134,25 +134,25 @@ instance (HasCodec a, HasCodec b) => HasCodec (a, b) where
             <*> Codec.project snd (Codec.element codec)
 
 instance HasCodec Bool where
-    codec = Codec.dimap Boolean.toBool Boolean.fromBool codec
+    codec = Codec.map Boolean.toBool Boolean.fromBool codec
 
 instance HasCodec Decimal.Decimal where
-    codec = Codec.dimap Number.toDecimal Number.fromDecimal codec
+    codec = Codec.map Number.toDecimal Number.fromDecimal codec
 
 instance HasCodec Text.Text where
-    codec = Codec.dimap String.toText String.fromText codec
+    codec = Codec.map String.toText String.fromText codec
 
 instance {-# OVERLAPPABLE #-} HasCodec a => HasCodec [a] where
-    codec = Codec.dimap Array.toList Array.fromList codec
+    codec = Codec.map Array.toList Array.fromList codec
 
 instance HasCodec a => HasCodec (Map.Map Name.Name a) where
-    codec = Codec.dimap
+    codec = Codec.map
         (Map.fromList . fmap Member.toTuple . Object.toList)
         (Object.fromList . fmap Member.fromTuple . Map.toList)
         codec
 
 instance HasCodec String where
-    codec = Codec.dimap Text.unpack Text.pack codec
+    codec = Codec.map Text.unpack Text.pack codec
 
 instance HasCodec Char where
     codec = Codec.mapMaybe
@@ -164,7 +164,7 @@ instance HasCodec Char where
         codec
 
 instance HasCodec Text.LazyText where
-    codec = Codec.dimap Text.fromStrict Text.toStrict codec
+    codec = Codec.map Text.fromStrict Text.toStrict codec
 
 instance HasCodec a => HasCodec (NonEmpty.NonEmpty a) where
     codec = Codec.mapMaybe NonEmpty.nonEmpty (Just . NonEmpty.toList) codec
