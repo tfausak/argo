@@ -1,7 +1,6 @@
 module Argo.Codec.Value where
 
 import qualified Argo.Codec.Codec as Codec
-import qualified Argo.Codec.Simple as Codec
 import qualified Argo.Json.Array as Array
 import qualified Argo.Json.Null as Null
 import qualified Argo.Json.Object as Object
@@ -23,9 +22,10 @@ encodeWith c x =
         $ Null.fromUnit ()
 
 type Value a
-    = Codec.Simple
+    = Codec.Codec
           (Trans.ReaderT Value.Value (Trans.ExceptT String Identity.Identity))
           (Trans.MaybeT (Trans.StateT Value.Value Identity.Identity))
+          a
           a
 
 arrayCodec :: Value (Array.Array Value.Value)

@@ -1,7 +1,6 @@
 module Argo.Codec.List where
 
 import qualified Argo.Codec.Codec as Codec
-import qualified Argo.Codec.Simple as Simple
 import qualified Argo.Codec.Value as Codec
 import qualified Argo.Type.Permission as Permission
 import qualified Argo.Vendor.Transformers as Trans
@@ -9,9 +8,10 @@ import qualified Control.Monad as Monad
 import qualified Data.Functor.Identity as Identity
 
 type List e a
-    = Simple.Simple
+    = Codec.Codec
           (Trans.StateT [e] (Trans.ExceptT String Identity.Identity))
           (Trans.WriterT [e] Identity.Identity)
+          a
           a
 
 fromListCodec
