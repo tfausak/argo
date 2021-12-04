@@ -11,6 +11,7 @@ type List e a
     = Codec.Codec
           (Trans.StateT [e] (Trans.ExceptT String Identity.Identity))
           (Trans.WriterT [e] Identity.Identity)
+          ()
           a
           a
 

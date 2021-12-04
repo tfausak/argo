@@ -25,6 +25,7 @@ type Value a
     = Codec.Codec
           (Trans.ReaderT Value.Value (Trans.ExceptT String Identity.Identity))
           (Trans.MaybeT (Trans.StateT Value.Value Identity.Identity))
+          ()
           a
           a
 
