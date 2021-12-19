@@ -8,13 +8,14 @@ import qualified Argo.Json.Name as Name
 import qualified Argo.Json.Object as Object
 import qualified Argo.Json.String as String
 import qualified Argo.Json.Value as Value
+import qualified Argo.Schema.Schema as Schema
 import qualified Argo.Type.Permission as Permission
 import qualified Argo.Vendor.Transformers as Trans
 import qualified Control.Monad as Monad
 import qualified Data.List as List
 import qualified Data.Text as Text
 
-type Object a = Codec.List (Member.Member Value.Value) a
+type Object a = Codec.List Schema.Schema (Member.Member Value.Value) a
 
 fromObjectCodec :: Permission.Permission -> Object a -> Codec.Value a
 fromObjectCodec = Codec.fromListCodec
@@ -34,7 +35,7 @@ required k c = Codec.Codec
     , Codec.encode = \x -> do
         Monad.void . Codec.encode (optional k c) $ Just x
         pure x
-    , Codec.schema = ()
+    , Codec.schema = Schema.false -- TODO
     }
 
 optional :: Name.Name -> Codec.Value a -> Object (Maybe a)
@@ -53,7 +54,7 @@ optional k c = Codec.Codec
             Nothing -> pure ()
             Just y -> Trans.tell [Member.Member k $ Codec.encodeWith c y]
         pure x
-    , Codec.schema = ()
+    , Codec.schema = Schema.false -- TODO
     }
 
 tagged :: String -> Codec.Value a -> Codec.Value a

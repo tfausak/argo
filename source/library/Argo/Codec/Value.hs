@@ -5,6 +5,7 @@ import qualified Argo.Json.Array as Array
 import qualified Argo.Json.Null as Null
 import qualified Argo.Json.Object as Object
 import qualified Argo.Json.Value as Value
+import qualified Argo.Schema.Schema as Schema
 import qualified Argo.Vendor.Transformers as Trans
 import qualified Control.Monad as Monad
 import qualified Data.Functor.Identity as Identity
@@ -25,7 +26,7 @@ type Value a
     = Codec.Codec
           (Trans.ReaderT Value.Value (Trans.ExceptT String Identity.Identity))
           (Trans.MaybeT (Trans.StateT Value.Value Identity.Identity))
-          ()
+          Schema.Schema
           a
           a
 
@@ -40,7 +41,7 @@ arrayCodec = Codec.Codec
     , Codec.encode = \x -> do
         Trans.lift . Trans.put $ Value.Array x
         pure x
-    , Codec.schema = ()
+    , Codec.schema = Schema.false -- TODO
     }
 
 objectCodec :: Value (Object.Object Value.Value)
@@ -57,7 +58,7 @@ objectCodec = Codec.Codec
     , Codec.encode = \x -> do
         Trans.lift . Trans.put $ Value.Object x
         pure x
-    , Codec.schema = ()
+    , Codec.schema = Schema.false -- TODO
     }
 
 literalCodec :: Value.Value -> Value ()
@@ -72,5 +73,5 @@ literalCodec expected = Codec.Codec
             <> " but got "
             <> show actual
     , Codec.encode = const . Trans.lift $ Trans.put expected
-    , Codec.schema = ()
+    , Codec.schema = Schema.false -- TODO
     }

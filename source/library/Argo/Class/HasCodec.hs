@@ -42,7 +42,7 @@ instance HasCodec Value.Value where
     codec = Codec.Codec
         { Codec.decode = Trans.ask
         , Codec.encode = Codec.tap $ Trans.lift . Trans.put
-        , Codec.schema = ()
+        , Codec.schema = Schema.true
         }
 
 instance HasCodec Null.Null where
@@ -82,7 +82,7 @@ instance HasCodec a => HasCodec (Array.Array a) where
             . Array.fromList
             . fmap (Codec.encodeWith codec)
             . Array.toList
-        , Codec.schema = ()
+        , Codec.schema = Schema.false -- TODO
         }
 
 instance HasCodec a => HasCodec (Object.Object a) where
@@ -108,7 +108,7 @@ instance HasCodec a => HasCodec (Object.Object a) where
                       Member.Member k $ Codec.encodeWith codec v
                   )
             . Object.toList
-        , Codec.schema = ()
+        , Codec.schema = Schema.false -- TODO
         }
 
 instance HasCodec a => HasCodec (Maybe a) where
@@ -281,7 +281,7 @@ basicCodec
 basicCodec expected toValue fromValue = Codec.Codec
     { Codec.decode = castValue expected fromValue
     , Codec.encode = Codec.tap $ Trans.lift . Trans.put . toValue
-    , Codec.schema = ()
+    , Codec.schema = Schema.false -- TODO
     }
 
 castValue

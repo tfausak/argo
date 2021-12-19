@@ -10,6 +10,7 @@ import qualified Argo
 import qualified Argo.Codec.Codec as Codec
 import qualified Argo.Codec.Object as Codec
 import qualified Argo.Codec.Value as Codec
+import qualified Argo.Schema.Schema as Schema
 import qualified Argo.Json.String as String
 import qualified Argo.Type.Permission as Permission
 import qualified Data.ByteString as ByteString
@@ -569,6 +570,12 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
             "" @?= Argo.Name ""
         , Tasty.testCase "Token" $ do
             "" @?= Argo.Token ""
+        ]
+    , Tasty.testGroup "Schema"
+        [ Tasty.testCase "works for value" $ do
+            let expected = Schema.fromValue [Argo.value| true |]
+                actual = Codec.schema (Argo.codec :: Codec.Value Argo.Value)
+            actual @?= expected
         ]
     ]
 

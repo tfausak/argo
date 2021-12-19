@@ -5,10 +5,11 @@ import qualified Argo.Codec.List as Codec
 import qualified Argo.Codec.Value as Codec
 import qualified Argo.Json.Array as Array
 import qualified Argo.Json.Value as Value
+import qualified Argo.Schema.Schema as Schema
 import qualified Argo.Type.Permission as Permission
 import qualified Argo.Vendor.Transformers as Trans
 
-type Array a = Codec.List Value.Value a
+type Array a = Codec.List Schema.Schema Value.Value a
 
 fromArrayCodec :: Permission.Permission -> Array a -> Codec.Value a
 fromArrayCodec = Codec.fromListCodec
@@ -28,5 +29,5 @@ element c = Codec.Codec
     , Codec.encode = \x -> do
         Trans.tell [Codec.encodeWith c x]
         pure x
-    , Codec.schema = ()
+    , Codec.schema = Schema.false -- TODO
     }
