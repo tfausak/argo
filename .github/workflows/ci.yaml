@@ -110,7 +110,7 @@ jobs:
         with:
           asset_content_type: application/octet-stream
           asset_name: argo-${{ github.event.release.tag_name }}-windows.exe
-          asset_path: artifact/windows-9.2.1/argo
+          asset_path: artifact/windows-9.2.1/argo.exe
           upload_url: ${{ github.event.release.upload_url }}
 
       - uses: actions/upload-release-asset@v1
