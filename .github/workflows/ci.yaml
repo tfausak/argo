@@ -24,9 +24,9 @@ jobs:
 
       - uses: actions/checkout@v2
 
-      - run: mkdir artifact
+      - run: echo 'ARTIFACT=artifact/${{ matrix.platform }}/${{ matrix.ghc }}' >> $GITHUB_ENV
 
-      - run: mkdir artifact/${{ matrix.platform }}
+      - run: mkdir --parents ${{ env.ARTIFACT }}
 
       - id: setup-haskell
         uses: haskell/actions/setup@v1
@@ -39,7 +39,7 @@ jobs:
 
       - run: cat cabal.project.freeze
 
-      - run: cp cabal.project.freeze artifact/${{ matrix.platform }}
+      - run: cp cabal.project.freeze ${{ env.ARTIFACT }}
 
       - uses: actions/cache@v2
         with:
@@ -49,19 +49,19 @@ jobs:
 
       - run: cabal build
 
-      - run: cabal install --install-method copy --installdir artifact/${{ matrix.platform }} .
+      - run: cabal install --install-method copy --installdir ${{ env.ARTIFACT }} .
 
       - run: cabal test --test-show-details direct
 
-      - run: cabal bench --benchmark-options '--csv artifact/${{ matrix.platform }}/benchmark.csv +RTS -T -RTS'
+      - run: cabal bench --benchmark-options '--csv ${{ env.ARTIFACT }}/benchmark.csv +RTS -T -RTS'
 
       - run: cabal check
 
-      - run: cabal sdist --output-dir artifact/${{ matrix.platform }}
+      - run: cabal sdist --output-dir ${{ env.ARTIFACT }}
 
       - uses: svenstaro/upx-action@v2
         with:
-          file: artifact/${{ matrix.platform }}/argo
+          file: ${{ env.ARTIFACT }}/argo
           args: --best
 
       - uses: actions/upload-artifact@v2
@@ -88,7 +88,7 @@ jobs:
         with:
           asset_content_type: application/octet-stream
           asset_name: argo-${{ github.event.release.tag_name }}-ubuntu
-          asset_path: artifact/ubuntu/argo
+          asset_path: artifact/ubuntu/9.2.1/argo
           upload_url: ${{ github.event.release.upload_url }}
 
       - uses: actions/upload-release-asset@v1
@@ -97,7 +97,7 @@ jobs:
         with:
           asset_content_type: application/octet-stream
           asset_name: argo-${{ github.event.release.tag_name }}-macos
-          asset_path: artifact/macos/argo
+          asset_path: artifact/macos/9.2.1/argo
           upload_url: ${{ github.event.release.upload_url }}
 
       - uses: actions/upload-release-asset@v1
@@ -106,7 +106,7 @@ jobs:
         with:
           asset_content_type: application/octet-stream
           asset_name: argo-${{ github.event.release.tag_name }}-windows.exe
-          asset_path: artifact/windows/argo
+          asset_path: artifact/windows/9.2.1/argo
           upload_url: ${{ github.event.release.upload_url }}
 
       - uses: actions/upload-release-asset@v1
@@ -115,7 +115,7 @@ jobs:
         with:
           asset_content_type: application/gzip
           asset_name: argo-${{ github.event.release.tag_name }}.tar.gz
-          asset_path: artifact/ubuntu/argo-${{ github.event.release.tag_name }}.tar.gz
+          asset_path: artifact/ubuntu/9.2.1/argo-${{ github.event.release.tag_name }}.tar.gz
           upload_url: ${{ github.event.release.upload_url }}
 
-      - run: cabal upload --publish --username '${{ secrets.HACKAGE_USERNAME }}' --password '${{ secrets.HACKAGE_PASSWORD }}' artifact/ubuntu/argo-${{ github.event.release.tag_name }}.tar.gz
+      - run: cabal upload --publish --username '${{ secrets.HACKAGE_USERNAME }}' --password '${{ secrets.HACKAGE_PASSWORD }}' artifact/ubuntu/9.2.1/argo-${{ github.event.release.tag_name }}.tar.gz
