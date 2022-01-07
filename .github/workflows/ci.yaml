@@ -25,9 +25,11 @@ jobs:
 
       - uses: actions/checkout@v2
 
-      - run: echo 'ARTIFACT=artifact/${{ matrix.platform }}/${{ matrix.ghc }}' >> $GITHUB_ENV
+      - run: mkdir artifact
 
-      - run: mkdir -p ${{ env.ARTIFACT }}
+      - run: echo 'ARTIFACT=artifact/${{ matrix.platform }}-${{ matrix.ghc }}' >> $GITHUB_ENV
+
+      - run: mkdir ${{ env.ARTIFACT }}
 
       - id: setup-haskell
         uses: haskell/actions/setup@v1
@@ -89,7 +91,7 @@ jobs:
         with:
           asset_content_type: application/octet-stream
           asset_name: argo-${{ github.event.release.tag_name }}-ubuntu
-          asset_path: artifact/ubuntu/9.2.1/argo
+          asset_path: artifact/ubuntu-9.2.1/argo
           upload_url: ${{ github.event.release.upload_url }}
 
       - uses: actions/upload-release-asset@v1
@@ -98,7 +100,7 @@ jobs:
         with:
           asset_content_type: application/octet-stream
           asset_name: argo-${{ github.event.release.tag_name }}-macos
-          asset_path: artifact/macos/9.2.1/argo
+          asset_path: artifact/macos-9.2.1/argo
           upload_url: ${{ github.event.release.upload_url }}
 
       - uses: actions/upload-release-asset@v1
@@ -107,7 +109,7 @@ jobs:
         with:
           asset_content_type: application/octet-stream
           asset_name: argo-${{ github.event.release.tag_name }}-windows.exe
-          asset_path: artifact/windows/9.2.1/argo
+          asset_path: artifact/windows-9.2.1/argo
           upload_url: ${{ github.event.release.upload_url }}
 
       - uses: actions/upload-release-asset@v1
@@ -116,7 +118,7 @@ jobs:
         with:
           asset_content_type: application/gzip
           asset_name: argo-${{ github.event.release.tag_name }}.tar.gz
-          asset_path: artifact/ubuntu/9.2.1/argo-${{ github.event.release.tag_name }}.tar.gz
+          asset_path: artifact/ubuntu-9.2.1/argo-${{ github.event.release.tag_name }}.tar.gz
           upload_url: ${{ github.event.release.upload_url }}
 
-      - run: cabal upload --publish --username '${{ secrets.HACKAGE_USERNAME }}' --password '${{ secrets.HACKAGE_PASSWORD }}' artifact/ubuntu/9.2.1/argo-${{ github.event.release.tag_name }}.tar.gz
+      - run: cabal upload --publish --username '${{ secrets.HACKAGE_USERNAME }}' --password '${{ secrets.HACKAGE_PASSWORD }}' artifact/ubuntu-9.2.1/argo-${{ github.event.release.tag_name }}.tar.gz
