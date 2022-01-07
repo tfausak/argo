@@ -28,7 +28,7 @@ jobs:
       - run: mkdir artifact
 
       - id: artifact
-        run: echo '::set-output directory::artifact/${{ matrix.platform }}-${{ matrix.ghc }}'
+        run: echo '::set-output name=directory::artifact/${{ matrix.platform }}-${{ matrix.ghc }}'
 
       - run: mkdir ${{ steps.artifact.outputs.directory }}
 
