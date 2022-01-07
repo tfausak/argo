@@ -27,7 +27,7 @@ jobs:
 
       - run: echo 'ARTIFACT=artifact/${{ matrix.platform }}/${{ matrix.ghc }}' >> $GITHUB_ENV
 
-      - run: mkdir --parents ${{ env.ARTIFACT }}
+      - run: mkdir -p ${{ env.ARTIFACT }}
 
       - id: setup-haskell
         uses: haskell/actions/setup@v1
