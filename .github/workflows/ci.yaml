@@ -27,9 +27,10 @@ jobs:
 
       - run: mkdir artifact
 
-      - run: echo 'ARTIFACT=artifact/${{ matrix.platform }}-${{ matrix.ghc }}' >> $GITHUB_ENV
+      - id: artifact
+        run: echo '::set-output directory::artifact/${{ matrix.platform }}-${{ matrix.ghc }}'
 
-      - run: mkdir ${{ env.ARTIFACT }}
+      - run: mkdir ${{ steps.artifact.outputs.directory }}
 
       - id: setup-haskell
         uses: haskell/actions/setup@v1
@@ -42,7 +43,7 @@ jobs:
 
       - run: cat cabal.project.freeze
 
-      - run: cp cabal.project.freeze ${{ env.ARTIFACT }}
+      - run: cp cabal.project.freeze ${{ steps.artifact.outputs.directory }}
 
       - uses: actions/cache@v2
         with:
@@ -52,19 +53,19 @@ jobs:
 
       - run: cabal build
 
-      - run: cabal install --install-method copy --installdir ${{ env.ARTIFACT }} .
+      - run: cabal install --install-method copy --installdir ${{ steps.artifact.outputs.directory }} .
 
       - run: cabal test --test-show-details direct
 
-      - run: cabal bench --benchmark-options '--csv ${{ env.ARTIFACT }}/benchmark.csv +RTS -T -RTS'
+      - run: cabal bench --benchmark-options '--csv ${{ steps.artifact.outputs.directory }}/benchmark.csv +RTS -T -RTS'
 
       - run: cabal check
 
-      - run: cabal sdist --output-dir ${{ env.ARTIFACT }}
+      - run: cabal sdist --output-dir ${{ steps.artifact.outputs.directory }}
 
       - uses: svenstaro/upx-action@v2
         with:
-          file: ${{ env.ARTIFACT }}/argo
+          file: ${{ steps.artifact.outputs.directory }}/argo
           args: --best
 
       - uses: actions/upload-artifact@v2
