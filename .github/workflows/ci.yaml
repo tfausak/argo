@@ -18,7 +18,7 @@ jobs:
           - { platform: ubuntu, ghc: 9.0.2 }
           - { platform: ubuntu, ghc: 8.10.7 }
           - { platform: macos, ghc: 9.2.1 }
-          - { platform: windows, ghc: 9.2.1 }
+          - { platform: windows, ghc: 9.2.1, extension: .exe }
     runs-on: ${{ matrix.platform }}-latest
     name: GHC ${{ matrix.ghc }} on ${{ matrix.platform }}
     steps:
@@ -65,7 +65,7 @@ jobs:
 
       - uses: svenstaro/upx-action@v2
         with:
-          file: ${{ steps.artifact.outputs.directory }}/argo*
+          file: ${{ steps.artifact.outputs.directory }}/argo${{ matrix.extension }}
           args: --best
 
       - uses: actions/upload-artifact@v2
