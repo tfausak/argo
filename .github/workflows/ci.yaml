@@ -20,6 +20,7 @@ jobs:
           - { platform: macos, ghc: 9.2.1 }
           - { platform: windows, ghc: 9.2.1 }
     runs-on: ${{ matrix.platform }}
+    name: GHC ${{ matrix.ghc }} on ${{ matrix.platform }}
     steps:
 
       - uses: actions/checkout@v2
