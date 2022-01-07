@@ -18,7 +18,7 @@ jobs:
           - { platform: ubuntu, ghc: 9.0.2 }
           - { platform: ubuntu, ghc: 8.10.7 }
           - { platform: macos, ghc: 9.2.1 }
-          - { platform: windows, ghc: 9.2.1, ext: .exe }
+          - { platform: windows, ghc: 9.2.1 }
     runs-on: ${{ matrix.platform }}
     steps:
 
@@ -61,7 +61,7 @@ jobs:
 
       - uses: svenstaro/upx-action@v2
         with:
-          file: artifact/${{ matrix.platform }}/argo${{ matrix.ext }}
+          file: artifact/${{ matrix.platform }}/argo
           args: --best
 
       - uses: actions/upload-artifact@v2
@@ -106,7 +106,7 @@ jobs:
         with:
           asset_content_type: application/octet-stream
           asset_name: argo-${{ github.event.release.tag_name }}-windows.exe
-          asset_path: artifact/windows/argo.exe
+          asset_path: artifact/windows/argo
           upload_url: ${{ github.event.release.upload_url }}
 
       - uses: actions/upload-release-asset@v1
