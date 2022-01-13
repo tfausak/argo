@@ -35,7 +35,7 @@ required k c = Codec.Codec
     , Codec.encode = \x -> do
         Monad.void . Codec.encode (optional k c) $ Just x
         pure x
-    , Codec.schema = Schema.false -- TODO
+    , Codec.schema = Schema.comment "TODO: Argo.Codec.Object.required"
     }
 
 optional :: Name.Name -> Codec.Value a -> Object (Maybe a)
@@ -54,7 +54,7 @@ optional k c = Codec.Codec
             Nothing -> pure ()
             Just y -> Trans.tell [Member.Member k $ Codec.encodeWith c y]
         pure x
-    , Codec.schema = Schema.false -- TODO
+    , Codec.schema = Schema.comment "TODO: Argo.Codec.Object.optional"
     }
 
 tagged :: String -> Codec.Value a -> Codec.Value a
@@ -67,7 +67,9 @@ tagged t c =
                 (required
                     (Name.fromString . String.fromText $ Text.pack "type")
                     (Codec.literalCodec
-                        (Value.String . String.fromText $ Text.pack t)
+                    . Value.String
+                    . String.fromText
+                    $ Text.pack t
                     )
                 )
         <*> Codec.project

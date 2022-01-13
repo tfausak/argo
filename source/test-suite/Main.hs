@@ -576,6 +576,10 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
             let expected = Schema.fromValue [Argo.value| true |]
                 actual = Codec.schema (Argo.codec :: Codec.Value Argo.Value)
             actual @?= expected
+        , Tasty.testCase "" $ do
+            let expected = Schema.fromValue [Argo.value| { "$comment": "TODO: Argo.Class.HasCodec.basicCodec" } |]
+                actual = Codec.schema (Argo.codec :: Codec.Value Bool)
+            actual @?= expected
         ]
     ]
 

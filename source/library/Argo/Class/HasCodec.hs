@@ -82,7 +82,7 @@ instance HasCodec a => HasCodec (Array.Array a) where
             . Array.fromList
             . fmap (Codec.encodeWith codec)
             . Array.toList
-        , Codec.schema = Schema.false -- TODO
+        , Codec.schema = Schema.comment "TODO: Array a"
         }
 
 instance HasCodec a => HasCodec (Object.Object a) where
@@ -108,7 +108,7 @@ instance HasCodec a => HasCodec (Object.Object a) where
                       Member.Member k $ Codec.encodeWith codec v
                   )
             . Object.toList
-        , Codec.schema = Schema.false -- TODO
+        , Codec.schema = Schema.comment "TODO: Object a"
         }
 
 instance HasCodec a => HasCodec (Maybe a) where
@@ -281,7 +281,7 @@ basicCodec
 basicCodec expected toValue fromValue = Codec.Codec
     { Codec.decode = castValue expected fromValue
     , Codec.encode = Codec.tap $ Trans.lift . Trans.put . toValue
-    , Codec.schema = Schema.false -- TODO
+    , Codec.schema = Schema.comment "TODO: Argo.Class.HasCodec.basicCodec"
     }
 
 castValue

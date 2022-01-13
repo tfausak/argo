@@ -44,3 +44,13 @@ false = fromValue . Value.Boolean $ Boolean.fromBool False
 
 true :: Schema
 true = fromValue . Value.Boolean $ Boolean.fromBool True
+
+comment :: String -> Schema
+comment x = fromValue
+    . Value.Object
+    $ Object.fromList
+    [ Member.fromTuple
+        ( Name.fromString . String.fromText $ Text.pack "$comment"
+        , Value.String . String.fromText $ Text.pack x
+        )
+    ]
