@@ -154,7 +154,16 @@ instance HasCodec a => HasCodec (Object.Object a) where
                       Member.Member k $ Codec.encodeWith codec v
                   )
             . Object.toList
-        , Codec.schema = Schema.comment "TODO: Object a"
+        , Codec.schema = Schema.fromValue . Value.Object $ Object.fromList
+            [ Member.fromTuple
+                ( Name.fromString . String.fromText $ Text.pack "type"
+                , Value.String . String.fromText $ Text.pack "object"
+                )
+            , Member.fromTuple
+                ( Name.fromString . String.fromText $ Text.pack "additionalProperties"
+                , Schema.toValue $ Codec.schema (codec :: Codec.Value a)
+                )
+            ]
         }
 
 instance HasCodec a => HasCodec (Maybe a) where
