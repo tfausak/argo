@@ -10,11 +10,12 @@ import qualified Argo
 import qualified Argo.Codec.Codec as Codec
 import qualified Argo.Codec.Object as Codec
 import qualified Argo.Codec.Value as Codec
-import qualified Argo.Schema.Schema as Schema
+import qualified Argo.Json.Array as Array
 import qualified Argo.Json.Boolean as Boolean
-import qualified Argo.Json.String as String
 import qualified Argo.Json.Null as Null
 import qualified Argo.Json.Number as Number
+import qualified Argo.Json.String as String
+import qualified Argo.Schema.Schema as Schema
 import qualified Argo.Type.Permission as Permission
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Builder as Builder
@@ -598,6 +599,10 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
         , Tasty.testCase "maybe boolean" $ do
             let expected = Schema.fromValue [Argo.value| { "oneOf": [ { "type": "boolean" }, { "type": "null" } ] } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value (Maybe Boolean.Boolean))
+            actual @?= expected
+        , Tasty.testCase "array boolean" $ do
+            let expected = Schema.fromValue [Argo.value| { "type": "array", "items": { "type": "boolean" } } |]
+                actual = Codec.schema (Argo.codec :: Codec.Value (Array.Array Boolean.Boolean))
             actual @?= expected
         ]
     ]

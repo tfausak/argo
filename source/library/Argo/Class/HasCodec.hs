@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Argo.Class.HasCodec where
 
@@ -118,7 +119,16 @@ instance HasCodec a => HasCodec (Array.Array a) where
             . Array.fromList
             . fmap (Codec.encodeWith codec)
             . Array.toList
-        , Codec.schema = Schema.comment "TODO: Array a"
+        , Codec.schema = Schema.fromValue . Value.Object $ Object.fromList
+            [ Member.fromTuple
+                ( Name.fromString . String.fromText $ Text.pack "type"
+                , Value.String . String.fromText $ Text.pack "array"
+                )
+            , Member.fromTuple
+                ( Name.fromString . String.fromText $ Text.pack "items"
+                , Schema.toValue $ Codec.schema (codec :: Codec.Value a)
+                )
+            ]
         }
 
 instance HasCodec a => HasCodec (Object.Object a) where
