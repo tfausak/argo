@@ -160,7 +160,8 @@ instance HasCodec a => HasCodec (Object.Object a) where
                 , Value.String . String.fromText $ Text.pack "object"
                 )
             , Member.fromTuple
-                ( Name.fromString . String.fromText $ Text.pack "additionalProperties"
+                ( Name.fromString . String.fromText $ Text.pack
+                    "additionalProperties"
                 , Schema.toValue $ Codec.schema (codec :: Codec.Value a)
                 )
             ]
