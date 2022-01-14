@@ -46,24 +46,60 @@ instance HasCodec Value.Value where
         }
 
 instance HasCodec Null.Null where
-    codec = basicCodec "Null" Value.Null $ \value -> case value of
-        Value.Null null_ -> Just null_
-        _ -> Nothing
+    codec =
+        let
+            schema = Schema.fromValue . Value.Object $ Object.fromList
+                [ Member.fromTuple
+                      ( Name.fromString . String.fromText $ Text.pack "type"
+                      , Value.String . String.fromText $ Text.pack "null"
+                      )
+                ]
+        in
+            basicCodec "Null" schema Value.Null $ \value -> case value of
+                Value.Null null_ -> Just null_
+                _ -> Nothing
 
 instance HasCodec Boolean.Boolean where
-    codec = basicCodec "Boolean" Value.Boolean $ \value -> case value of
-        Value.Boolean boolean -> Just boolean
-        _ -> Nothing
+    codec =
+        let
+            schema = Schema.fromValue . Value.Object $ Object.fromList
+                [ Member.fromTuple
+                      ( Name.fromString . String.fromText $ Text.pack "type"
+                      , Value.String . String.fromText $ Text.pack "boolean"
+                      )
+                ]
+        in
+            basicCodec "Boolean" schema Value.Boolean $ \value -> case value of
+                Value.Boolean boolean -> Just boolean
+                _ -> Nothing
 
 instance HasCodec Number.Number where
-    codec = basicCodec "Number" Value.Number $ \value -> case value of
-        Value.Number number -> Just number
-        _ -> Nothing
+    codec =
+        let
+            schema = Schema.fromValue . Value.Object $ Object.fromList
+                [ Member.fromTuple
+                      ( Name.fromString . String.fromText $ Text.pack "type"
+                      , Value.String . String.fromText $ Text.pack "number"
+                      )
+                ]
+        in
+            basicCodec "Number" schema Value.Number $ \value -> case value of
+                Value.Number number -> Just number
+                _ -> Nothing
 
 instance HasCodec String.String where
-    codec = basicCodec "String" Value.String $ \value -> case value of
-        Value.String string -> Just string
-        _ -> Nothing
+    codec =
+        let
+            schema = Schema.fromValue . Value.Object $ Object.fromList
+                [ Member.fromTuple
+                      ( Name.fromString . String.fromText $ Text.pack "type"
+                      , Value.String . String.fromText $ Text.pack "string"
+                      )
+                ]
+        in
+            basicCodec "String" schema Value.String $ \value -> case value of
+                Value.String string -> Just string
+                _ -> Nothing
 
 instance HasCodec a => HasCodec (Array.Array a) where
     codec = Codec.Codec
@@ -275,13 +311,14 @@ instance HasCodec Schema.Schema where
 
 basicCodec
     :: String
+    -> Schema.Schema
     -> (a -> Value.Value)
     -> (Value.Value -> Maybe a)
     -> Codec.Value a
-basicCodec expected toValue fromValue = Codec.Codec
+basicCodec expected schema toValue fromValue = Codec.Codec
     { Codec.decode = castValue expected fromValue
     , Codec.encode = Codec.tap $ Trans.lift . Trans.put . toValue
-    , Codec.schema = Schema.comment "TODO: Argo.Class.HasCodec.basicCodec"
+    , Codec.schema = schema
     }
 
 castValue

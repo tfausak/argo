@@ -11,7 +11,10 @@ import qualified Argo.Codec.Codec as Codec
 import qualified Argo.Codec.Object as Codec
 import qualified Argo.Codec.Value as Codec
 import qualified Argo.Schema.Schema as Schema
+import qualified Argo.Json.Boolean as Boolean
 import qualified Argo.Json.String as String
+import qualified Argo.Json.Null as Null
+import qualified Argo.Json.Number as Number
 import qualified Argo.Type.Permission as Permission
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Builder as Builder
@@ -572,13 +575,29 @@ main = Tasty.defaultMain $ Tasty.testGroup "Argo"
             "" @?= Argo.Token ""
         ]
     , Tasty.testGroup "Schema"
-        [ Tasty.testCase "works for value" $ do
+        [ Tasty.testCase "value" $ do
             let expected = Schema.fromValue [Argo.value| true |]
                 actual = Codec.schema (Argo.codec :: Codec.Value Argo.Value)
             actual @?= expected
-        , Tasty.testCase "" $ do
-            let expected = Schema.fromValue [Argo.value| { "$comment": "TODO: Argo.Class.HasCodec.basicCodec" } |]
-                actual = Codec.schema (Argo.codec :: Codec.Value Bool)
+        , Tasty.testCase "null" $ do
+            let expected = Schema.fromValue [Argo.value| { "type": "null" } |]
+                actual = Codec.schema (Argo.codec :: Codec.Value Null.Null)
+            actual @?= expected
+        , Tasty.testCase "boolean" $ do
+            let expected = Schema.fromValue [Argo.value| { "type": "boolean" } |]
+                actual = Codec.schema (Argo.codec :: Codec.Value Boolean.Boolean)
+            actual @?= expected
+        , Tasty.testCase "number" $ do
+            let expected = Schema.fromValue [Argo.value| { "type": "number" } |]
+                actual = Codec.schema (Argo.codec :: Codec.Value Number.Number)
+            actual @?= expected
+        , Tasty.testCase "string" $ do
+            let expected = Schema.fromValue [Argo.value| { "type": "string" } |]
+                actual = Codec.schema (Argo.codec :: Codec.Value String.String)
+            actual @?= expected
+        , Tasty.testCase "maybe boolean" $ do
+            let expected = Schema.fromValue [Argo.value| { "oneOf": [ { "type": "boolean" }, { "type": "null" } ] } |]
+                actual = Codec.schema (Argo.codec :: Codec.Value (Maybe Boolean.Boolean))
             actual @?= expected
         ]
     ]
