@@ -7,7 +7,7 @@ build-type: Simple
 category: JSON
 description: Argo parses and renders JSON.
 extra-source-files: CHANGELOG.md README.md
-license-file: LICENSE.txt
+license-file: LICENSE.md
 license: MIT
 maintainer: Taylor Fausak
 synopsis: Parse and render JSON.
