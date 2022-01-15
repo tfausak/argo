@@ -17,8 +17,12 @@ type List s e a
           a
 
 fromListCodec
-    :: Codec.Value [e] -> Permission.Permission -> List s e a -> Codec.Value a
-fromListCodec ce p ca = Codec.Codec
+    :: (Permission.Permission -> s -> Schema.Schema)
+    -> Codec.Value [e]
+    -> Permission.Permission
+    -> List s e a
+    -> Codec.Value a
+fromListCodec f ce p ca = Codec.Codec
     { Codec.decode = do
         xs <- Codec.decode ce
         case
@@ -41,5 +45,5 @@ fromListCodec ce p ca = Codec.Codec
             . Trans.runWriterT
             $ Codec.encode ca x
         pure x
-    , Codec.schema = Schema.comment "TODO :Argo.Codec.List.fromListCodec"
+    , Codec.schema = f p $ Codec.schema ca
     }

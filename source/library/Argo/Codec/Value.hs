@@ -41,7 +41,7 @@ arrayCodec = Codec.Codec
     , Codec.encode = \x -> do
         Trans.lift . Trans.put $ Value.Array x
         pure x
-    , Codec.schema = Schema.comment "TODO: Argo.Codec.Value.arrayCodec"
+    , Codec.schema = Schema.false
     }
 
 objectCodec :: Value (Object.Object Value.Value)
@@ -58,7 +58,7 @@ objectCodec = Codec.Codec
     , Codec.encode = \x -> do
         Trans.lift . Trans.put $ Value.Object x
         pure x
-    , Codec.schema = Schema.comment "TODO: Argo.Codec.Value.objectCodec"
+    , Codec.schema = Schema.false
     }
 
 literalCodec :: Value.Value -> Value ()

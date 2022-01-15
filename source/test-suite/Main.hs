@@ -798,8 +798,22 @@ main = Tasty.defaultMain $ Tasty.testGroup
                     (Argo.codec :: Codec.Value (Maybe Boolean.Boolean))
             actual @?= expected
         , Tasty.testCase "either boolean number" $ pure () -- TODO
-        , Tasty.testCase "()" $ pure () -- TODO
-        , Tasty.testCase "(boolean, number)" $ pure () -- TODO
+        , Tasty.testCase "()" $ do
+            let expected =
+                    Schema.fromValue
+                        [Argo.value| { "type": "array", "items": [], "additionalItems": false } |]
+                actual = Codec.schema (Argo.codec :: Codec.Value ())
+            actual @?= expected
+        , Tasty.testCase "(boolean, number)" $ do
+            let expected =
+                    Schema.fromValue
+                        [Argo.value| { "type": "array", "items": [ { "type": "boolean" }, { "type": "number" } ], "additionalItems": false } |]
+                actual =
+                    Codec.schema
+                        (Argo.codec :: Codec.Value
+                              (Boolean.Boolean, Number.Number)
+                        )
+            actual @?= expected
         , Tasty.testCase "bool" $ do
             let expected =
                     Schema.fromValue [Argo.value| { "type": "boolean" } |]
