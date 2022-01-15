@@ -244,7 +244,27 @@ instance HasCodec Text.LazyText where
     codec = Codec.map Text.fromStrict Text.toStrict codec
 
 instance HasCodec a => HasCodec (NonEmpty.NonEmpty a) where
-    codec = Codec.mapMaybe NonEmpty.nonEmpty (Just . NonEmpty.toList) codec
+    codec =
+        let
+            schema = Schema.fromValue . Value.Object $ Object.fromList
+                [ Member.fromTuple
+                    ( Name.fromString . String.fromText $ Text.pack "type"
+                    , Value.String . String.fromText $ Text.pack "array"
+                    )
+                , Member.fromTuple
+                    ( Name.fromString . String.fromText $ Text.pack "items"
+                    , Schema.toValue $ Codec.schema (codec :: Codec.Value a)
+                    )
+                , Member.fromTuple
+                    ( Name.fromString . String.fromText $ Text.pack "minItems"
+                    , Value.Number . Number.fromDecimal $ Decimal.fromInteger 1
+                    )
+                ]
+        in
+            Codec.mapMaybe
+                NonEmpty.nonEmpty
+                (Just . NonEmpty.toList)
+                codec { Codec.schema = schema }
 
 instance HasCodec Integer where
     codec =

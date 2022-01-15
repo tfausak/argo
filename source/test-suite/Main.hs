@@ -849,7 +849,13 @@ main = Tasty.defaultMain $ Tasty.testGroup
                 actual =
                     Codec.schema (Argo.codec :: Codec.Value LazyText.Text)
             actual @?= expected
-        , Tasty.testCase "nonempty boolean" $ pure () -- TODO
+        , Tasty.testCase "list boolean" $ do
+            let expected =
+                    Schema.fromValue
+                        [Argo.value| { "type": "array", "items": { "type": "boolean" }, "minItems": 1 } |]
+                actual = Codec.schema
+                    (Argo.codec :: Codec.Value (NonEmpty Boolean.Boolean))
+            actual @?= expected
         , Tasty.testCase "integer" $ pure () -- TODO
         , Tasty.testCase "int" $ pure () -- TODO
         , Tasty.testCase "int8" $ pure () -- TODO
