@@ -28,6 +28,7 @@ import qualified Data.Map as Map
 import qualified Data.Text as Text
 import qualified Data.Text.Lazy as LazyText
 import qualified Data.Word as Word
+import qualified Numeric.Natural as Natural
 import qualified Test.Tasty as Tasty
 import qualified Test.Tasty.HUnit as Tasty
 import qualified Test.Tasty.QuickCheck as Tasty
@@ -891,7 +892,12 @@ main = Tasty.defaultMain $ Tasty.testGroup
                         [Argo.value| { "type": "integer", "minimum": -9223372036854775808, "maximum": 9223372036854775807 } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value Int.Int64)
             actual @?= expected
-        -- TODO: natural?
+        , Tasty.testCase "natural" $ do
+            let expected = Schema.fromValue
+                    [Argo.value| { "type": "integer", "minimum": 0 } |]
+                actual =
+                    Codec.schema (Argo.codec :: Codec.Value Natural.Natural)
+            actual @?= expected
         , Tasty.testCase "word" $ do
             let expected =
                     Schema.fromValue

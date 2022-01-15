@@ -35,6 +35,7 @@ import qualified Data.Functor.Identity as Identity
 import qualified Data.Int as Int
 import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Word as Word
+import qualified Numeric.Natural as Natural
 
 class HasCodec a where
     codec :: Codec.Value a
@@ -412,6 +413,23 @@ instance HasCodec Int.Int64 where
                     . Number.fromDecimal
                     . Decimal.fromInteger
                     $ toInteger (maxBound :: Int.Int64)
+                    )
+                ]
+        in Codec.mapMaybe from (Just . into) codec { Codec.schema = schema }
+
+instance HasCodec Natural.Natural where
+    codec =
+        let
+            from = Bits.toIntegralSized :: Integer -> Maybe Natural.Natural
+            into = fromIntegral :: Natural.Natural -> Integer
+            schema = Schema.fromValue . Value.Object $ Object.fromList
+                [ Member.fromTuple
+                    ( Name.fromString . String.fromText $ Text.pack "type"
+                    , Value.String . String.fromText $ Text.pack "integer"
+                    )
+                , Member.fromTuple
+                    ( Name.fromString . String.fromText $ Text.pack "minimum"
+                    , Value.Number . Number.fromDecimal $ Decimal.fromInteger 0
                     )
                 ]
         in Codec.mapMaybe from (Just . into) codec { Codec.schema = schema }
