@@ -12,8 +12,8 @@ import qualified Argo.Json.String as String
 import qualified Argo.Json.Value as Value
 import qualified Argo.Schema.Schema as Schema
 import qualified Argo.Type.Permission as Permission
+import qualified Argo.Vendor.Text as Text
 import qualified Argo.Vendor.Transformers as Trans
-import qualified Data.Text as Text
 
 type Array a = Codec.List [Schema.Schema] Value.Value a
 

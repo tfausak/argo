@@ -18,6 +18,7 @@ module Argo
     , HasCodec.HasCodec(codec)
     , QuasiQuoter.value
     , QuasiQuoter.pointer
+    , QuasiQuoter.schema
     , Pointer.Pointer(Pointer)
     , Token.Token(Token)
     , Pointer.evaluate

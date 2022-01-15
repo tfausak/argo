@@ -745,28 +745,25 @@ main = Tasty.defaultMain $ Tasty.testGroup
     , Tasty.testGroup
         "Schema"
         [ Tasty.testCase "value" $ do
-            let expected = Schema.fromValue [Argo.value| true |]
+            let expected = [Argo.schema| true |]
                 actual = Codec.schema (Argo.codec :: Codec.Value Argo.Value)
             actual @?= expected
         , Tasty.testCase "null" $ do
-            let expected = Schema.fromValue [Argo.value| { "type": "null" } |]
+            let expected = [Argo.schema| { "type": "null" } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value Null.Null)
             actual @?= expected
         , Tasty.testCase "boolean" $ do
-            let expected =
-                    Schema.fromValue [Argo.value| { "type": "boolean" } |]
+            let expected = [Argo.schema| { "type": "boolean" } |]
                 actual =
                     Codec.schema (Argo.codec :: Codec.Value Boolean.Boolean)
             actual @?= expected
         , Tasty.testCase "number" $ do
-            let expected =
-                    Schema.fromValue [Argo.value| { "type": "number" } |]
+            let expected = [Argo.schema| { "type": "number" } |]
                 actual =
                     Codec.schema (Argo.codec :: Codec.Value Number.Number)
             actual @?= expected
         , Tasty.testCase "string" $ do
-            let expected =
-                    Schema.fromValue [Argo.value| { "type": "string" } |]
+            let expected = [Argo.schema| { "type": "string" } |]
                 actual =
                     Codec.schema (Argo.codec :: Codec.Value String.String)
             actual @?= expected
@@ -824,19 +821,16 @@ main = Tasty.defaultMain $ Tasty.testGroup
                         )
             actual @?= expected
         , Tasty.testCase "bool" $ do
-            let expected =
-                    Schema.fromValue [Argo.value| { "type": "boolean" } |]
+            let expected = [Argo.schema| { "type": "boolean" } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value Bool)
             actual @?= expected
         , Tasty.testCase "decimal" $ do
-            let expected =
-                    Schema.fromValue [Argo.value| { "type": "number" } |]
+            let expected = [Argo.schema| { "type": "number" } |]
                 actual =
                     Codec.schema (Argo.codec :: Codec.Value Decimal.Decimal)
             actual @?= expected
         , Tasty.testCase "text" $ do
-            let expected =
-                    Schema.fromValue [Argo.value| { "type": "string" } |]
+            let expected = [Argo.schema| { "type": "string" } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value Text.Text)
             actual @?= expected
         , Tasty.testCase "list boolean" $ do
@@ -857,8 +851,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
                         )
             actual @?= expected
         , Tasty.testCase "string" $ do
-            let expected =
-                    Schema.fromValue [Argo.value| { "type": "string" } |]
+            let expected = [Argo.schema| { "type": "string" } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value String)
             actual @?= expected
         , Tasty.testCase "char" $ do
@@ -868,8 +861,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
                 actual = Codec.schema (Argo.codec :: Codec.Value Char)
             actual @?= expected
         , Tasty.testCase "lazy text" $ do
-            let expected =
-                    Schema.fromValue [Argo.value| { "type": "string" } |]
+            let expected = [Argo.schema| { "type": "string" } |]
                 actual =
                     Codec.schema (Argo.codec :: Codec.Value LazyText.Text)
             actual @?= expected
@@ -881,8 +873,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
                     (Argo.codec :: Codec.Value (NonEmpty Boolean.Boolean))
             actual @?= expected
         , Tasty.testCase "integer" $ do
-            let expected =
-                    Schema.fromValue [Argo.value| { "type": "integer" } |]
+            let expected = [Argo.schema| { "type": "integer" } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value Integer)
             actual @?= expected
         , Tasty.testCase "int" $ do
@@ -952,29 +943,25 @@ main = Tasty.defaultMain $ Tasty.testGroup
                 actual = Codec.schema (Argo.codec :: Codec.Value Word.Word64)
             actual @?= expected
         , Tasty.testCase "float" $ do
-            let expected =
-                    Schema.fromValue [Argo.value| { "type": "number" } |]
+            let expected = [Argo.schema| { "type": "number" } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value Float)
             actual @?= expected
         , Tasty.testCase "double" $ do
-            let expected =
-                    Schema.fromValue [Argo.value| { "type": "number" } |]
+            let expected = [Argo.schema| { "type": "number" } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value Double)
             actual @?= expected
         , Tasty.testCase "pointer" $ do
-            let expected =
-                    Schema.fromValue [Argo.value| { "type": "string" } |]
+            let expected = [Argo.schema| { "type": "string" } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value Argo.Pointer)
             actual @?= expected
         , Tasty.testCase "schema" $ do
-            let expected = Schema.fromValue [Argo.value| true |]
+            let expected = [Argo.schema| true |]
                 actual =
                     Codec.schema (Argo.codec :: Codec.Value Schema.Schema)
             actual @?= expected
         , Tasty.testCase "record" $ do
-            let expected =
-                    Schema.fromValue
-                        [Argo.value| { "type": "object", "properties": { "bool": { "type": "boolean" }, "text": { "type": "string" } }, "required": [ "bool" ], "additionalProperties": true } |]
+            let expected
+                    = [Argo.schema| { "type": "object", "properties": { "bool": { "type": "boolean" }, "text": { "type": "string" } }, "required": [ "bool" ], "additionalProperties": true } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value Record)
             actual @?= expected
         ]

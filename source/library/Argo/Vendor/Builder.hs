@@ -3,6 +3,7 @@ module Argo.Vendor.Builder
     , Builder.Builder
     , Builder.byteString
     , Prim.condB
+    , Builder.hPutBuilder
     , Builder.integerDec
     , Prim.liftFixedToBounded
     , Builder.toLazyByteString

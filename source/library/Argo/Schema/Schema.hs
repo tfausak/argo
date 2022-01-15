@@ -13,7 +13,7 @@ import qualified Argo.Json.String as String
 import qualified Argo.Json.Value as Value
 import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.TemplateHaskell as TH
-import qualified Data.Text as Text
+import qualified Argo.Vendor.Text as Text
 import qualified GHC.Generics as Generics
 
 -- | A JSON Schema.
@@ -44,11 +44,3 @@ false = fromValue . Value.Boolean $ Boolean.fromBool False
 
 true :: Schema
 true = fromValue . Value.Boolean $ Boolean.fromBool True
-
-comment :: String -> Schema
-comment x = fromValue . Value.Object $ Object.fromList
-    [ Member.fromTuple
-          ( Name.fromString . String.fromText $ Text.pack "$comment"
-          , Value.String . String.fromText $ Text.pack x
-          )
-    ]

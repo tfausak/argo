@@ -9,10 +9,10 @@ import qualified Argo.Json.Object as Object
 import qualified Argo.Json.String as String
 import qualified Argo.Json.Value as Value
 import qualified Argo.Schema.Schema as Schema
+import qualified Argo.Vendor.Text as Text
 import qualified Argo.Vendor.Transformers as Trans
 import qualified Control.Monad as Monad
 import qualified Data.Functor.Identity as Identity
-import qualified Data.Text as Text
 
 decodeWith :: Value a -> Value.Value -> Either String a
 decodeWith c =

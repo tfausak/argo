@@ -12,11 +12,11 @@ import qualified Argo.Json.String as String
 import qualified Argo.Json.Value as Value
 import qualified Argo.Schema.Schema as Schema
 import qualified Argo.Type.Permission as Permission
+import qualified Argo.Vendor.Text as Text
 import qualified Argo.Vendor.Transformers as Trans
 import qualified Control.Monad as Monad
 import qualified Data.List as List
 import qualified Data.Maybe as Maybe
-import qualified Data.Text as Text
 
 type Object a
     = Codec.List
