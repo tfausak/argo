@@ -26,8 +26,8 @@ data Value
     | Boolean Boolean.Boolean
     | Number Number.Number
     | String String.String
-    | Array (Array.ArrayOf Value)
-    | Object (Object.ObjectOf Value)
+    | Array (Array.Array Value)
+    | Object (Object.Object Value)
     deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
 
 instance Data.String.IsString Value where

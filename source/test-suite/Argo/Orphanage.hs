@@ -13,7 +13,7 @@ instance Tasty.Arbitrary Argo.Name where
     arbitrary = Argo.Name <$> Tasty.arbitrary
     shrink (Argo.Name x) = Argo.Name <$> Tasty.shrink x
 
-instance Tasty.Arbitrary value => Tasty.Arbitrary (Argo.MemberOf value) where
+instance Tasty.Arbitrary value => Tasty.Arbitrary (Argo.Member value) where
     arbitrary = Argo.Member <$> Tasty.arbitrary <*> Tasty.arbitrary
     shrink (Argo.Member k v) = uncurry Argo.Member <$> Tasty.shrink (k, v)
 

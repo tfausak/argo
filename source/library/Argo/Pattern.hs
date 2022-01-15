@@ -29,7 +29,7 @@ pattern String x = Value.String (String.String x)
 pattern Array :: [Value.Value] -> Value.Value
 pattern Array x = Value.Array (Array.Array x)
 
-pattern Object :: [Member.MemberOf Value.Value] -> Value.Value
+pattern Object :: [Member.Member Value.Value] -> Value.Value
 pattern Object x = Value.Object (Object.Object x)
 
 {-# COMPLETE Null, Boolean, Number, String, Array, Object #-}

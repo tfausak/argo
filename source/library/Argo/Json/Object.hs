@@ -15,18 +15,17 @@ import qualified Argo.Vendor.Transformers as Trans
 import qualified Control.Monad as Monad
 import qualified GHC.Generics as Generics
 
-newtype ObjectOf value
-    = Object [Member.MemberOf value]
+newtype Object value
+    = Object [Member.Member value]
     deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
 
-fromList :: [Member.MemberOf value] -> ObjectOf value
+fromList :: [Member.Member value] -> Object value
 fromList = Object
 
-toList :: ObjectOf value -> [Member.MemberOf value]
+toList :: Object value -> [Member.Member value]
 toList (Object x) = x
 
-encode
-    :: (value -> Encoder.Encoder ()) -> ObjectOf value -> Encoder.Encoder ()
+encode :: (value -> Encoder.Encoder ()) -> Object value -> Encoder.Encoder ()
 encode f =
     Encoder.list
             (Trans.lift . Trans.tell $ Builder.word8 Literal.leftCurlyBracket)
@@ -38,13 +37,13 @@ encode f =
 encodeElement
     :: (value -> Encoder.Encoder ())
     -> Int
-    -> Member.MemberOf value
+    -> Member.Member value
     -> Encoder.Encoder ()
 encodeElement f i x = do
     Monad.when (i > 0) . Trans.lift . Trans.tell $ Builder.word8 Literal.comma
     Member.encode f x
 
-decode :: Decoder.Decoder value -> Decoder.Decoder (ObjectOf value)
+decode :: Decoder.Decoder value -> Decoder.Decoder (Object value)
 decode f = do
     Decoder.word8 Literal.leftCurlyBracket
     Decoder.spaces

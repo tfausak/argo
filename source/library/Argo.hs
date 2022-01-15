@@ -8,7 +8,7 @@ module Argo
         , Pattern.String
         )
     , Name.Name(Pattern.Name)
-    , Member.MemberOf(Member)
+    , Member.Member(Member)
     , Encode.encode
     , Encode.encodeWith
     , Indent.Indent(Spaces, Tab)
@@ -18,12 +18,14 @@ module Argo
     , HasCodec.HasCodec(codec)
     , QuasiQuoter.value
     , QuasiQuoter.pointer
+    , QuasiQuoter.schema
     , Pointer.Pointer(Pointer)
     , Token.Token(Token)
     , Pointer.evaluate
     , Encode.encodePointer
     , Decode.decodePointer
     , Decimal.Decimal(Pattern.Decimal)
+    , Schema.Schema
     ) where
 
 import qualified Argo.Class.FromValue as FromValue
@@ -38,5 +40,6 @@ import qualified Argo.Pattern as Pattern
 import qualified Argo.Pointer.Pointer as Pointer
 import qualified Argo.Pointer.Token as Token
 import qualified Argo.QuasiQuoter as QuasiQuoter
+import qualified Argo.Schema.Schema as Schema
 import qualified Argo.Type.Decimal as Decimal
 import qualified Argo.Type.Indent as Indent

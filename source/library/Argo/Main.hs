@@ -3,9 +3,9 @@ module Argo.Main where
 import qualified Argo
 import qualified Argo.Type.Flag as Flag
 import qualified Argo.Type.Settings as Settings
+import qualified Argo.Vendor.Builder as Builder
+import qualified Argo.Vendor.ByteString as ByteString
 import qualified Control.Monad as Monad
-import qualified Data.ByteString as ByteString
-import qualified Data.ByteString.Builder as Builder
 import qualified Data.Version as Version
 import qualified Paths_argo as This
 import qualified System.Console.GetOpt as Console

@@ -7,7 +7,7 @@ build-type: Simple
 category: JSON
 description: Argo parses and renders JSON.
 extra-source-files: CHANGELOG.md README.md
-license-file: LICENSE.txt
+license-file: LICENSE.md
 license: MIT
 maintainer: Taylor Fausak
 synopsis: Parse and render JSON.
@@ -70,6 +70,11 @@ library
         Argo.Class.FromValue
         Argo.Class.HasCodec
         Argo.Class.ToValue
+        Argo.Codec.Array
+        Argo.Codec.Codec
+        Argo.Codec.List
+        Argo.Codec.Object
+        Argo.Codec.Value
         Argo.Decode
         Argo.Encode
         Argo.Json.Array
@@ -87,7 +92,7 @@ library
         Argo.Pointer.Pointer
         Argo.Pointer.Token
         Argo.QuasiQuoter
-        Argo.Type.Codec
+        Argo.Schema.Schema
         Argo.Type.Config
         Argo.Type.Decimal
         Argo.Type.Decoder

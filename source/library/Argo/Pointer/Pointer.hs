@@ -62,7 +62,7 @@ evaluate p v = case toList p of
             _ -> Left "not indexable"
         evaluate (fromList ts) w
 
-atIndex :: Token.Token -> Array.ArrayOf value -> Either String value
+atIndex :: Token.Token -> Array.Array value -> Either String value
 atIndex t a = do
     i <- tokenToIndex t
     case drop i $ Array.toList a of
@@ -77,7 +77,7 @@ tokenToIndex token = do
         Just ('0', rest) -> if Text.null rest then pure 0 else Left invalid
         _ -> maybe (Left invalid) pure . Read.readMaybe $ Text.unpack text
 
-atKey :: Token.Token -> Object.ObjectOf value -> Either String value
+atKey :: Token.Token -> Object.Object value -> Either String value
 atKey t =
     maybe (Left $ "missing key: " <> show t) (\(Member.Member _ v) -> pure v)
         . List.find

@@ -16,17 +16,16 @@ import qualified Argo.Vendor.Transformers as Trans
 import qualified Control.Monad as Monad
 import qualified GHC.Generics as Generics
 
-data MemberOf value = Member Name.Name value
+data Member value = Member Name.Name value
     deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
 
-fromTuple :: (Name.Name, value) -> MemberOf value
+fromTuple :: (Name.Name, value) -> Member value
 fromTuple = uncurry Member
 
-toTuple :: MemberOf value -> (Name.Name, value)
+toTuple :: Member value -> (Name.Name, value)
 toTuple (Member k v) = (k, v)
 
-encode
-    :: (value -> Encoder.Encoder ()) -> MemberOf value -> Encoder.Encoder ()
+encode :: (value -> Encoder.Encoder ()) -> Member value -> Encoder.Encoder ()
 encode f (Member x y) = do
     Name.encode x
     Trans.lift . Trans.tell $ Builder.word8 Literal.colon
@@ -37,7 +36,7 @@ encode f (Member x y) = do
         $ Builder.word8 Literal.space
     f y
 
-decode :: Decoder.Decoder value -> Decoder.Decoder (MemberOf value)
+decode :: Decoder.Decoder value -> Decoder.Decoder (Member value)
 decode g =
     Member
         <$> Name.decode

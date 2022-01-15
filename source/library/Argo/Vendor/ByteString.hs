@@ -6,6 +6,7 @@ module Argo.Vendor.ByteString
     , ByteString.elemIndex
     , ByteString.empty
     , ByteString.foldl'
+    , ByteString.getContents
     , ByteString.length
     , ByteString.null
     , ByteString.pack
