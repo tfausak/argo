@@ -800,7 +800,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
         , Tasty.testCase "either boolean number" $ do
             let expected =
                     Schema.fromValue
-                        [Argo.value| { "oneOf": [ { "type": "object", "properties": { "type": { "const": "Left" }, "value": { "type": "boolean" } }, "additionalProperties": false }, { "type": "object", "properties": { "type": { "const": "Right" }, "value": { "type": "number" } }, "additionalProperties": false } ] } |]
+                        [Argo.value| { "oneOf": [ { "type": "object", "properties": { "type": { "const": "Left" }, "value": { "type": "boolean" } }, "required": [ "type", "value" ], "additionalProperties": false }, { "type": "object", "properties": { "type": { "const": "Right" }, "value": { "type": "number" } }, "required": [ "type", "value" ], "additionalProperties": false } ] } |]
                 actual =
                     Codec.schema
                         (Argo.codec :: Codec.Value
@@ -970,6 +970,12 @@ main = Tasty.defaultMain $ Tasty.testGroup
             let expected = Schema.fromValue [Argo.value| true |]
                 actual =
                     Codec.schema (Argo.codec :: Codec.Value Schema.Schema)
+            actual @?= expected
+        , Tasty.testCase "record" $ do
+            let expected =
+                    Schema.fromValue
+                        [Argo.value| { "type": "object", "properties": { "bool": { "type": "boolean" }, "text": { "type": "string" } }, "required": [ "bool" ], "additionalProperties": true } |]
+                actual = Codec.schema (Argo.codec :: Codec.Value Record)
             actual @?= expected
         ]
     ]

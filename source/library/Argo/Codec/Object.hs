@@ -3,6 +3,7 @@ module Argo.Codec.Object where
 import qualified Argo.Codec.Codec as Codec
 import qualified Argo.Codec.List as Codec
 import qualified Argo.Codec.Value as Codec
+import qualified Argo.Json.Array as Array
 import qualified Argo.Json.Boolean as Boolean
 import qualified Argo.Json.Member as Member
 import qualified Argo.Json.Name as Name
@@ -14,6 +15,7 @@ import qualified Argo.Type.Permission as Permission
 import qualified Argo.Vendor.Transformers as Trans
 import qualified Control.Monad as Monad
 import qualified Data.List as List
+import qualified Data.Maybe as Maybe
 import qualified Data.Text as Text
 
 type Object a
@@ -35,8 +37,18 @@ fromObjectCodec =
                         ( Name.fromString . String.fromText $ Text.pack
                             "properties"
                         , Value.Object . Object.fromList $ fmap
-                            (\(name, _, schema) -> Member.fromTuple
-                                (name, Schema.toValue schema)
+                            (\(k, _, s) ->
+                                Member.fromTuple (k, Schema.toValue s)
+                            )
+                            schemas
+                        )
+                    , Member.fromTuple
+                        ( Name.fromString . String.fromText $ Text.pack
+                            "required"
+                        , Value.Array . Array.fromList $ Maybe.mapMaybe
+                            (\(k, r, _) -> if r
+                                then Just . Value.String $ Name.toString k
+                                else Nothing
                             )
                             schemas
                         )
