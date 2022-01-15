@@ -856,20 +856,82 @@ main = Tasty.defaultMain $ Tasty.testGroup
                 actual = Codec.schema
                     (Argo.codec :: Codec.Value (NonEmpty Boolean.Boolean))
             actual @?= expected
-        , Tasty.testCase "integer" $ pure () -- TODO
-        , Tasty.testCase "int" $ pure () -- TODO
-        , Tasty.testCase "int8" $ pure () -- TODO
-        , Tasty.testCase "int16" $ pure () -- TODO
-        , Tasty.testCase "int32" $ pure () -- TODO
-        , Tasty.testCase "int64" $ pure () -- TODO
+        , Tasty.testCase "integer" $ do
+            let expected =
+                    Schema.fromValue [Argo.value| { "type": "integer" } |]
+                actual = Codec.schema (Argo.codec :: Codec.Value Integer)
+            actual @?= expected
+        , Tasty.testCase "int" $ do
+            let expected =
+                    Schema.fromValue
+                        [Argo.value| { "type": "integer", "minimum": -9223372036854775808, "maximum": 9223372036854775807 } |]
+                actual = Codec.schema (Argo.codec :: Codec.Value Int)
+            actual @?= expected
+        , Tasty.testCase "int8" $ do
+            let expected =
+                    Schema.fromValue
+                        [Argo.value| { "type": "integer", "minimum": -128, "maximum": 127 } |]
+                actual = Codec.schema (Argo.codec :: Codec.Value Int.Int8)
+            actual @?= expected
+        , Tasty.testCase "int16" $ do
+            let expected =
+                    Schema.fromValue
+                        [Argo.value| { "type": "integer", "minimum": -32768, "maximum": 32767 } |]
+                actual = Codec.schema (Argo.codec :: Codec.Value Int.Int16)
+            actual @?= expected
+        , Tasty.testCase "int32" $ do
+            let expected =
+                    Schema.fromValue
+                        [Argo.value| { "type": "integer", "minimum": -2147483648, "maximum": 2147483647 } |]
+                actual = Codec.schema (Argo.codec :: Codec.Value Int.Int32)
+            actual @?= expected
+        , Tasty.testCase "int64" $ do
+            let expected =
+                    Schema.fromValue
+                        [Argo.value| { "type": "integer", "minimum": -9223372036854775808, "maximum": 9223372036854775807 } |]
+                actual = Codec.schema (Argo.codec :: Codec.Value Int.Int64)
+            actual @?= expected
         -- TODO: natural?
-        , Tasty.testCase "word" $ pure () -- TODO
-        , Tasty.testCase "word8" $ pure () -- TODO
-        , Tasty.testCase "word16" $ pure () -- TODO
-        , Tasty.testCase "word32" $ pure () -- TODO
-        , Tasty.testCase "word64" $ pure () -- TODO
-        , Tasty.testCase "float" $ pure () -- TODO
-        , Tasty.testCase "double" $ pure () -- TODO
+        , Tasty.testCase "word" $ do
+            let expected =
+                    Schema.fromValue
+                        [Argo.value| { "type": "integer", "minimum": 0, "maximum": 18446744073709551615 } |]
+                actual = Codec.schema (Argo.codec :: Codec.Value Word)
+            actual @?= expected
+        , Tasty.testCase "word8" $ do
+            let expected =
+                    Schema.fromValue
+                        [Argo.value| { "type": "integer", "minimum": 0, "maximum": 255 } |]
+                actual = Codec.schema (Argo.codec :: Codec.Value Word.Word8)
+            actual @?= expected
+        , Tasty.testCase "word16" $ do
+            let expected =
+                    Schema.fromValue
+                        [Argo.value| { "type": "integer", "minimum": 0, "maximum": 65535 } |]
+                actual = Codec.schema (Argo.codec :: Codec.Value Word.Word16)
+            actual @?= expected
+        , Tasty.testCase "word32" $ do
+            let expected =
+                    Schema.fromValue
+                        [Argo.value| { "type": "integer", "minimum": 0, "maximum": 4294967295 } |]
+                actual = Codec.schema (Argo.codec :: Codec.Value Word.Word32)
+            actual @?= expected
+        , Tasty.testCase "word64" $ do
+            let expected =
+                    Schema.fromValue
+                        [Argo.value| { "type": "integer", "minimum": 0, "maximum": 18446744073709551615 } |]
+                actual = Codec.schema (Argo.codec :: Codec.Value Word.Word64)
+            actual @?= expected
+        , Tasty.testCase "float" $ do
+            let expected =
+                    Schema.fromValue [Argo.value| { "type": "number" } |]
+                actual = Codec.schema (Argo.codec :: Codec.Value Float)
+            actual @?= expected
+        , Tasty.testCase "double" $ do
+            let expected =
+                    Schema.fromValue [Argo.value| { "type": "number" } |]
+                actual = Codec.schema (Argo.codec :: Codec.Value Double)
+            actual @?= expected
         , Tasty.testCase "pointer" $ do
             let expected =
                     Schema.fromValue [Argo.value| { "type": "string" } |]
