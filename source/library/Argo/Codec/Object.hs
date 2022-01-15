@@ -3,6 +3,7 @@ module Argo.Codec.Object where
 import qualified Argo.Codec.Codec as Codec
 import qualified Argo.Codec.List as Codec
 import qualified Argo.Codec.Value as Codec
+import qualified Argo.Json.Boolean as Boolean
 import qualified Argo.Json.Member as Member
 import qualified Argo.Json.Name as Name
 import qualified Argo.Json.Object as Object
@@ -15,11 +16,40 @@ import qualified Control.Monad as Monad
 import qualified Data.List as List
 import qualified Data.Text as Text
 
-type Object a = Codec.List [Schema.Schema] (Member.Member Value.Value) a
+type Object a
+    = Codec.List
+          [(Name.Name, Bool, Schema.Schema)]
+          (Member.Member Value.Value)
+          a
 
 fromObjectCodec :: Permission.Permission -> Object a -> Codec.Value a
-fromObjectCodec = Codec.fromListCodec (\_ _ -> Schema.false)
-    $ Codec.map Object.toList Object.fromList Codec.objectCodec
+fromObjectCodec =
+    Codec.fromListCodec
+            (\permission schemas ->
+                Schema.fromValue . Value.Object $ Object.fromList
+                    [ Member.fromTuple
+                        ( Name.fromString . String.fromText $ Text.pack "type"
+                        , Value.String . String.fromText $ Text.pack "object"
+                        )
+                    , Member.fromTuple
+                        ( Name.fromString . String.fromText $ Text.pack
+                            "properties"
+                        , Value.Object . Object.fromList $ fmap
+                            (\(name, _, schema) -> Member.fromTuple
+                                (name, Schema.toValue schema)
+                            )
+                            schemas
+                        )
+                    , Member.fromTuple
+                        ( Name.fromString . String.fromText $ Text.pack
+                            "additionalProperties"
+                        , Value.Boolean . Boolean.fromBool $ case permission of
+                            Permission.Allow -> True
+                            Permission.Forbid -> False
+                        )
+                    ]
+            )
+        $ Codec.map Object.toList Object.fromList Codec.objectCodec
 
 required :: Name.Name -> Codec.Value a -> Object a
 required k c = Codec.Codec
@@ -35,7 +65,7 @@ required k c = Codec.Codec
     , Codec.encode = \x -> do
         Monad.void . Codec.encode (optional k c) $ Just x
         pure x
-    , Codec.schema = [Schema.comment "TODO: Argo.Codec.Object.required"]
+    , Codec.schema = [(k, True, Codec.schema c)]
     }
 
 optional :: Name.Name -> Codec.Value a -> Object (Maybe a)
@@ -54,13 +84,13 @@ optional k c = Codec.Codec
             Nothing -> pure ()
             Just y -> Trans.tell [Member.Member k $ Codec.encodeWith c y]
         pure x
-    , Codec.schema = [Schema.comment "TODO: Argo.Codec.Object.optional"]
+    , Codec.schema = [(k, False, Codec.schema c)]
     }
 
 tagged :: String -> Codec.Value a -> Codec.Value a
 tagged t c =
     Codec.map snd ((,) ())
-        . fromObjectCodec Permission.Allow
+        . fromObjectCodec Permission.Forbid
         $ (,)
         <$> Codec.project
                 fst

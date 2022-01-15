@@ -23,7 +23,7 @@ instance (Applicative r, Applicative w, Monoid s) => Applicative (Codec r w s i)
     cf <*> cx = Codec
         { decode = decode cf <*> decode cx
         , encode = \i -> encode cf i <*> encode cx i
-        , schema = schema cf <> schema cx -- TODO
+        , schema = schema cf <> schema cx
         }
 
 instance
