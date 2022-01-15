@@ -12,11 +12,13 @@ import qualified Argo.Codec.Object as Codec
 import qualified Argo.Codec.Value as Codec
 import qualified Argo.Json.Array as Array
 import qualified Argo.Json.Boolean as Boolean
+import qualified Argo.Json.Name as Name
 import qualified Argo.Json.Null as Null
 import qualified Argo.Json.Number as Number
 import qualified Argo.Json.Object as Object
 import qualified Argo.Json.String as String
 import qualified Argo.Schema.Schema as Schema
+import qualified Argo.Type.Decimal as Decimal
 import qualified Argo.Type.Permission as Permission
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Builder as Builder
@@ -767,13 +769,6 @@ main = Tasty.defaultMain $ Tasty.testGroup
                 actual =
                     Codec.schema (Argo.codec :: Codec.Value String.String)
             actual @?= expected
-        , Tasty.testCase "maybe boolean" $ do
-            let expected =
-                    Schema.fromValue
-                        [Argo.value| { "oneOf": [ { "type": "boolean" }, { "type": "null" } ] } |]
-                actual = Codec.schema
-                    (Argo.codec :: Codec.Value (Maybe Boolean.Boolean))
-            actual @?= expected
         , Tasty.testCase "array boolean" $ do
             let expected =
                     Schema.fromValue
@@ -793,6 +788,86 @@ main = Tasty.defaultMain $ Tasty.testGroup
                         (Argo.codec :: Codec.Value
                               (Object.Object Boolean.Boolean)
                         )
+            actual @?= expected
+        , Tasty.testCase "maybe boolean" $ do
+            let expected =
+                    Schema.fromValue
+                        [Argo.value| { "oneOf": [ { "type": "boolean" }, { "type": "null" } ] } |]
+                actual = Codec.schema
+                    (Argo.codec :: Codec.Value (Maybe Boolean.Boolean))
+            actual @?= expected
+        , Tasty.testCase "either boolean number" $ pure () -- TODO
+        , Tasty.testCase "()" $ pure () -- TODO
+        , Tasty.testCase "(boolean, number)" $ pure () -- TODO
+        , Tasty.testCase "bool" $ do
+            let expected =
+                    Schema.fromValue [Argo.value| { "type": "boolean" } |]
+                actual = Codec.schema (Argo.codec :: Codec.Value Bool)
+            actual @?= expected
+        , Tasty.testCase "decimal" $ do
+            let expected =
+                    Schema.fromValue [Argo.value| { "type": "number" } |]
+                actual =
+                    Codec.schema (Argo.codec :: Codec.Value Decimal.Decimal)
+            actual @?= expected
+        , Tasty.testCase "text" $ do
+            let expected =
+                    Schema.fromValue [Argo.value| { "type": "string" } |]
+                actual = Codec.schema (Argo.codec :: Codec.Value Text.Text)
+            actual @?= expected
+        , Tasty.testCase "list boolean" $ do
+            let expected =
+                    Schema.fromValue
+                        [Argo.value| { "type": "array", "items": { "type": "boolean" } } |]
+                actual =
+                    Codec.schema (Argo.codec :: Codec.Value [Boolean.Boolean])
+            actual @?= expected
+        , Tasty.testCase "map name boolean" $ do
+            let expected =
+                    Schema.fromValue
+                        [Argo.value| { "type": "object", "additionalProperties": { "type": "boolean" } } |]
+                actual =
+                    Codec.schema
+                        (Argo.codec :: Codec.Value
+                              (Map.Map Name.Name Boolean.Boolean)
+                        )
+            actual @?= expected
+        , Tasty.testCase "string" $ do
+            let expected =
+                    Schema.fromValue [Argo.value| { "type": "string" } |]
+                actual = Codec.schema (Argo.codec :: Codec.Value String)
+            actual @?= expected
+        , Tasty.testCase "char" $ pure () -- TODO
+        , Tasty.testCase "lazy text" $ do
+            let expected =
+                    Schema.fromValue [Argo.value| { "type": "string" } |]
+                actual =
+                    Codec.schema (Argo.codec :: Codec.Value LazyText.Text)
+            actual @?= expected
+        , Tasty.testCase "nonempty boolean" $ pure () -- TODO
+        , Tasty.testCase "integer" $ pure () -- TODO
+        , Tasty.testCase "int" $ pure () -- TODO
+        , Tasty.testCase "int8" $ pure () -- TODO
+        , Tasty.testCase "int16" $ pure () -- TODO
+        , Tasty.testCase "int32" $ pure () -- TODO
+        , Tasty.testCase "int64" $ pure () -- TODO
+        -- TODO: natural?
+        , Tasty.testCase "word" $ pure () -- TODO
+        , Tasty.testCase "word8" $ pure () -- TODO
+        , Tasty.testCase "word16" $ pure () -- TODO
+        , Tasty.testCase "word32" $ pure () -- TODO
+        , Tasty.testCase "word64" $ pure () -- TODO
+        , Tasty.testCase "float" $ pure () -- TODO
+        , Tasty.testCase "double" $ pure () -- TODO
+        , Tasty.testCase "pointer" $ do
+            let expected =
+                    Schema.fromValue [Argo.value| { "type": "string" } |]
+                actual = Codec.schema (Argo.codec :: Codec.Value Argo.Pointer)
+            actual @?= expected
+        , Tasty.testCase "schema" $ do
+            let expected = Schema.fromValue [Argo.value| true |]
+                actual =
+                    Codec.schema (Argo.codec :: Codec.Value Schema.Schema)
             actual @?= expected
         ]
     ]
