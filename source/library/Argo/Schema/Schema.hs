@@ -17,7 +17,7 @@ import qualified Data.Text as Text
 import qualified GHC.Generics as Generics
 
 -- | A JSON Schema.
--- <https://json-schema.org/draft/2020-12/json-schema-core.html>
+-- <https://datatracker.ietf.org/doc/html/draft-handrews-json-schema-01>
 newtype Schema
     = Schema Value.Value
     deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
