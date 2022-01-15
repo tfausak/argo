@@ -837,7 +837,12 @@ main = Tasty.defaultMain $ Tasty.testGroup
                     Schema.fromValue [Argo.value| { "type": "string" } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value String)
             actual @?= expected
-        , Tasty.testCase "char" $ pure () -- TODO
+        , Tasty.testCase "char" $ do
+            let expected =
+                    Schema.fromValue
+                        [Argo.value| { "type": "string", "minLength": 1, "maxLength": 1 } |]
+                actual = Codec.schema (Argo.codec :: Codec.Value Char)
+            actual @?= expected
         , Tasty.testCase "lazy text" $ do
             let expected =
                     Schema.fromValue [Argo.value| { "type": "string" } |]

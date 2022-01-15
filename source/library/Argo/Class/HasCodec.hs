@@ -215,13 +215,30 @@ instance HasCodec String where
     codec = Codec.map Text.unpack Text.pack codec
 
 instance HasCodec Char where
-    codec = Codec.mapMaybe
-        (\x -> case Text.uncons x of
-            Just (y, z) | Text.null z -> Just y
-            _ -> Nothing
-        )
-        (Just . Text.singleton)
-        codec
+    codec =
+        let
+            schema = Schema.fromValue . Value.Object $ Object.fromList
+                [ Member.fromTuple
+                    ( Name.fromString . String.fromText $ Text.pack "type"
+                    , Value.String . String.fromText $ Text.pack "string"
+                    )
+                , Member.fromTuple
+                    ( Name.fromString . String.fromText $ Text.pack "minLength"
+                    , Value.Number . Number.fromDecimal $ Decimal.fromInteger 1
+                    )
+                , Member.fromTuple
+                    ( Name.fromString . String.fromText $ Text.pack "maxLength"
+                    , Value.Number . Number.fromDecimal $ Decimal.fromInteger 1
+                    )
+                ]
+        in
+            Codec.mapMaybe
+                (\x -> case Text.uncons x of
+                    Just (y, z) | Text.null z -> Just y
+                    _ -> Nothing
+                )
+                (Just . Text.singleton)
+                codec { Codec.schema = schema }
 
 instance HasCodec Text.LazyText where
     codec = Codec.map Text.fromStrict Text.toStrict codec
