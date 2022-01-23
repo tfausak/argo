@@ -13,6 +13,9 @@ newtype Identifier
     = Identifier Text.Text
     deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
 
+instance Semigroup Identifier where
+    x <> y = fromText $ toText x <> toText y -- TODO: remove this
+
 fromText :: Text.Text -> Identifier
 fromText = Identifier
 

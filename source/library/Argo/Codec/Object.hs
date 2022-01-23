@@ -11,6 +11,7 @@ import qualified Argo.Json.Null as Null
 import qualified Argo.Json.Object as Object
 import qualified Argo.Json.String as String
 import qualified Argo.Json.Value as Value
+import qualified Argo.Schema.Identifier as Identifier
 import qualified Argo.Schema.Schema as Schema
 import qualified Argo.Type.Permission as Permission
 import qualified Argo.Vendor.Text as Text
@@ -22,7 +23,11 @@ import qualified Data.Maybe as Maybe
 
 type Object a
     = Codec.List
-          [(Name.Name, Bool, Identity.Identity Schema.Schema)]
+          [ ( Name.Name
+            , Bool
+            , Identity.Identity (Maybe Identifier.Identifier, Schema.Schema)
+            )
+          ]
           (Member.Member Value.Value)
           a
 
@@ -36,38 +41,47 @@ fromObjectCodec =
                         pure (k, r, t)
                     )
                     schemasM
-                pure . Schema.fromValue . Value.Object $ Object.fromList
-                    [ Member.fromTuple
-                        ( Name.fromString . String.fromText $ Text.pack "type"
-                        , Value.String . String.fromText $ Text.pack "object"
-                        )
-                    , Member.fromTuple
-                        ( Name.fromString . String.fromText $ Text.pack
-                            "properties"
-                        , Value.Object . Object.fromList $ fmap
-                            (\(k, _, s) ->
-                                Member.fromTuple (k, Schema.toValue s)
-                            )
-                            schemas
-                        )
-                    , Member.fromTuple
-                        ( Name.fromString . String.fromText $ Text.pack
-                            "required"
-                        , Value.Array . Array.fromList $ Maybe.mapMaybe
-                            (\(k, r, _) -> if r
-                                then Just . Value.String $ Name.toString k
-                                else Nothing
-                            )
-                            schemas
-                        )
-                    , Member.fromTuple
-                        ( Name.fromString . String.fromText $ Text.pack
-                            "additionalProperties"
-                        , Value.Boolean . Boolean.fromBool $ case permission of
-                            Permission.Allow -> True
-                            Permission.Forbid -> False
-                        )
-                    ]
+                pure
+                    . (,) Nothing
+                    . Schema.fromValue
+                    . Value.Object
+                    $ Object.fromList
+                          [ Member.fromTuple
+                              ( Name.fromString . String.fromText $ Text.pack
+                                  "type"
+                              , Value.String . String.fromText $ Text.pack
+                                  "object"
+                              )
+                          , Member.fromTuple
+                              ( Name.fromString . String.fromText $ Text.pack
+                                  "properties"
+                              , Value.Object . Object.fromList $ fmap
+                                  (\(k, _, (_, s)) ->
+                                      Member.fromTuple (k, Schema.toValue s)
+                                  )
+                                  schemas
+                              )
+                          , Member.fromTuple
+                              ( Name.fromString . String.fromText $ Text.pack
+                                  "required"
+                              , Value.Array . Array.fromList $ Maybe.mapMaybe
+                                  (\(k, r, _) -> if r
+                                      then Just . Value.String $ Name.toString
+                                          k
+                                      else Nothing
+                                  )
+                                  schemas
+                              )
+                          , Member.fromTuple
+                              ( Name.fromString . String.fromText $ Text.pack
+                                  "additionalProperties"
+                              , Value.Boolean
+                              . Boolean.fromBool
+                              $ case permission of
+                                    Permission.Allow -> True
+                                    Permission.Forbid -> False
+                              )
+                          ]
             )
         $ Codec.map Object.toList Object.fromList Codec.objectCodec
 
