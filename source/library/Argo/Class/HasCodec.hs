@@ -262,13 +262,27 @@ instance
     codec =
         Codec.fromArrayCodec Permission.Forbid
             $ (,,,,,,)
-            <$> Codec.project (\(a, _, _, _, _, _, _) -> a) (Codec.element codec)
-            <*> Codec.project (\(_, b, _, _, _, _, _) -> b) (Codec.element codec)
-            <*> Codec.project (\(_, _, c, _, _, _, _) -> c) (Codec.element codec)
-            <*> Codec.project (\(_, _, _, d, _, _, _) -> d) (Codec.element codec)
-            <*> Codec.project (\(_, _, _, _, e, _, _) -> e) (Codec.element codec)
-            <*> Codec.project (\(_, _, _, _, _, f, _) -> f) (Codec.element codec)
-            <*> Codec.project (\(_, _, _, _, _, _, g) -> g) (Codec.element codec)
+            <$> Codec.project
+                    (\(a, _, _, _, _, _, _) -> a)
+                    (Codec.element codec)
+            <*> Codec.project
+                    (\(_, b, _, _, _, _, _) -> b)
+                    (Codec.element codec)
+            <*> Codec.project
+                    (\(_, _, c, _, _, _, _) -> c)
+                    (Codec.element codec)
+            <*> Codec.project
+                    (\(_, _, _, d, _, _, _) -> d)
+                    (Codec.element codec)
+            <*> Codec.project
+                    (\(_, _, _, _, e, _, _) -> e)
+                    (Codec.element codec)
+            <*> Codec.project
+                    (\(_, _, _, _, _, f, _) -> f)
+                    (Codec.element codec)
+            <*> Codec.project
+                    (\(_, _, _, _, _, _, g) -> g)
+                    (Codec.element codec)
 
 instance
     ( HasCodec a
@@ -283,14 +297,30 @@ instance
     codec =
         Codec.fromArrayCodec Permission.Forbid
             $ (,,,,,,,)
-            <$> Codec.project (\(a, _, _, _, _, _, _, _) -> a) (Codec.element codec)
-            <*> Codec.project (\(_, b, _, _, _, _, _, _) -> b) (Codec.element codec)
-            <*> Codec.project (\(_, _, c, _, _, _, _, _) -> c) (Codec.element codec)
-            <*> Codec.project (\(_, _, _, d, _, _, _, _) -> d) (Codec.element codec)
-            <*> Codec.project (\(_, _, _, _, e, _, _, _) -> e) (Codec.element codec)
-            <*> Codec.project (\(_, _, _, _, _, f, _, _) -> f) (Codec.element codec)
-            <*> Codec.project (\(_, _, _, _, _, _, g, _) -> g) (Codec.element codec)
-            <*> Codec.project (\(_, _, _, _, _, _, _, h) -> h) (Codec.element codec)
+            <$> Codec.project
+                    (\(a, _, _, _, _, _, _, _) -> a)
+                    (Codec.element codec)
+            <*> Codec.project
+                    (\(_, b, _, _, _, _, _, _) -> b)
+                    (Codec.element codec)
+            <*> Codec.project
+                    (\(_, _, c, _, _, _, _, _) -> c)
+                    (Codec.element codec)
+            <*> Codec.project
+                    (\(_, _, _, d, _, _, _, _) -> d)
+                    (Codec.element codec)
+            <*> Codec.project
+                    (\(_, _, _, _, e, _, _, _) -> e)
+                    (Codec.element codec)
+            <*> Codec.project
+                    (\(_, _, _, _, _, f, _, _) -> f)
+                    (Codec.element codec)
+            <*> Codec.project
+                    (\(_, _, _, _, _, _, g, _) -> g)
+                    (Codec.element codec)
+            <*> Codec.project
+                    (\(_, _, _, _, _, _, _, h) -> h)
+                    (Codec.element codec)
 
 instance HasCodec Bool where
     codec = Codec.map Boolean.toBool Boolean.fromBool codec
