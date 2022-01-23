@@ -41,9 +41,7 @@ jobs:
 
       - run: cabal freeze
 
-      - run: cat cabal.project.freeze
-
-      - run: cp cabal.project.freeze ${{ steps.artifact.outputs.directory }}
+      - run: cat cabal.project.freeze | tee ${{ steps.artifact.outputs.directory }}
 
       - uses: actions/cache@v2
         with:
