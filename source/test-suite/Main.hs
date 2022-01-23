@@ -810,15 +810,98 @@ main = Tasty.defaultMain $ Tasty.testGroup
                         [Argo.value| { "type": "array", "items": [], "additionalItems": false } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value ())
             actual @?= expected
-        , Tasty.testCase "(boolean, number)" $ do
-            let expected =
-                    Schema.fromValue
-                        [Argo.value| { "type": "array", "items": [ { "type": "boolean" }, { "type": "number" } ], "additionalItems": false } |]
+        , Tasty.testCase "2-tuple" $ do
+            let expected = Schema.fromValue
+                    [Argo.value| { "type": "array", "items":
+                        [ { "type": "boolean" }
+                        , { "type": "boolean" }
+                        ], "additionalItems": false } |]
+                actual = Codec.schema (Argo.codec :: Codec.Value (Bool, Bool))
+            actual @?= expected
+        , Tasty.testCase "3-tuple" $ do
+            let expected = Schema.fromValue
+                    [Argo.value| { "type": "array", "items":
+                        [ { "type": "boolean" }
+                        , { "type": "boolean" }
+                        , { "type": "boolean" }
+                        ], "additionalItems": false } |]
+                actual =
+                    Codec.schema (Argo.codec :: Codec.Value (Bool, Bool, Bool))
+            actual @?= expected
+        , Tasty.testCase "4-tuple" $ do
+            let expected = Schema.fromValue
+                    [Argo.value| { "type": "array", "items":
+                        [ { "type": "boolean" }
+                        , { "type": "boolean" }
+                        , { "type": "boolean" }
+                        , { "type": "boolean" }
+                        ], "additionalItems": false } |]
+                actual = Codec.schema
+                    (Argo.codec :: Codec.Value (Bool, Bool, Bool, Bool))
+            actual @?= expected
+        , Tasty.testCase "5-tuple" $ do
+            let expected = Schema.fromValue
+                    [Argo.value| { "type": "array", "items":
+                        [ { "type": "boolean" }
+                        , { "type": "boolean" }
+                        , { "type": "boolean" }
+                        , { "type": "boolean" }
+                        , { "type": "boolean" }
+                        ], "additionalItems": false } |]
                 actual =
                     Codec.schema
                         (Argo.codec :: Codec.Value
-                              (Boolean.Boolean, Number.Number)
+                              (Bool, Bool, Bool, Bool, Bool)
                         )
+            actual @?= expected
+        , Tasty.testCase "6-tuple" $ do
+            let expected = Schema.fromValue
+                    [Argo.value| { "type": "array", "items":
+                        [ { "type": "boolean" }
+                        , { "type": "boolean" }
+                        , { "type": "boolean" }
+                        , { "type": "boolean" }
+                        , { "type": "boolean" }
+                        , { "type": "boolean" }
+                        ], "additionalItems": false } |]
+                actual =
+                    Codec.schema
+                        (Argo.codec :: Codec.Value
+                              (Bool, Bool, Bool, Bool, Bool, Bool)
+                        )
+            actual @?= expected
+        , Tasty.testCase "7-tuple" $ do
+            let expected = Schema.fromValue
+                    [Argo.value| { "type": "array", "items":
+                        [ { "type": "boolean" }
+                        , { "type": "boolean" }
+                        , { "type": "boolean" }
+                        , { "type": "boolean" }
+                        , { "type": "boolean" }
+                        , { "type": "boolean" }
+                        , { "type": "boolean" }
+                        ], "additionalItems": false } |]
+                actual = Codec.schema
+                    (Argo.codec :: Codec.Value
+                          (Bool, Bool, Bool, Bool, Bool, Bool, Bool)
+                    )
+            actual @?= expected
+        , Tasty.testCase "8-tuple" $ do
+            let expected = Schema.fromValue
+                    [Argo.value| { "type": "array", "items":
+                        [ { "type": "boolean" }
+                        , { "type": "boolean" }
+                        , { "type": "boolean" }
+                        , { "type": "boolean" }
+                        , { "type": "boolean" }
+                        , { "type": "boolean" }
+                        , { "type": "boolean" }
+                        , { "type": "boolean" }
+                        ], "additionalItems": false } |]
+                actual = Codec.schema
+                    (Argo.codec :: Codec.Value
+                          (Bool, Bool, Bool, Bool, Bool, Bool, Bool, Bool)
+                    )
             actual @?= expected
         , Tasty.testCase "bool" $ do
             let expected = [Argo.schema| { "type": "boolean" } |]
