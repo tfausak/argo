@@ -922,6 +922,44 @@ main = Tasty.defaultMain $ Tasty.testGroup
                               (Map.Map Name.Name Boolean.Boolean)
                         )
             actual @?= expected
+        , Tasty.testCase "map (argo) string boolean" $ do
+            let expected =
+                    Schema.fromValue
+                        [Argo.value| { "type": "object", "additionalProperties": { "type": "boolean" } } |]
+                actual = Codec.schema
+                    (Argo.codec :: Codec.Value
+                          (Map.Map String.String Boolean.Boolean)
+                    )
+            actual @?= expected
+        , Tasty.testCase "map (strict) text boolean" $ do
+            let expected =
+                    Schema.fromValue
+                        [Argo.value| { "type": "object", "additionalProperties": { "type": "boolean" } } |]
+                actual =
+                    Codec.schema
+                        (Argo.codec :: Codec.Value
+                              (Map.Map Text.Text Boolean.Boolean)
+                        )
+            actual @?= expected
+        , Tasty.testCase "map (lazy) text boolean" $ do
+            let expected =
+                    Schema.fromValue
+                        [Argo.value| { "type": "object", "additionalProperties": { "type": "boolean" } } |]
+                actual = Codec.schema
+                    (Argo.codec :: Codec.Value
+                          (Map.Map LazyText.Text Boolean.Boolean)
+                    )
+            actual @?= expected
+        , Tasty.testCase "map (base) string boolean" $ do
+            let expected =
+                    Schema.fromValue
+                        [Argo.value| { "type": "object", "additionalProperties": { "type": "boolean" } } |]
+                actual =
+                    Codec.schema
+                        (Argo.codec :: Codec.Value
+                              (Map.Map String Boolean.Boolean)
+                        )
+            actual @?= expected
         , Tasty.testCase "string" $ do
             let expected = [Argo.schema| { "type": "string" } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value String)
