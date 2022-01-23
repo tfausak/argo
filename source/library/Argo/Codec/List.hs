@@ -17,7 +17,7 @@ type List s e a
           a
 
 fromListCodec
-    :: (Permission.Permission -> s -> Schema.Schema)
+    :: (Permission.Permission -> s -> Identity.Identity Schema.Schema)
     -> Codec.Value [e]
     -> Permission.Permission
     -> List s e a

@@ -23,6 +23,7 @@ import qualified Argo.Type.Permission as Permission
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Builder as Builder
 import qualified Data.ByteString.Lazy as LazyByteString
+import qualified Data.Functor.Identity as Identity
 import qualified Data.Int as Int
 import qualified Data.Map as Map
 import qualified Data.Text as Text
@@ -734,32 +735,36 @@ main = Tasty.defaultMain $ Tasty.testGroup
     , Tasty.testGroup
         "Schema"
         [ Tasty.testCase "value" $ do
-            let expected = [Argo.schema| true |]
+            let expected = Identity.Identity [Argo.schema| true |]
                 actual = Codec.schema (Argo.codec :: Codec.Value Argo.Value)
             actual @?= expected
         , Tasty.testCase "null" $ do
-            let expected = [Argo.schema| { "type": "null" } |]
+            let expected =
+                    Identity.Identity [Argo.schema| { "type": "null" } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value Null.Null)
             actual @?= expected
         , Tasty.testCase "boolean" $ do
-            let expected = [Argo.schema| { "type": "boolean" } |]
+            let expected =
+                    Identity.Identity [Argo.schema| { "type": "boolean" } |]
                 actual =
                     Codec.schema (Argo.codec :: Codec.Value Boolean.Boolean)
             actual @?= expected
         , Tasty.testCase "number" $ do
-            let expected = [Argo.schema| { "type": "number" } |]
+            let expected =
+                    Identity.Identity [Argo.schema| { "type": "number" } |]
                 actual =
                     Codec.schema (Argo.codec :: Codec.Value Number.Number)
             actual @?= expected
         , Tasty.testCase "string" $ do
-            let expected = [Argo.schema| { "type": "string" } |]
+            let expected =
+                    Identity.Identity [Argo.schema| { "type": "string" } |]
                 actual =
                     Codec.schema (Argo.codec :: Codec.Value String.String)
             actual @?= expected
         , Tasty.testCase "array boolean" $ do
             let expected =
-                    Schema.fromValue
-                        [Argo.value| { "type": "array", "items": { "type": "boolean" } } |]
+                    Identity.Identity
+                        [Argo.schema| { "type": "array", "items": { "type": "boolean" } } |]
                 actual =
                     Codec.schema
                         (Argo.codec :: Codec.Value
@@ -768,8 +773,8 @@ main = Tasty.defaultMain $ Tasty.testGroup
             actual @?= expected
         , Tasty.testCase "object boolean" $ do
             let expected =
-                    Schema.fromValue
-                        [Argo.value| { "type": "object", "additionalProperties": { "type": "boolean" } } |]
+                    Identity.Identity
+                        [Argo.schema| { "type": "object", "additionalProperties": { "type": "boolean" } } |]
                 actual =
                     Codec.schema
                         (Argo.codec :: Codec.Value
@@ -778,15 +783,15 @@ main = Tasty.defaultMain $ Tasty.testGroup
             actual @?= expected
         , Tasty.testCase "maybe boolean" $ do
             let expected =
-                    Schema.fromValue
-                        [Argo.value| { "oneOf": [ { "type": "boolean" }, { "type": "null" } ] } |]
+                    Identity.Identity
+                        [Argo.schema| { "oneOf": [ { "type": "boolean" }, { "type": "null" } ] } |]
                 actual = Codec.schema
                     (Argo.codec :: Codec.Value (Maybe Boolean.Boolean))
             actual @?= expected
         , Tasty.testCase "either boolean number" $ do
             let expected =
-                    Schema.fromValue
-                        [Argo.value| { "oneOf": [ { "type": "object", "properties": { "type": { "const": "Left" }, "value": { "type": "boolean" } }, "required": [ "type", "value" ], "additionalProperties": false }, { "type": "object", "properties": { "type": { "const": "Right" }, "value": { "type": "number" } }, "required": [ "type", "value" ], "additionalProperties": false } ] } |]
+                    Identity.Identity
+                        [Argo.schema| { "oneOf": [ { "type": "object", "properties": { "type": { "const": "Left" }, "value": { "type": "boolean" } }, "required": [ "type", "value" ], "additionalProperties": false }, { "type": "object", "properties": { "type": { "const": "Right" }, "value": { "type": "number" } }, "required": [ "type", "value" ], "additionalProperties": false } ] } |]
                 actual =
                     Codec.schema
                         (Argo.codec :: Codec.Value
@@ -795,21 +800,21 @@ main = Tasty.defaultMain $ Tasty.testGroup
             actual @?= expected
         , Tasty.testCase "()" $ do
             let expected =
-                    Schema.fromValue
-                        [Argo.value| { "type": "array", "items": [], "additionalItems": false } |]
+                    Identity.Identity
+                        [Argo.schema| { "type": "array", "items": [], "additionalItems": false } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value ())
             actual @?= expected
         , Tasty.testCase "2-tuple" $ do
-            let expected = Schema.fromValue
-                    [Argo.value| { "type": "array", "items":
+            let expected = Identity.Identity
+                    [Argo.schema| { "type": "array", "items":
                         [ { "type": "boolean" }
                         , { "type": "boolean" }
                         ], "additionalItems": false } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value (Bool, Bool))
             actual @?= expected
         , Tasty.testCase "3-tuple" $ do
-            let expected = Schema.fromValue
-                    [Argo.value| { "type": "array", "items":
+            let expected = Identity.Identity
+                    [Argo.schema| { "type": "array", "items":
                         [ { "type": "boolean" }
                         , { "type": "boolean" }
                         , { "type": "boolean" }
@@ -818,8 +823,8 @@ main = Tasty.defaultMain $ Tasty.testGroup
                     Codec.schema (Argo.codec :: Codec.Value (Bool, Bool, Bool))
             actual @?= expected
         , Tasty.testCase "4-tuple" $ do
-            let expected = Schema.fromValue
-                    [Argo.value| { "type": "array", "items":
+            let expected = Identity.Identity
+                    [Argo.schema| { "type": "array", "items":
                         [ { "type": "boolean" }
                         , { "type": "boolean" }
                         , { "type": "boolean" }
@@ -829,8 +834,8 @@ main = Tasty.defaultMain $ Tasty.testGroup
                     (Argo.codec :: Codec.Value (Bool, Bool, Bool, Bool))
             actual @?= expected
         , Tasty.testCase "5-tuple" $ do
-            let expected = Schema.fromValue
-                    [Argo.value| { "type": "array", "items":
+            let expected = Identity.Identity
+                    [Argo.schema| { "type": "array", "items":
                         [ { "type": "boolean" }
                         , { "type": "boolean" }
                         , { "type": "boolean" }
@@ -844,8 +849,8 @@ main = Tasty.defaultMain $ Tasty.testGroup
                         )
             actual @?= expected
         , Tasty.testCase "6-tuple" $ do
-            let expected = Schema.fromValue
-                    [Argo.value| { "type": "array", "items":
+            let expected = Identity.Identity
+                    [Argo.schema| { "type": "array", "items":
                         [ { "type": "boolean" }
                         , { "type": "boolean" }
                         , { "type": "boolean" }
@@ -860,8 +865,8 @@ main = Tasty.defaultMain $ Tasty.testGroup
                         )
             actual @?= expected
         , Tasty.testCase "7-tuple" $ do
-            let expected = Schema.fromValue
-                    [Argo.value| { "type": "array", "items":
+            let expected = Identity.Identity
+                    [Argo.schema| { "type": "array", "items":
                         [ { "type": "boolean" }
                         , { "type": "boolean" }
                         , { "type": "boolean" }
@@ -876,8 +881,8 @@ main = Tasty.defaultMain $ Tasty.testGroup
                     )
             actual @?= expected
         , Tasty.testCase "8-tuple" $ do
-            let expected = Schema.fromValue
-                    [Argo.value| { "type": "array", "items":
+            let expected = Identity.Identity
+                    [Argo.schema| { "type": "array", "items":
                         [ { "type": "boolean" }
                         , { "type": "boolean" }
                         , { "type": "boolean" }
@@ -893,29 +898,32 @@ main = Tasty.defaultMain $ Tasty.testGroup
                     )
             actual @?= expected
         , Tasty.testCase "bool" $ do
-            let expected = [Argo.schema| { "type": "boolean" } |]
+            let expected =
+                    Identity.Identity [Argo.schema| { "type": "boolean" } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value Bool)
             actual @?= expected
         , Tasty.testCase "decimal" $ do
-            let expected = [Argo.schema| { "type": "number" } |]
+            let expected =
+                    Identity.Identity [Argo.schema| { "type": "number" } |]
                 actual =
                     Codec.schema (Argo.codec :: Codec.Value Decimal.Decimal)
             actual @?= expected
         , Tasty.testCase "text" $ do
-            let expected = [Argo.schema| { "type": "string" } |]
+            let expected =
+                    Identity.Identity [Argo.schema| { "type": "string" } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value Text.Text)
             actual @?= expected
         , Tasty.testCase "list boolean" $ do
             let expected =
-                    Schema.fromValue
-                        [Argo.value| { "type": "array", "items": { "type": "boolean" } } |]
+                    Identity.Identity
+                        [Argo.schema| { "type": "array", "items": { "type": "boolean" } } |]
                 actual =
                     Codec.schema (Argo.codec :: Codec.Value [Boolean.Boolean])
             actual @?= expected
         , Tasty.testCase "map name boolean" $ do
             let expected =
-                    Schema.fromValue
-                        [Argo.value| { "type": "object", "additionalProperties": { "type": "boolean" } } |]
+                    Identity.Identity
+                        [Argo.schema| { "type": "object", "additionalProperties": { "type": "boolean" } } |]
                 actual =
                     Codec.schema
                         (Argo.codec :: Codec.Value
@@ -924,8 +932,8 @@ main = Tasty.defaultMain $ Tasty.testGroup
             actual @?= expected
         , Tasty.testCase "map (argo) string boolean" $ do
             let expected =
-                    Schema.fromValue
-                        [Argo.value| { "type": "object", "additionalProperties": { "type": "boolean" } } |]
+                    Identity.Identity
+                        [Argo.schema| { "type": "object", "additionalProperties": { "type": "boolean" } } |]
                 actual = Codec.schema
                     (Argo.codec :: Codec.Value
                           (Map.Map String.String Boolean.Boolean)
@@ -933,8 +941,8 @@ main = Tasty.defaultMain $ Tasty.testGroup
             actual @?= expected
         , Tasty.testCase "map (strict) text boolean" $ do
             let expected =
-                    Schema.fromValue
-                        [Argo.value| { "type": "object", "additionalProperties": { "type": "boolean" } } |]
+                    Identity.Identity
+                        [Argo.schema| { "type": "object", "additionalProperties": { "type": "boolean" } } |]
                 actual =
                     Codec.schema
                         (Argo.codec :: Codec.Value
@@ -943,8 +951,8 @@ main = Tasty.defaultMain $ Tasty.testGroup
             actual @?= expected
         , Tasty.testCase "map (lazy) text boolean" $ do
             let expected =
-                    Schema.fromValue
-                        [Argo.value| { "type": "object", "additionalProperties": { "type": "boolean" } } |]
+                    Identity.Identity
+                        [Argo.schema| { "type": "object", "additionalProperties": { "type": "boolean" } } |]
                 actual = Codec.schema
                     (Argo.codec :: Codec.Value
                           (Map.Map LazyText.Text Boolean.Boolean)
@@ -952,8 +960,8 @@ main = Tasty.defaultMain $ Tasty.testGroup
             actual @?= expected
         , Tasty.testCase "map (base) string boolean" $ do
             let expected =
-                    Schema.fromValue
-                        [Argo.value| { "type": "object", "additionalProperties": { "type": "boolean" } } |]
+                    Identity.Identity
+                        [Argo.schema| { "type": "object", "additionalProperties": { "type": "boolean" } } |]
                 actual =
                     Codec.schema
                         (Argo.codec :: Codec.Value
@@ -961,117 +969,124 @@ main = Tasty.defaultMain $ Tasty.testGroup
                         )
             actual @?= expected
         , Tasty.testCase "string" $ do
-            let expected = [Argo.schema| { "type": "string" } |]
+            let expected =
+                    Identity.Identity [Argo.schema| { "type": "string" } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value String)
             actual @?= expected
         , Tasty.testCase "char" $ do
             let expected =
-                    Schema.fromValue
-                        [Argo.value| { "type": "string", "minLength": 1, "maxLength": 1 } |]
+                    Identity.Identity
+                        [Argo.schema| { "type": "string", "minLength": 1, "maxLength": 1 } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value Char)
             actual @?= expected
         , Tasty.testCase "lazy text" $ do
-            let expected = [Argo.schema| { "type": "string" } |]
+            let expected =
+                    Identity.Identity [Argo.schema| { "type": "string" } |]
                 actual =
                     Codec.schema (Argo.codec :: Codec.Value LazyText.Text)
             actual @?= expected
         , Tasty.testCase "list boolean" $ do
             let expected =
-                    Schema.fromValue
-                        [Argo.value| { "type": "array", "items": { "type": "boolean" }, "minItems": 1 } |]
+                    Identity.Identity
+                        [Argo.schema| { "type": "array", "items": { "type": "boolean" }, "minItems": 1 } |]
                 actual = Codec.schema
                     (Argo.codec :: Codec.Value (NonEmpty Boolean.Boolean))
             actual @?= expected
         , Tasty.testCase "integer" $ do
-            let expected = [Argo.schema| { "type": "integer" } |]
+            let expected =
+                    Identity.Identity [Argo.schema| { "type": "integer" } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value Integer)
             actual @?= expected
         , Tasty.testCase "int" $ do
             let expected =
-                    Schema.fromValue
-                        [Argo.value| { "type": "integer", "minimum": -9223372036854775808, "maximum": 9223372036854775807 } |]
+                    Identity.Identity
+                        [Argo.schema| { "type": "integer", "minimum": -9223372036854775808, "maximum": 9223372036854775807 } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value Int)
             actual @?= expected
         , Tasty.testCase "int8" $ do
             let expected =
-                    Schema.fromValue
-                        [Argo.value| { "type": "integer", "minimum": -128, "maximum": 127 } |]
+                    Identity.Identity
+                        [Argo.schema| { "type": "integer", "minimum": -128, "maximum": 127 } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value Int.Int8)
             actual @?= expected
         , Tasty.testCase "int16" $ do
             let expected =
-                    Schema.fromValue
-                        [Argo.value| { "type": "integer", "minimum": -32768, "maximum": 32767 } |]
+                    Identity.Identity
+                        [Argo.schema| { "type": "integer", "minimum": -32768, "maximum": 32767 } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value Int.Int16)
             actual @?= expected
         , Tasty.testCase "int32" $ do
             let expected =
-                    Schema.fromValue
-                        [Argo.value| { "type": "integer", "minimum": -2147483648, "maximum": 2147483647 } |]
+                    Identity.Identity
+                        [Argo.schema| { "type": "integer", "minimum": -2147483648, "maximum": 2147483647 } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value Int.Int32)
             actual @?= expected
         , Tasty.testCase "int64" $ do
             let expected =
-                    Schema.fromValue
-                        [Argo.value| { "type": "integer", "minimum": -9223372036854775808, "maximum": 9223372036854775807 } |]
+                    Identity.Identity
+                        [Argo.schema| { "type": "integer", "minimum": -9223372036854775808, "maximum": 9223372036854775807 } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value Int.Int64)
             actual @?= expected
         , Tasty.testCase "natural" $ do
-            let expected = Schema.fromValue
-                    [Argo.value| { "type": "integer", "minimum": 0 } |]
+            let expected = Identity.Identity
+                    [Argo.schema| { "type": "integer", "minimum": 0 } |]
                 actual =
                     Codec.schema (Argo.codec :: Codec.Value Natural.Natural)
             actual @?= expected
         , Tasty.testCase "word" $ do
             let expected =
-                    Schema.fromValue
-                        [Argo.value| { "type": "integer", "minimum": 0, "maximum": 18446744073709551615 } |]
+                    Identity.Identity
+                        [Argo.schema| { "type": "integer", "minimum": 0, "maximum": 18446744073709551615 } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value Word)
             actual @?= expected
         , Tasty.testCase "word8" $ do
             let expected =
-                    Schema.fromValue
-                        [Argo.value| { "type": "integer", "minimum": 0, "maximum": 255 } |]
+                    Identity.Identity
+                        [Argo.schema| { "type": "integer", "minimum": 0, "maximum": 255 } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value Word.Word8)
             actual @?= expected
         , Tasty.testCase "word16" $ do
             let expected =
-                    Schema.fromValue
-                        [Argo.value| { "type": "integer", "minimum": 0, "maximum": 65535 } |]
+                    Identity.Identity
+                        [Argo.schema| { "type": "integer", "minimum": 0, "maximum": 65535 } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value Word.Word16)
             actual @?= expected
         , Tasty.testCase "word32" $ do
             let expected =
-                    Schema.fromValue
-                        [Argo.value| { "type": "integer", "minimum": 0, "maximum": 4294967295 } |]
+                    Identity.Identity
+                        [Argo.schema| { "type": "integer", "minimum": 0, "maximum": 4294967295 } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value Word.Word32)
             actual @?= expected
         , Tasty.testCase "word64" $ do
             let expected =
-                    Schema.fromValue
-                        [Argo.value| { "type": "integer", "minimum": 0, "maximum": 18446744073709551615 } |]
+                    Identity.Identity
+                        [Argo.schema| { "type": "integer", "minimum": 0, "maximum": 18446744073709551615 } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value Word.Word64)
             actual @?= expected
         , Tasty.testCase "float" $ do
-            let expected = [Argo.schema| { "type": "number" } |]
+            let expected =
+                    Identity.Identity [Argo.schema| { "type": "number" } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value Float)
             actual @?= expected
         , Tasty.testCase "double" $ do
-            let expected = [Argo.schema| { "type": "number" } |]
+            let expected =
+                    Identity.Identity [Argo.schema| { "type": "number" } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value Double)
             actual @?= expected
         , Tasty.testCase "pointer" $ do
-            let expected = [Argo.schema| { "type": "string" } |]
+            let expected =
+                    Identity.Identity [Argo.schema| { "type": "string" } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value Argo.Pointer)
             actual @?= expected
         , Tasty.testCase "schema" $ do
-            let expected = [Argo.schema| true |]
+            let expected = Identity.Identity [Argo.schema| true |]
                 actual =
                     Codec.schema (Argo.codec :: Codec.Value Schema.Schema)
             actual @?= expected
         , Tasty.testCase "record" $ do
-            let expected
-                    = [Argo.schema| { "type": "object", "properties": { "bool": { "type": "boolean" }, "text": { "type": "string" } }, "required": [ "bool" ], "additionalProperties": true } |]
+            let expected =
+                    Identity.Identity
+                        [Argo.schema| { "type": "object", "properties": { "bool": { "type": "boolean" }, "text": { "type": "string" } }, "required": [ "bool" ], "additionalProperties": true } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value Record)
             actual @?= expected
         ]
@@ -1079,7 +1094,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
         $ let codec = Argo.codec :: Codec.Value T1
           in
               [ Tasty.testCase "schema" $ do
-                  let expected = [Argo.schema|
+                  let expected = Identity.Identity [Argo.schema|
                             {
                                 "type": "object",
                                 "properties": {

@@ -44,64 +44,64 @@ instance HasCodec Value.Value where
     codec = Codec.Codec
         { Codec.decode = Trans.ask
         , Codec.encode = Codec.tap $ Trans.lift . Trans.put
-        , Codec.schema = Schema.true
+        , Codec.schema = pure Schema.true
         }
 
 instance HasCodec Null.Null where
     codec =
         let
-            schema = Schema.fromValue . Value.Object $ Object.fromList
+            schema :: Identity.Identity Schema.Schema
+            schema = pure . Schema.fromValue . Value.Object $ Object.fromList
                 [ Member.fromTuple
                       ( Name.fromString . String.fromText $ Text.pack "type"
                       , Value.String . String.fromText $ Text.pack "null"
                       )
                 ]
-        in
-            basicCodec "Null" schema Value.Null $ \value -> case value of
-                Value.Null null_ -> Just null_
-                _ -> Nothing
+        in basicCodec "Null" schema Value.Null $ \value -> case value of
+            Value.Null null_ -> Just null_
+            _ -> Nothing
 
 instance HasCodec Boolean.Boolean where
     codec =
         let
-            schema = Schema.fromValue . Value.Object $ Object.fromList
+            schema :: Identity.Identity Schema.Schema
+            schema = pure . Schema.fromValue . Value.Object $ Object.fromList
                 [ Member.fromTuple
                       ( Name.fromString . String.fromText $ Text.pack "type"
                       , Value.String . String.fromText $ Text.pack "boolean"
                       )
                 ]
-        in
-            basicCodec "Boolean" schema Value.Boolean $ \value -> case value of
-                Value.Boolean boolean -> Just boolean
-                _ -> Nothing
+        in basicCodec "Boolean" schema Value.Boolean $ \value -> case value of
+            Value.Boolean boolean -> Just boolean
+            _ -> Nothing
 
 instance HasCodec Number.Number where
     codec =
         let
-            schema = Schema.fromValue . Value.Object $ Object.fromList
+            schema :: Identity.Identity Schema.Schema
+            schema = pure . Schema.fromValue . Value.Object $ Object.fromList
                 [ Member.fromTuple
                       ( Name.fromString . String.fromText $ Text.pack "type"
                       , Value.String . String.fromText $ Text.pack "number"
                       )
                 ]
-        in
-            basicCodec "Number" schema Value.Number $ \value -> case value of
-                Value.Number number -> Just number
-                _ -> Nothing
+        in basicCodec "Number" schema Value.Number $ \value -> case value of
+            Value.Number number -> Just number
+            _ -> Nothing
 
 instance HasCodec String.String where
     codec =
         let
-            schema = Schema.fromValue . Value.Object $ Object.fromList
+            schema :: Identity.Identity Schema.Schema
+            schema = pure . Schema.fromValue . Value.Object $ Object.fromList
                 [ Member.fromTuple
                       ( Name.fromString . String.fromText $ Text.pack "type"
                       , Value.String . String.fromText $ Text.pack "string"
                       )
                 ]
-        in
-            basicCodec "String" schema Value.String $ \value -> case value of
-                Value.String string -> Just string
-                _ -> Nothing
+        in basicCodec "String" schema Value.String $ \value -> case value of
+            Value.String string -> Just string
+            _ -> Nothing
 
 instance HasCodec a => HasCodec (Array.Array a) where
     codec = Codec.Codec
@@ -120,16 +120,18 @@ instance HasCodec a => HasCodec (Array.Array a) where
             . Array.fromList
             . fmap (Codec.encodeWith codec)
             . Array.toList
-        , Codec.schema = Schema.fromValue . Value.Object $ Object.fromList
-            [ Member.fromTuple
-                ( Name.fromString . String.fromText $ Text.pack "type"
-                , Value.String . String.fromText $ Text.pack "array"
-                )
-            , Member.fromTuple
-                ( Name.fromString . String.fromText $ Text.pack "items"
-                , Schema.toValue $ Codec.schema (codec :: Codec.Value a)
-                )
-            ]
+        , Codec.schema = do
+            schema <- Codec.schema (codec :: Codec.Value a)
+            pure . Schema.fromValue . Value.Object $ Object.fromList
+                [ Member.fromTuple
+                    ( Name.fromString . String.fromText $ Text.pack "type"
+                    , Value.String . String.fromText $ Text.pack "array"
+                    )
+                , Member.fromTuple
+                    ( Name.fromString . String.fromText $ Text.pack "items"
+                    , Schema.toValue schema
+                    )
+                ]
         }
 
 instance HasCodec a => HasCodec (Object.Object a) where
@@ -155,17 +157,19 @@ instance HasCodec a => HasCodec (Object.Object a) where
                       Member.Member k $ Codec.encodeWith codec v
                   )
             . Object.toList
-        , Codec.schema = Schema.fromValue . Value.Object $ Object.fromList
-            [ Member.fromTuple
-                ( Name.fromString . String.fromText $ Text.pack "type"
-                , Value.String . String.fromText $ Text.pack "object"
-                )
-            , Member.fromTuple
-                ( Name.fromString . String.fromText $ Text.pack
-                    "additionalProperties"
-                , Schema.toValue $ Codec.schema (codec :: Codec.Value a)
-                )
-            ]
+        , Codec.schema = do
+            schema <- Codec.schema (codec :: Codec.Value a)
+            pure . Schema.fromValue . Value.Object $ Object.fromList
+                [ Member.fromTuple
+                    ( Name.fromString . String.fromText $ Text.pack "type"
+                    , Value.String . String.fromText $ Text.pack "object"
+                    )
+                , Member.fromTuple
+                    ( Name.fromString . String.fromText $ Text.pack
+                        "additionalProperties"
+                    , Schema.toValue schema
+                    )
+                ]
         }
 
 instance HasCodec a => HasCodec (Maybe a) where
@@ -367,7 +371,8 @@ instance HasCodec String where
 instance HasCodec Char where
     codec =
         let
-            schema = Schema.fromValue . Value.Object $ Object.fromList
+            schema :: Identity.Identity Schema.Schema
+            schema = pure . Schema.fromValue . Value.Object $ Object.fromList
                 [ Member.fromTuple
                     ( Name.fromString . String.fromText $ Text.pack "type"
                     , Value.String . String.fromText $ Text.pack "string"
@@ -381,14 +386,13 @@ instance HasCodec Char where
                     , Value.Number . Number.fromDecimal $ Decimal.fromInteger 1
                     )
                 ]
-        in
-            Codec.mapMaybe
-                (\x -> case Text.uncons x of
-                    Just (y, z) | Text.null z -> Just y
-                    _ -> Nothing
-                )
-                (Just . Text.singleton)
-                codec { Codec.schema = schema }
+        in Codec.mapMaybe
+            (\x -> case Text.uncons x of
+                Just (y, z) | Text.null z -> Just y
+                _ -> Nothing
+            )
+            (Just . Text.singleton)
+            codec { Codec.schema = schema }
 
 instance HasCodec Text.LazyText where
     codec = Codec.map Text.fromStrict Text.toStrict codec
@@ -396,20 +400,25 @@ instance HasCodec Text.LazyText where
 instance HasCodec a => HasCodec (NonEmpty.NonEmpty a) where
     codec =
         let
-            schema = Schema.fromValue . Value.Object $ Object.fromList
-                [ Member.fromTuple
-                    ( Name.fromString . String.fromText $ Text.pack "type"
-                    , Value.String . String.fromText $ Text.pack "array"
-                    )
-                , Member.fromTuple
-                    ( Name.fromString . String.fromText $ Text.pack "items"
-                    , Schema.toValue $ Codec.schema (codec :: Codec.Value a)
-                    )
-                , Member.fromTuple
-                    ( Name.fromString . String.fromText $ Text.pack "minItems"
-                    , Value.Number . Number.fromDecimal $ Decimal.fromInteger 1
-                    )
-                ]
+            schema = do
+                itemSchema <- Codec.schema (codec :: Codec.Value a)
+                pure . Schema.fromValue . Value.Object $ Object.fromList
+                    [ Member.fromTuple
+                        ( Name.fromString . String.fromText $ Text.pack "type"
+                        , Value.String . String.fromText $ Text.pack "array"
+                        )
+                    , Member.fromTuple
+                        ( Name.fromString . String.fromText $ Text.pack "items"
+                        , Schema.toValue itemSchema
+                        )
+                    , Member.fromTuple
+                        ( Name.fromString . String.fromText $ Text.pack
+                            "minItems"
+                        , Value.Number
+                        . Number.fromDecimal
+                        $ Decimal.fromInteger 1
+                        )
+                    ]
         in
             Codec.mapMaybe
                 NonEmpty.nonEmpty
@@ -419,24 +428,25 @@ instance HasCodec a => HasCodec (NonEmpty.NonEmpty a) where
 instance HasCodec Integer where
     codec =
         let
-            schema = Schema.fromValue . Value.Object $ Object.fromList
+            schema :: Identity.Identity Schema.Schema
+            schema = pure . Schema.fromValue . Value.Object $ Object.fromList
                 [ Member.fromTuple
                       ( Name.fromString . String.fromText $ Text.pack "type"
                       , Value.String . String.fromText $ Text.pack "integer"
                       )
                 ]
-        in
-            Codec.mapMaybe
-                Decimal.toInteger
-                (Just . Decimal.fromInteger)
-                codec { Codec.schema = schema }
+        in Codec.mapMaybe
+            Decimal.toInteger
+            (Just . Decimal.fromInteger)
+            codec { Codec.schema = schema }
 
 instance HasCodec Int where
     codec =
         let
             from = Bits.toIntegralSized :: Integer -> Maybe Int
             into = fromIntegral :: Int -> Integer
-            schema = Schema.fromValue . Value.Object $ Object.fromList
+            schema :: Identity.Identity Schema.Schema
+            schema = pure . Schema.fromValue . Value.Object $ Object.fromList
                 [ Member.fromTuple
                     ( Name.fromString . String.fromText $ Text.pack "type"
                     , Value.String . String.fromText $ Text.pack "integer"
@@ -463,7 +473,8 @@ instance HasCodec Int.Int8 where
         let
             from = Bits.toIntegralSized :: Integer -> Maybe Int.Int8
             into = fromIntegral :: Int.Int8 -> Integer
-            schema = Schema.fromValue . Value.Object $ Object.fromList
+            schema :: Identity.Identity Schema.Schema
+            schema = pure . Schema.fromValue . Value.Object $ Object.fromList
                 [ Member.fromTuple
                     ( Name.fromString . String.fromText $ Text.pack "type"
                     , Value.String . String.fromText $ Text.pack "integer"
@@ -490,7 +501,8 @@ instance HasCodec Int.Int16 where
         let
             from = Bits.toIntegralSized :: Integer -> Maybe Int.Int16
             into = fromIntegral :: Int.Int16 -> Integer
-            schema = Schema.fromValue . Value.Object $ Object.fromList
+            schema :: Identity.Identity Schema.Schema
+            schema = pure . Schema.fromValue . Value.Object $ Object.fromList
                 [ Member.fromTuple
                     ( Name.fromString . String.fromText $ Text.pack "type"
                     , Value.String . String.fromText $ Text.pack "integer"
@@ -517,7 +529,8 @@ instance HasCodec Int.Int32 where
         let
             from = Bits.toIntegralSized :: Integer -> Maybe Int.Int32
             into = fromIntegral :: Int.Int32 -> Integer
-            schema = Schema.fromValue . Value.Object $ Object.fromList
+            schema :: Identity.Identity Schema.Schema
+            schema = pure . Schema.fromValue . Value.Object $ Object.fromList
                 [ Member.fromTuple
                     ( Name.fromString . String.fromText $ Text.pack "type"
                     , Value.String . String.fromText $ Text.pack "integer"
@@ -544,7 +557,8 @@ instance HasCodec Int.Int64 where
         let
             from = Bits.toIntegralSized :: Integer -> Maybe Int.Int64
             into = fromIntegral :: Int.Int64 -> Integer
-            schema = Schema.fromValue . Value.Object $ Object.fromList
+            schema :: Identity.Identity Schema.Schema
+            schema = pure . Schema.fromValue . Value.Object $ Object.fromList
                 [ Member.fromTuple
                     ( Name.fromString . String.fromText $ Text.pack "type"
                     , Value.String . String.fromText $ Text.pack "integer"
@@ -571,7 +585,8 @@ instance HasCodec Natural.Natural where
         let
             from = Bits.toIntegralSized :: Integer -> Maybe Natural.Natural
             into = fromIntegral :: Natural.Natural -> Integer
-            schema = Schema.fromValue . Value.Object $ Object.fromList
+            schema :: Identity.Identity Schema.Schema
+            schema = pure . Schema.fromValue . Value.Object $ Object.fromList
                 [ Member.fromTuple
                     ( Name.fromString . String.fromText $ Text.pack "type"
                     , Value.String . String.fromText $ Text.pack "integer"
@@ -588,7 +603,8 @@ instance HasCodec Word where
         let
             from = Bits.toIntegralSized :: Integer -> Maybe Word
             into = fromIntegral :: Word -> Integer
-            schema = Schema.fromValue . Value.Object $ Object.fromList
+            schema :: Identity.Identity Schema.Schema
+            schema = pure . Schema.fromValue . Value.Object $ Object.fromList
                 [ Member.fromTuple
                     ( Name.fromString . String.fromText $ Text.pack "type"
                     , Value.String . String.fromText $ Text.pack "integer"
@@ -615,7 +631,8 @@ instance HasCodec Word.Word8 where
         let
             from = Bits.toIntegralSized :: Integer -> Maybe Word.Word8
             into = fromIntegral :: Word.Word8 -> Integer
-            schema = Schema.fromValue . Value.Object $ Object.fromList
+            schema :: Identity.Identity Schema.Schema
+            schema = pure . Schema.fromValue . Value.Object $ Object.fromList
                 [ Member.fromTuple
                     ( Name.fromString . String.fromText $ Text.pack "type"
                     , Value.String . String.fromText $ Text.pack "integer"
@@ -642,7 +659,8 @@ instance HasCodec Word.Word16 where
         let
             from = Bits.toIntegralSized :: Integer -> Maybe Word.Word16
             into = fromIntegral :: Word.Word16 -> Integer
-            schema = Schema.fromValue . Value.Object $ Object.fromList
+            schema :: Identity.Identity Schema.Schema
+            schema = pure . Schema.fromValue . Value.Object $ Object.fromList
                 [ Member.fromTuple
                     ( Name.fromString . String.fromText $ Text.pack "type"
                     , Value.String . String.fromText $ Text.pack "integer"
@@ -669,7 +687,8 @@ instance HasCodec Word.Word32 where
         let
             from = Bits.toIntegralSized :: Integer -> Maybe Word.Word32
             into = fromIntegral :: Word.Word32 -> Integer
-            schema = Schema.fromValue . Value.Object $ Object.fromList
+            schema :: Identity.Identity Schema.Schema
+            schema = pure . Schema.fromValue . Value.Object $ Object.fromList
                 [ Member.fromTuple
                     ( Name.fromString . String.fromText $ Text.pack "type"
                     , Value.String . String.fromText $ Text.pack "integer"
@@ -696,7 +715,8 @@ instance HasCodec Word.Word64 where
         let
             from = Bits.toIntegralSized :: Integer -> Maybe Word.Word64
             into = fromIntegral :: Word.Word64 -> Integer
-            schema = Schema.fromValue . Value.Object $ Object.fromList
+            schema :: Identity.Identity Schema.Schema
+            schema = pure . Schema.fromValue . Value.Object $ Object.fromList
                 [ Member.fromTuple
                     ( Name.fromString . String.fromText $ Text.pack "type"
                     , Value.String . String.fromText $ Text.pack "integer"
@@ -746,7 +766,7 @@ instance HasCodec Schema.Schema where
 
 basicCodec
     :: String
-    -> Schema.Schema
+    -> Identity.Identity Schema.Schema
     -> (a -> Value.Value)
     -> (Value.Value -> Maybe a)
     -> Codec.Value a

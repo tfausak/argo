@@ -14,14 +14,16 @@ import qualified Argo.Schema.Schema as Schema
 import qualified Argo.Type.Permission as Permission
 import qualified Argo.Vendor.Text as Text
 import qualified Argo.Vendor.Transformers as Trans
+import qualified Data.Functor.Identity as Identity
 
-type Array a = Codec.List [Schema.Schema] Value.Value a
+type Array a = Codec.List [Identity.Identity Schema.Schema] Value.Value a
 
 fromArrayCodec :: Permission.Permission -> Array a -> Codec.Value a
 fromArrayCodec =
     Codec.fromListCodec
-            (\permission schemas ->
-                Schema.fromValue . Value.Object $ Object.fromList
+            (\permission schemasM -> do
+                schemas <- sequence schemasM
+                pure . Schema.fromValue . Value.Object $ Object.fromList
                     [ Member.fromTuple
                         ( Name.fromString . String.fromText $ Text.pack "type"
                         , Value.String . String.fromText $ Text.pack "array"

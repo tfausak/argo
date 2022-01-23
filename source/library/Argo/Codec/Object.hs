@@ -16,20 +16,27 @@ import qualified Argo.Type.Permission as Permission
 import qualified Argo.Vendor.Text as Text
 import qualified Argo.Vendor.Transformers as Trans
 import qualified Control.Monad as Monad
+import qualified Data.Functor.Identity as Identity
 import qualified Data.List as List
 import qualified Data.Maybe as Maybe
 
 type Object a
     = Codec.List
-          [(Name.Name, Bool, Schema.Schema)]
+          [(Name.Name, Bool, Identity.Identity Schema.Schema)]
           (Member.Member Value.Value)
           a
 
 fromObjectCodec :: Permission.Permission -> Object a -> Codec.Value a
 fromObjectCodec =
     Codec.fromListCodec
-            (\permission schemas ->
-                Schema.fromValue . Value.Object $ Object.fromList
+            (\permission schemasM -> do
+                schemas <- mapM
+                    (\(k, r, s) -> do
+                        t <- s
+                        pure (k, r, t)
+                    )
+                    schemasM
+                pure . Schema.fromValue . Value.Object $ Object.fromList
                     [ Member.fromTuple
                         ( Name.fromString . String.fromText $ Text.pack "type"
                         , Value.String . String.fromText $ Text.pack "object"
