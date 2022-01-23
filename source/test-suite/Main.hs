@@ -1075,6 +1075,72 @@ main = Tasty.defaultMain $ Tasty.testGroup
                 actual = Codec.schema (Argo.codec :: Codec.Value Record)
             actual @?= expected
         ]
+    , Tasty.testGroup "T1"
+        $ let codec = Argo.codec :: Codec.Value T1
+          in
+              [ Tasty.testCase "schema" $ do
+                  let expected = [Argo.schema|
+                            {
+                                "type": "object",
+                                "properties": {
+                                    "t1c1f1": { "type": "number" },
+                                    "t1c1f2": { "oneOf": [ { "type": "number" }, { "type": "null" } ] },
+                                    "t1c1f3": { "type": "number" },
+                                    "t1c1f4": { "oneOf": [ { "type": "number" }, { "type": "null" } ] }
+                                },
+                                "required": [ "t1c1f1", "t1c1f2" ],
+                                "additionalProperties": true
+                            }
+                        |]
+                      actual = Codec.schema codec
+                  actual @?= expected
+              , Tasty.testCase "decode" $ do
+                  hush (Argo.decode "{ \"t1c1f1\": 0 }")
+                      @?= (Nothing :: Maybe T1)
+                  Argo.decode "{ \"t1c1f1\": 0, \"t1c1f2\": null }"
+                      @?= Right (T1C1 0 Nothing Nothing Nothing)
+                  Argo.decode "{ \"t1c1f1\": 1, \"t1c1f2\": 0 }"
+                      @?= Right (T1C1 1 (Just 0) Nothing Nothing)
+                  Argo.decode
+                          "{ \"t1c1f1\": 2, \"t1c1f2\": null, \"t1c1f3\": null }"
+                      @?= Right (T1C1 2 Nothing Nothing Nothing)
+                  Argo.decode
+                          "{ \"t1c1f1\": 3, \"t1c1f2\": null, \"t1c1f3\": 0 }"
+                      @?= Right (T1C1 3 Nothing (Just 0) Nothing)
+                  Argo.decode
+                          "{ \"t1c1f1\": 4, \"t1c1f2\": null, \"t1c1f4\": null }"
+                      @?= Right (T1C1 4 Nothing Nothing (Just Nothing))
+                  Argo.decode
+                          "{ \"t1c1f1\": 5, \"t1c1f2\": null, \"t1c1f4\": 0 }"
+                      @?= Right (T1C1 5 Nothing Nothing (Just (Just 0)))
+                  hush (Argo.decode "{ \"t1c1f1\": 6, \"t1c1f2\": [] }")
+                      @?= (Nothing :: Maybe T1)
+                  hush
+                          (Argo.decode
+                              "{ \"t1c1f1\": 7, \"t1c1f2\": null, \"t1c1f3\": [] }"
+                          )
+                      @?= (Nothing :: Maybe T1)
+                  hush
+                          (Argo.decode
+                              "{ \"t1c1f1\": 8, \"t1c1f2\": null, \"t1c1f4\": [] }"
+                          )
+                      @?= (Nothing :: Maybe T1)
+              , Tasty.testCase "encode" $ do
+                  let
+                      encode =
+                          Builder.toLazyByteString . Argo.encode :: T1
+                              -> LazyByteString.ByteString
+                  encode (T1C1 0 Nothing Nothing Nothing)
+                      @?= "{\"t1c1f1\":0,\"t1c1f2\":null}"
+                  encode (T1C1 1 (Just 0) Nothing Nothing)
+                      @?= "{\"t1c1f1\":1,\"t1c1f2\":0}"
+                  encode (T1C1 2 Nothing (Just 0) Nothing)
+                      @?= "{\"t1c1f1\":2,\"t1c1f2\":null,\"t1c1f3\":0}"
+                  encode (T1C1 3 Nothing Nothing (Just Nothing))
+                      @?= "{\"t1c1f1\":3,\"t1c1f2\":null,\"t1c1f4\":null}"
+                  encode (T1C1 4 Nothing Nothing (Just (Just 0)))
+                      @?= "{\"t1c1f1\":4,\"t1c1f2\":null,\"t1c1f4\":0}"
+              ]
     ]
 
 fromValue :: Argo.HasCodec a => Argo.Value -> Either String a
@@ -1085,6 +1151,23 @@ toValue = Codec.encodeWith Argo.codec
 
 number :: Integer -> Integer -> Argo.Value
 number s = Argo.Number . Argo.Decimal s
+
+data T1 = T1C1
+    { t1c1f1 :: Float
+    , t1c1f2 :: Maybe Float
+    , t1c1f3 :: Maybe Float
+    , t1c1f4 :: Maybe (Maybe Float)
+    }
+    deriving (Eq, Show)
+
+instance Argo.HasCodec T1 where
+    codec =
+        Codec.fromObjectCodec Permission.Allow
+            $ T1C1
+            <$> Codec.project t1c1f1 (Codec.required "t1c1f1" Argo.codec)
+            <*> Codec.project t1c1f2 (Codec.required "t1c1f2" Argo.codec)
+            <*> Codec.project t1c1f3 (Codec.optional "t1c1f3" Argo.codec)
+            <*> Codec.project t1c1f4 (Codec.optional "t1c1f4" Argo.codec)
 
 data Record = Record
     { recordBool :: Bool

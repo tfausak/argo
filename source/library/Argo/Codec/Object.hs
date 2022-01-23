@@ -7,6 +7,7 @@ import qualified Argo.Json.Array as Array
 import qualified Argo.Json.Boolean as Boolean
 import qualified Argo.Json.Member as Member
 import qualified Argo.Json.Name as Name
+import qualified Argo.Json.Null as Null
 import qualified Argo.Json.Object as Object
 import qualified Argo.Json.String as String
 import qualified Argo.Json.Value as Value
@@ -86,7 +87,9 @@ optional k c = Codec.Codec
         xs <- Trans.get
         case List.partition (\(Member.Member j _) -> j == k) xs of
             (Member.Member _ x : _, ys) -> case Codec.decodeWith c x of
-                Left y -> Trans.lift $ Trans.throwE y
+                Left y -> if x == Value.Null (Null.fromUnit ())
+                    then pure Nothing
+                    else Trans.lift $ Trans.throwE y
                 Right y -> do
                     Trans.put ys
                     pure $ Just y
