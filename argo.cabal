@@ -67,9 +67,7 @@ library
     autogen-modules: Paths_argo
     exposed-modules:
         Argo
-        Argo.Class.FromValue
         Argo.Class.HasCodec
-        Argo.Class.ToValue
         Argo.Codec.Array
         Argo.Codec.Codec
         Argo.Codec.List
