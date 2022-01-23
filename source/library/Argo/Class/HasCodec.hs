@@ -340,6 +340,27 @@ instance HasCodec a => HasCodec (Map.Map Name.Name a) where
         (Object.fromList . fmap Member.fromTuple . Map.toList)
         codec
 
+instance HasCodec a => HasCodec (Map.Map String.String a) where
+    codec = Codec.map
+        (Map.mapKeys Name.toString)
+        (Map.mapKeys Name.fromString)
+        codec
+
+instance HasCodec a => HasCodec (Map.Map Text.Text a) where
+    codec = Codec.map
+        (Map.mapKeys String.toText)
+        (Map.mapKeys String.fromText)
+        codec
+
+instance HasCodec a => HasCodec (Map.Map Text.LazyText a) where
+    codec = Codec.map
+        (Map.mapKeys Text.fromStrict)
+        (Map.mapKeys Text.toStrict)
+        codec
+
+instance HasCodec a => HasCodec (Map.Map String a) where
+    codec = Codec.map (Map.mapKeys Text.unpack) (Map.mapKeys Text.pack) codec
+
 instance HasCodec String where
     codec = Codec.map Text.unpack Text.pack codec
 
