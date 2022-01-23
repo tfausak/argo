@@ -90,6 +90,7 @@ library
         Argo.Pointer.Pointer
         Argo.Pointer.Token
         Argo.QuasiQuoter
+        Argo.Schema.Identifier
         Argo.Schema.Schema
         Argo.Type.Config
         Argo.Type.Decimal
