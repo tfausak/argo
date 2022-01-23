@@ -17,7 +17,11 @@ instance (Functor r, Functor w) => Functor (Codec r w s i) where
         , schema = schema c
         }
 
-instance (Applicative r, Applicative w, Monoid s) => Applicative (Codec r w s i) where
+instance
+    ( Applicative r
+    , Applicative w
+    , Monoid s
+    ) => Applicative (Codec r w s i) where
     pure x =
         Codec { decode = pure x, encode = const $ pure x, schema = mempty }
     cf <*> cx = Codec
