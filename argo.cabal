@@ -68,7 +68,6 @@ library
     exposed-modules:
         Argo
         Argo.Class.HasCodec
-        Argo.Class.ToValue
         Argo.Codec.Array
         Argo.Codec.Codec
         Argo.Codec.List

@@ -1,7 +1,7 @@
 module Argo.Encode where
 
 import qualified Argo.Class.HasCodec as HasCodec
-import qualified Argo.Class.ToValue as ToValue
+import qualified Argo.Codec.Value as Codec
 import qualified Argo.Json.Value as Value
 import qualified Argo.Literal as Literal
 import qualified Argo.Pointer.Pointer as Pointer
@@ -20,7 +20,7 @@ encodeWith i x =
     let c = Config.initial { Config.indent = i }
     in
         Encoder.run c $ do
-            Value.encode $ ToValue.toValue x
+            Value.encode $ Codec.encodeWith HasCodec.codec x
             Monad.when (Config.hasIndent c)
                 . Trans.lift
                 . Trans.tell

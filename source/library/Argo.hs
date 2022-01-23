@@ -13,7 +13,6 @@ module Argo
     , Encode.encodeWith
     , Indent.Indent(Spaces, Tab)
     , Decode.decode
-    , ToValue.toValue
     , HasCodec.HasCodec(codec)
     , QuasiQuoter.value
     , QuasiQuoter.pointer
@@ -28,7 +27,6 @@ module Argo
     ) where
 
 import qualified Argo.Class.HasCodec as HasCodec
-import qualified Argo.Class.ToValue as ToValue
 import qualified Argo.Decode as Decode
 import qualified Argo.Encode as Encode
 import qualified Argo.Json.Member as Member
