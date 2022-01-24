@@ -31,7 +31,11 @@ type Value a
     = Codec.Codec
           (Trans.ReaderT Value.Value (Trans.ExceptT String Identity.Identity))
           (Trans.MaybeT (Trans.StateT Value.Value Identity.Identity))
-          (Identity.Identity (Maybe Identifier.Identifier, Schema.Schema))
+          ( Trans.AccumT
+                (){- TODO -}
+                Identity.Identity
+                (Maybe Identifier.Identifier, Schema.Schema)
+          )
           a
           a
 

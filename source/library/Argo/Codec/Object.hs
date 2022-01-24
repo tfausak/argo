@@ -25,7 +25,10 @@ type Object a
     = Codec.List
           [ ( Name.Name
             , Bool
-            , Identity.Identity (Maybe Identifier.Identifier, Schema.Schema)
+            , Trans.AccumT
+                  ()
+                  Identity.Identity
+                  (Maybe Identifier.Identifier, Schema.Schema)
             )
           ]
           (Member.Member Value.Value)

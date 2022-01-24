@@ -52,7 +52,9 @@ instance HasCodec Null.Null where
     codec =
         let
             schema
-                :: Identity.Identity
+                :: Trans.AccumT
+                       ()
+                       Identity.Identity
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
                 pure
@@ -75,7 +77,9 @@ instance HasCodec Boolean.Boolean where
     codec =
         let
             schema
-                :: Identity.Identity
+                :: Trans.AccumT
+                       ()
+                       Identity.Identity
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
                 pure
@@ -98,7 +102,9 @@ instance HasCodec Number.Number where
     codec =
         let
             schema
-                :: Identity.Identity
+                :: Trans.AccumT
+                       ()
+                       Identity.Identity
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
                 pure
@@ -121,7 +127,9 @@ instance HasCodec String.String where
     codec =
         let
             schema
-                :: Identity.Identity
+                :: Trans.AccumT
+                       ()
+                       Identity.Identity
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
                 pure
@@ -420,7 +428,9 @@ instance HasCodec Char where
     codec =
         let
             schema
-                :: Identity.Identity
+                :: Trans.AccumT
+                       ()
+                       Identity.Identity
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
                 pure
@@ -464,7 +474,9 @@ instance HasCodec a => HasCodec (NonEmpty.NonEmpty a) where
     codec =
         let
             schema
-                :: Identity.Identity
+                :: Trans.AccumT
+                       ()
+                       Identity.Identity
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema = do
                 (_, itemSchema) <- Codec.schema (codec :: Codec.Value a)
@@ -501,7 +513,9 @@ instance HasCodec Integer where
     codec =
         let
             schema
-                :: Identity.Identity
+                :: Trans.AccumT
+                       ()
+                       Identity.Identity
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
                 pure
@@ -527,7 +541,9 @@ instance HasCodec Int where
             from = Bits.toIntegralSized :: Integer -> Maybe Int
             into = fromIntegral :: Int -> Integer
             schema
-                :: Identity.Identity
+                :: Trans.AccumT
+                       ()
+                       Identity.Identity
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
                 pure
@@ -566,7 +582,9 @@ instance HasCodec Int.Int8 where
             from = Bits.toIntegralSized :: Integer -> Maybe Int.Int8
             into = fromIntegral :: Int.Int8 -> Integer
             schema
-                :: Identity.Identity
+                :: Trans.AccumT
+                       ()
+                       Identity.Identity
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
                 pure
@@ -605,7 +623,9 @@ instance HasCodec Int.Int16 where
             from = Bits.toIntegralSized :: Integer -> Maybe Int.Int16
             into = fromIntegral :: Int.Int16 -> Integer
             schema
-                :: Identity.Identity
+                :: Trans.AccumT
+                       ()
+                       Identity.Identity
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
                 pure
@@ -644,7 +664,9 @@ instance HasCodec Int.Int32 where
             from = Bits.toIntegralSized :: Integer -> Maybe Int.Int32
             into = fromIntegral :: Int.Int32 -> Integer
             schema
-                :: Identity.Identity
+                :: Trans.AccumT
+                       ()
+                       Identity.Identity
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
                 pure
@@ -683,7 +705,9 @@ instance HasCodec Int.Int64 where
             from = Bits.toIntegralSized :: Integer -> Maybe Int.Int64
             into = fromIntegral :: Int.Int64 -> Integer
             schema
-                :: Identity.Identity
+                :: Trans.AccumT
+                       ()
+                       Identity.Identity
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
                 pure
@@ -722,7 +746,9 @@ instance HasCodec Natural.Natural where
             from = Bits.toIntegralSized :: Integer -> Maybe Natural.Natural
             into = fromIntegral :: Natural.Natural -> Integer
             schema
-                :: Identity.Identity
+                :: Trans.AccumT
+                       ()
+                       Identity.Identity
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
                 pure
@@ -752,7 +778,9 @@ instance HasCodec Word where
             from = Bits.toIntegralSized :: Integer -> Maybe Word
             into = fromIntegral :: Word -> Integer
             schema
-                :: Identity.Identity
+                :: Trans.AccumT
+                       ()
+                       Identity.Identity
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
                 pure
@@ -791,7 +819,9 @@ instance HasCodec Word.Word8 where
             from = Bits.toIntegralSized :: Integer -> Maybe Word.Word8
             into = fromIntegral :: Word.Word8 -> Integer
             schema
-                :: Identity.Identity
+                :: Trans.AccumT
+                       ()
+                       Identity.Identity
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
                 pure
@@ -830,7 +860,9 @@ instance HasCodec Word.Word16 where
             from = Bits.toIntegralSized :: Integer -> Maybe Word.Word16
             into = fromIntegral :: Word.Word16 -> Integer
             schema
-                :: Identity.Identity
+                :: Trans.AccumT
+                       ()
+                       Identity.Identity
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
                 pure
@@ -869,7 +901,9 @@ instance HasCodec Word.Word32 where
             from = Bits.toIntegralSized :: Integer -> Maybe Word.Word32
             into = fromIntegral :: Word.Word32 -> Integer
             schema
-                :: Identity.Identity
+                :: Trans.AccumT
+                       ()
+                       Identity.Identity
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
                 pure
@@ -908,7 +942,9 @@ instance HasCodec Word.Word64 where
             from = Bits.toIntegralSized :: Integer -> Maybe Word.Word64
             into = fromIntegral :: Word.Word64 -> Integer
             schema
-                :: Identity.Identity
+                :: Trans.AccumT
+                       ()
+                       Identity.Identity
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
                 pure
@@ -969,7 +1005,10 @@ instance HasCodec Schema.Schema where
 
 basicCodec
     :: String
-    -> Identity.Identity (Maybe Identifier.Identifier, Schema.Schema)
+    -> Trans.AccumT
+           ()
+           Identity.Identity
+           (Maybe Identifier.Identifier, Schema.Schema)
     -> (a -> Value.Value)
     -> (Value.Value -> Maybe a)
     -> Codec.Value a

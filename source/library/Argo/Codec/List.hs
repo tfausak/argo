@@ -20,7 +20,10 @@ type List s e a
 fromListCodec
     :: ( Permission.Permission
        -> s
-       -> Identity.Identity (Maybe Identifier.Identifier, Schema.Schema)
+       -> Trans.AccumT
+              ()
+              Identity.Identity
+              (Maybe Identifier.Identifier, Schema.Schema)
        )
     -> Codec.Value [e]
     -> Permission.Permission

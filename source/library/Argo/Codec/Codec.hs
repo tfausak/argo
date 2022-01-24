@@ -20,30 +20,31 @@ instance (Functor r, Functor w) => Functor (Codec r w s i) where
 instance
     ( Applicative r
     , Applicative w
-    , Monoid s
     ) => Applicative (Codec r w s i) where
-    pure x =
-        Codec { decode = pure x, encode = const $ pure x, schema = mempty }
+    pure x = Codec
+        { decode = pure x
+        , encode = const $ pure x
+        , schema = error "TODO"
+        }
     cf <*> cx = Codec
         { decode = decode cf <*> decode cx
         , encode = \i -> encode cf i <*> encode cx i
-        , schema = schema cf <> schema cx
+        , schema = error "TODO"
         }
 
 instance
     ( Applicative.Alternative r
     , Applicative.Alternative w
-    , Monoid s
     ) => Applicative.Alternative (Codec r w s i) where
     empty = Codec
         { decode = Applicative.empty
         , encode = const Applicative.empty
-        , schema = mempty
+        , schema = error "TODO"
         }
     cx <|> cy = Codec
         { decode = decode cx <|> decode cy
         , encode = \i -> encode cx i <|> encode cy i
-        , schema = schema cx <> schema cy
+        , schema = error "TODO"
         }
 
 map

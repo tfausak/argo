@@ -19,7 +19,11 @@ import qualified Data.Functor.Identity as Identity
 
 type Array a
     = Codec.List
-          [Identity.Identity (Maybe Identifier.Identifier, Schema.Schema)]
+          [ Trans.AccumT
+                ()
+                Identity.Identity
+                (Maybe Identifier.Identifier, Schema.Schema)
+          ]
           Value.Value
           a
 
