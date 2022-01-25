@@ -23,14 +23,14 @@ import qualified Data.Maybe as Maybe
 
 type Object a
     = Codec.List
-          [ ( Name.Name
-            , Bool
-            , Trans.AccumT
-                  ()
-                  Identity.Identity
-                  (Maybe Identifier.Identifier, Schema.Schema)
-            )
-          ]
+          ( Trans.AccumT
+                ()
+                Identity.Identity
+                [ ( (Name.Name, Bool)
+                  , (Maybe Identifier.Identifier, Schema.Schema)
+                  )
+                ]
+          )
           (Member.Member Value.Value)
           a
 
@@ -38,12 +38,7 @@ fromObjectCodec :: Permission.Permission -> Object a -> Codec.Value a
 fromObjectCodec =
     Codec.fromListCodec
             (\permission schemasM -> do
-                schemas <- mapM
-                    (\(k, r, s) -> do
-                        t <- s
-                        pure (k, r, t)
-                    )
-                    schemasM
+                schemas <- schemasM
                 pure
                     . (,) Nothing
                     . Schema.fromValue
@@ -59,7 +54,7 @@ fromObjectCodec =
                               ( Name.fromString . String.fromText $ Text.pack
                                   "properties"
                               , Value.Object . Object.fromList $ fmap
-                                  (\(k, _, (_, s)) ->
+                                  (\((k, _), (_, s)) ->
                                       Member.fromTuple (k, Schema.toValue s)
                                   )
                                   schemas
@@ -68,7 +63,7 @@ fromObjectCodec =
                               ( Name.fromString . String.fromText $ Text.pack
                                   "required"
                               , Value.Array . Array.fromList $ Maybe.mapMaybe
-                                  (\(k, r, _) -> if r
+                                  (\((k, r), _) -> if r
                                       then Just . Value.String $ Name.toString
                                           k
                                       else Nothing
@@ -102,7 +97,7 @@ required k c = Codec.Codec
     , Codec.encode = \x -> do
         Monad.void . Codec.encode (optional k c) $ Just x
         pure x
-    , Codec.schema = [(k, True, Codec.schema c)]
+    , Codec.schema = pure . (,) (k, True) <$> Codec.schema c
     }
 
 optional :: Name.Name -> Codec.Value a -> Object (Maybe a)
@@ -123,7 +118,7 @@ optional k c = Codec.Codec
             Nothing -> pure ()
             Just y -> Trans.tell [Member.Member k $ Codec.encodeWith c y]
         pure x
-    , Codec.schema = [(k, False, Codec.schema c)]
+    , Codec.schema = pure . (,) (k, False) <$> Codec.schema c
     }
 
 tagged :: String -> Codec.Value a -> Codec.Value a

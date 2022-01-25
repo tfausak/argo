@@ -32,7 +32,7 @@ type Value a
           (Trans.ReaderT Value.Value (Trans.ExceptT String Identity.Identity))
           (Trans.MaybeT (Trans.StateT Value.Value Identity.Identity))
           ( Trans.AccumT
-                (){- TODO -}
+                () -- TODO: map from identifiers to schemas
                 Identity.Identity
                 (Maybe Identifier.Identifier, Schema.Schema)
           )

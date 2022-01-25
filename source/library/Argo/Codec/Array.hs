@@ -19,11 +19,11 @@ import qualified Data.Functor.Identity as Identity
 
 type Array a
     = Codec.List
-          [ Trans.AccumT
+          ( Trans.AccumT
                 ()
                 Identity.Identity
-                (Maybe Identifier.Identifier, Schema.Schema)
-          ]
+                [(Maybe Identifier.Identifier, Schema.Schema)]
+          )
           Value.Value
           a
 
@@ -31,7 +31,7 @@ fromArrayCodec :: Permission.Permission -> Array a -> Codec.Value a
 fromArrayCodec =
     Codec.fromListCodec
             (\permission schemasM -> do
-                schemas <- sequence schemasM
+                schemas <- schemasM
                 pure
                     . (,) Nothing
                     . Schema.fromValue
@@ -77,5 +77,5 @@ element c = Codec.Codec
     , Codec.encode = \x -> do
         Trans.tell [Codec.encodeWith c x]
         pure x
-    , Codec.schema = [Codec.schema c]
+    , Codec.schema = pure <$> Codec.schema c
     }
