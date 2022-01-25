@@ -45,7 +45,9 @@ instance HasCodec Value.Value where
     codec = Codec.Codec
         { Codec.decode = Trans.ask
         , Codec.encode = Codec.tap $ Trans.lift . Trans.put
-        , Codec.schema = pure (Nothing, Schema.true)
+        , Codec.schema = pure $ Schema.identified
+            (Identifier.fromText $ Text.pack "value")
+            Schema.true
         }
 
 instance HasCodec Null.Null where
@@ -58,7 +60,8 @@ instance HasCodec Null.Null where
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
                 pure
-                    . (,) Nothing
+                    . Schema.identified
+                          (Identifier.fromText $ Text.pack "null")
                     . Schema.fromValue
                     . Value.Object
                     $ Object.fromList
@@ -83,7 +86,8 @@ instance HasCodec Boolean.Boolean where
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
                 pure
-                    . (,) Nothing
+                    . Schema.identified
+                          (Identifier.fromText $ Text.pack "boolean")
                     . Schema.fromValue
                     . Value.Object
                     $ Object.fromList
@@ -108,7 +112,8 @@ instance HasCodec Number.Number where
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
                 pure
-                    . (,) Nothing
+                    . Schema.identified
+                          (Identifier.fromText $ Text.pack "number")
                     . Schema.fromValue
                     . Value.Object
                     $ Object.fromList
@@ -133,7 +138,8 @@ instance HasCodec String.String where
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
                 pure
-                    . (,) Nothing
+                    . Schema.identified
+                          (Identifier.fromText $ Text.pack "string")
                     . Schema.fromValue
                     . Value.Object
                     $ Object.fromList
@@ -166,9 +172,14 @@ instance HasCodec a => HasCodec (Array.Array a) where
             . fmap (Codec.encodeWith codec)
             . Array.toList
         , Codec.schema = do
-            (_, schema) <- Codec.schema (codec :: Codec.Value a)
+            (m, schema) <- Codec.schema (codec :: Codec.Value a)
             pure
-                . (,) Nothing
+                . maybe
+                      Schema.unidentified
+                      (Schema.identified
+                      . (Identifier.fromText (Text.pack "array-") <>)
+                      )
+                      m
                 . Schema.fromValue
                 . Value.Object
                 $ Object.fromList
@@ -209,9 +220,14 @@ instance HasCodec a => HasCodec (Object.Object a) where
                   )
             . Object.toList
         , Codec.schema = do
-            (_, schema) <- Codec.schema (codec :: Codec.Value a)
+            (m, schema) <- Codec.schema (codec :: Codec.Value a)
             pure
-                . (,) Nothing
+                . maybe
+                      Schema.unidentified
+                      (Schema.identified
+                      . (Identifier.fromText (Text.pack "object-") <>)
+                      )
+                      m
                 . Schema.fromValue
                 . Value.Object
                 $ Object.fromList
@@ -434,7 +450,8 @@ instance HasCodec Char where
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
                 pure
-                    . (,) Nothing
+                    . Schema.identified
+                          (Identifier.fromText $ Text.pack "char")
                     . Schema.fromValue
                     . Value.Object
                     $ Object.fromList
@@ -479,9 +496,15 @@ instance HasCodec a => HasCodec (NonEmpty.NonEmpty a) where
                        Identity.Identity
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema = do
-                (_, itemSchema) <- Codec.schema (codec :: Codec.Value a)
+                (m, itemSchema) <- Codec.schema (codec :: Codec.Value a)
                 pure
-                    . (,) Nothing
+                    . maybe
+                          Schema.unidentified
+                          (Schema.identified
+                          . (Identifier.fromText (Text.pack "non-empty-") <>
+                            )
+                          )
+                          m
                     . Schema.fromValue
                     . Value.Object
                     $ Object.fromList
@@ -519,7 +542,8 @@ instance HasCodec Integer where
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
                 pure
-                    . (,) Nothing
+                    . Schema.identified
+                          (Identifier.fromText $ Text.pack "integer")
                     . Schema.fromValue
                     . Value.Object
                     $ Object.fromList
@@ -547,7 +571,7 @@ instance HasCodec Int where
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
                 pure
-                    . (,) Nothing
+                    . Schema.identified (Identifier.fromText $ Text.pack "int")
                     . Schema.fromValue
                     . Value.Object
                     $ Object.fromList
@@ -588,7 +612,8 @@ instance HasCodec Int.Int8 where
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
                 pure
-                    . (,) Nothing
+                    . Schema.identified
+                          (Identifier.fromText $ Text.pack "int8")
                     . Schema.fromValue
                     . Value.Object
                     $ Object.fromList
@@ -629,7 +654,8 @@ instance HasCodec Int.Int16 where
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
                 pure
-                    . (,) Nothing
+                    . Schema.identified
+                          (Identifier.fromText $ Text.pack "int16")
                     . Schema.fromValue
                     . Value.Object
                     $ Object.fromList
@@ -670,7 +696,8 @@ instance HasCodec Int.Int32 where
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
                 pure
-                    . (,) Nothing
+                    . Schema.identified
+                          (Identifier.fromText $ Text.pack "int32")
                     . Schema.fromValue
                     . Value.Object
                     $ Object.fromList
@@ -711,7 +738,8 @@ instance HasCodec Int.Int64 where
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
                 pure
-                    . (,) Nothing
+                    . Schema.identified
+                          (Identifier.fromText $ Text.pack "int64")
                     . Schema.fromValue
                     . Value.Object
                     $ Object.fromList
@@ -752,7 +780,8 @@ instance HasCodec Natural.Natural where
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
                 pure
-                    . (,) Nothing
+                    . Schema.identified
+                          (Identifier.fromText $ Text.pack "natural")
                     . Schema.fromValue
                     . Value.Object
                     $ Object.fromList
@@ -784,7 +813,8 @@ instance HasCodec Word where
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
                 pure
-                    . (,) Nothing
+                    . Schema.identified
+                          (Identifier.fromText $ Text.pack "word")
                     . Schema.fromValue
                     . Value.Object
                     $ Object.fromList
@@ -825,7 +855,8 @@ instance HasCodec Word.Word8 where
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
                 pure
-                    . (,) Nothing
+                    . Schema.identified
+                          (Identifier.fromText $ Text.pack "word8")
                     . Schema.fromValue
                     . Value.Object
                     $ Object.fromList
@@ -866,7 +897,8 @@ instance HasCodec Word.Word16 where
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
                 pure
-                    . (,) Nothing
+                    . Schema.identified
+                          (Identifier.fromText $ Text.pack "word16")
                     . Schema.fromValue
                     . Value.Object
                     $ Object.fromList
@@ -907,7 +939,8 @@ instance HasCodec Word.Word32 where
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
                 pure
-                    . (,) Nothing
+                    . Schema.identified
+                          (Identifier.fromText $ Text.pack "word32")
                     . Schema.fromValue
                     . Value.Object
                     $ Object.fromList
@@ -948,7 +981,8 @@ instance HasCodec Word.Word64 where
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
                 pure
-                    . (,) Nothing
+                    . Schema.identified
+                          (Identifier.fromText $ Text.pack "word64")
                     . Schema.fromValue
                     . Value.Object
                     $ Object.fromList
