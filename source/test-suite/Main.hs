@@ -1208,7 +1208,7 @@ hush = either (const Nothing) Just
 schemafy
     :: Schema.Schema
     -> Accum.AccumT
-           ()
+           (Map.Map Identifier.Identifier Schema.Schema)
            Identity.Identity
            (Maybe Identifier.Identifier, Schema.Schema)
 schemafy = pure . (,) Nothing

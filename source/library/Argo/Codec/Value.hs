@@ -10,6 +10,7 @@ import qualified Argo.Json.String as String
 import qualified Argo.Json.Value as Value
 import qualified Argo.Schema.Identifier as Identifier
 import qualified Argo.Schema.Schema as Schema
+import qualified Argo.Vendor.Map as Map
 import qualified Argo.Vendor.Text as Text
 import qualified Argo.Vendor.Transformers as Trans
 import qualified Control.Monad as Monad
@@ -32,7 +33,7 @@ type Value a
           (Trans.ReaderT Value.Value (Trans.ExceptT String Identity.Identity))
           (Trans.MaybeT (Trans.StateT Value.Value Identity.Identity))
           ( Trans.AccumT
-                () -- TODO: map from identifiers to schemas
+                (Map.Map Identifier.Identifier Schema.Schema)
                 Identity.Identity
                 (Maybe Identifier.Identifier, Schema.Schema)
           )

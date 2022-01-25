@@ -53,7 +53,7 @@ instance HasCodec Null.Null where
         let
             schema
                 :: Trans.AccumT
-                       ()
+                       (Map.Map Identifier.Identifier Schema.Schema)
                        Identity.Identity
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
@@ -78,7 +78,7 @@ instance HasCodec Boolean.Boolean where
         let
             schema
                 :: Trans.AccumT
-                       ()
+                       (Map.Map Identifier.Identifier Schema.Schema)
                        Identity.Identity
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
@@ -103,7 +103,7 @@ instance HasCodec Number.Number where
         let
             schema
                 :: Trans.AccumT
-                       ()
+                       (Map.Map Identifier.Identifier Schema.Schema)
                        Identity.Identity
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
@@ -128,7 +128,7 @@ instance HasCodec String.String where
         let
             schema
                 :: Trans.AccumT
-                       ()
+                       (Map.Map Identifier.Identifier Schema.Schema)
                        Identity.Identity
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
@@ -429,7 +429,7 @@ instance HasCodec Char where
         let
             schema
                 :: Trans.AccumT
-                       ()
+                       (Map.Map Identifier.Identifier Schema.Schema)
                        Identity.Identity
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
@@ -475,7 +475,7 @@ instance HasCodec a => HasCodec (NonEmpty.NonEmpty a) where
         let
             schema
                 :: Trans.AccumT
-                       ()
+                       (Map.Map Identifier.Identifier Schema.Schema)
                        Identity.Identity
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema = do
@@ -514,7 +514,7 @@ instance HasCodec Integer where
         let
             schema
                 :: Trans.AccumT
-                       ()
+                       (Map.Map Identifier.Identifier Schema.Schema)
                        Identity.Identity
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
@@ -542,7 +542,7 @@ instance HasCodec Int where
             into = fromIntegral :: Int -> Integer
             schema
                 :: Trans.AccumT
-                       ()
+                       (Map.Map Identifier.Identifier Schema.Schema)
                        Identity.Identity
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
@@ -583,7 +583,7 @@ instance HasCodec Int.Int8 where
             into = fromIntegral :: Int.Int8 -> Integer
             schema
                 :: Trans.AccumT
-                       ()
+                       (Map.Map Identifier.Identifier Schema.Schema)
                        Identity.Identity
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
@@ -624,7 +624,7 @@ instance HasCodec Int.Int16 where
             into = fromIntegral :: Int.Int16 -> Integer
             schema
                 :: Trans.AccumT
-                       ()
+                       (Map.Map Identifier.Identifier Schema.Schema)
                        Identity.Identity
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
@@ -665,7 +665,7 @@ instance HasCodec Int.Int32 where
             into = fromIntegral :: Int.Int32 -> Integer
             schema
                 :: Trans.AccumT
-                       ()
+                       (Map.Map Identifier.Identifier Schema.Schema)
                        Identity.Identity
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
@@ -706,7 +706,7 @@ instance HasCodec Int.Int64 where
             into = fromIntegral :: Int.Int64 -> Integer
             schema
                 :: Trans.AccumT
-                       ()
+                       (Map.Map Identifier.Identifier Schema.Schema)
                        Identity.Identity
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
@@ -747,7 +747,7 @@ instance HasCodec Natural.Natural where
             into = fromIntegral :: Natural.Natural -> Integer
             schema
                 :: Trans.AccumT
-                       ()
+                       (Map.Map Identifier.Identifier Schema.Schema)
                        Identity.Identity
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
@@ -779,7 +779,7 @@ instance HasCodec Word where
             into = fromIntegral :: Word -> Integer
             schema
                 :: Trans.AccumT
-                       ()
+                       (Map.Map Identifier.Identifier Schema.Schema)
                        Identity.Identity
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
@@ -820,7 +820,7 @@ instance HasCodec Word.Word8 where
             into = fromIntegral :: Word.Word8 -> Integer
             schema
                 :: Trans.AccumT
-                       ()
+                       (Map.Map Identifier.Identifier Schema.Schema)
                        Identity.Identity
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
@@ -861,7 +861,7 @@ instance HasCodec Word.Word16 where
             into = fromIntegral :: Word.Word16 -> Integer
             schema
                 :: Trans.AccumT
-                       ()
+                       (Map.Map Identifier.Identifier Schema.Schema)
                        Identity.Identity
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
@@ -902,7 +902,7 @@ instance HasCodec Word.Word32 where
             into = fromIntegral :: Word.Word32 -> Integer
             schema
                 :: Trans.AccumT
-                       ()
+                       (Map.Map Identifier.Identifier Schema.Schema)
                        Identity.Identity
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
@@ -943,7 +943,7 @@ instance HasCodec Word.Word64 where
             into = fromIntegral :: Word.Word64 -> Integer
             schema
                 :: Trans.AccumT
-                       ()
+                       (Map.Map Identifier.Identifier Schema.Schema)
                        Identity.Identity
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
@@ -1006,7 +1006,7 @@ instance HasCodec Schema.Schema where
 basicCodec
     :: String
     -> Trans.AccumT
-           ()
+           (Map.Map Identifier.Identifier Schema.Schema)
            Identity.Identity
            (Maybe Identifier.Identifier, Schema.Schema)
     -> (a -> Value.Value)

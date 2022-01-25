@@ -5,6 +5,7 @@ import qualified Argo.Codec.Value as Codec
 import qualified Argo.Schema.Identifier as Identifier
 import qualified Argo.Schema.Schema as Schema
 import qualified Argo.Type.Permission as Permission
+import qualified Argo.Vendor.Map as Map
 import qualified Argo.Vendor.Transformers as Trans
 import qualified Control.Monad as Monad
 import qualified Data.Functor.Identity as Identity
@@ -21,7 +22,7 @@ fromListCodec
     :: ( Permission.Permission
        -> s
        -> Trans.AccumT
-              ()
+              (Map.Map Identifier.Identifier Schema.Schema)
               Identity.Identity
               (Maybe Identifier.Identifier, Schema.Schema)
        )

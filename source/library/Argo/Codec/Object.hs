@@ -14,6 +14,7 @@ import qualified Argo.Json.Value as Value
 import qualified Argo.Schema.Identifier as Identifier
 import qualified Argo.Schema.Schema as Schema
 import qualified Argo.Type.Permission as Permission
+import qualified Argo.Vendor.Map as Map
 import qualified Argo.Vendor.Text as Text
 import qualified Argo.Vendor.Transformers as Trans
 import qualified Control.Monad as Monad
@@ -24,7 +25,7 @@ import qualified Data.Maybe as Maybe
 type Object a
     = Codec.List
           ( Trans.AccumT
-                ()
+                (Map.Map Identifier.Identifier Schema.Schema)
                 Identity.Identity
                 [ ( (Name.Name, Bool)
                   , (Maybe Identifier.Identifier, Schema.Schema)
