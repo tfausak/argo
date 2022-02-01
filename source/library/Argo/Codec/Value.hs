@@ -1,3 +1,5 @@
+{-# LANGUAGE ScopedTypeVariables #-}
+
 module Argo.Codec.Value where
 
 import qualified Argo.Codec.Codec as Codec
@@ -15,6 +17,7 @@ import qualified Argo.Vendor.Text as Text
 import qualified Argo.Vendor.Transformers as Trans
 import qualified Control.Monad as Monad
 import qualified Data.Functor.Identity as Identity
+import qualified Data.Typeable as Typeable
 
 decodeWith :: Value a -> Value.Value -> Either String a
 decodeWith c =
@@ -91,3 +94,10 @@ literalCodec expected = Codec.Codec
                   )
             ]
     }
+
+identified :: forall a . Typeable.Typeable a => Value a -> Value a
+identified c =
+    let
+        i = Identifier.fromText . Text.pack . show $ Typeable.typeRep
+            (Typeable.Proxy :: Typeable.Proxy a)
+    in c { Codec.schema = Schema.identified i . snd <$> Codec.schema c }

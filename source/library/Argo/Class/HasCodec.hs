@@ -35,6 +35,7 @@ import qualified Data.Bits as Bits
 import qualified Data.Functor.Identity as Identity
 import qualified Data.Int as Int
 import qualified Data.List.NonEmpty as NonEmpty
+import qualified Data.Typeable as Typeable
 import qualified Data.Word as Word
 import qualified Numeric.Natural as Natural
 
@@ -42,120 +43,66 @@ class HasCodec a where
     codec :: Codec.Value a
 
 instance HasCodec Value.Value where
-    codec = Codec.Codec
-        { Codec.decode = Trans.ask
-        , Codec.encode = Codec.tap $ Trans.lift . Trans.put
-        , Codec.schema = pure $ Schema.identified
-            (Identifier.fromText $ Text.pack "value")
-            Schema.true
-        }
+    codec = basicCodec Schema.true id Just
 
 instance HasCodec Null.Null where
     codec =
         let
-            schema
-                :: Trans.AccumT
-                       (Map.Map Identifier.Identifier Schema.Schema)
-                       Identity.Identity
-                       (Maybe Identifier.Identifier, Schema.Schema)
-            schema =
-                pure
-                    . Schema.identified
-                          (Identifier.fromText $ Text.pack "null")
-                    . Schema.fromValue
-                    . Value.Object
-                    $ Object.fromList
-                          [ Member.fromTuple
-                                ( Name.fromString . String.fromText $ Text.pack
-                                    "type"
-                                , Value.String . String.fromText $ Text.pack
-                                    "null"
-                                )
-                          ]
-        in basicCodec "Null" schema Value.Null $ \value -> case value of
-            Value.Null null_ -> Just null_
-            _ -> Nothing
+            schema = Schema.fromValue . Value.Object $ Object.fromList
+                [ Member.fromTuple
+                      ( Name.fromString . String.fromText $ Text.pack "type"
+                      , Value.String . String.fromText $ Text.pack "null"
+                      )
+                ]
+        in
+            basicCodec schema Value.Null $ \value -> case value of
+                Value.Null null_ -> Just null_
+                _ -> Nothing
 
 instance HasCodec Boolean.Boolean where
     codec =
         let
-            schema
-                :: Trans.AccumT
-                       (Map.Map Identifier.Identifier Schema.Schema)
-                       Identity.Identity
-                       (Maybe Identifier.Identifier, Schema.Schema)
-            schema =
-                pure
-                    . Schema.identified
-                          (Identifier.fromText $ Text.pack "boolean")
-                    . Schema.fromValue
-                    . Value.Object
-                    $ Object.fromList
-                          [ Member.fromTuple
-                                ( Name.fromString . String.fromText $ Text.pack
-                                    "type"
-                                , Value.String . String.fromText $ Text.pack
-                                    "boolean"
-                                )
-                          ]
-        in basicCodec "Boolean" schema Value.Boolean $ \value -> case value of
-            Value.Boolean boolean -> Just boolean
-            _ -> Nothing
+            schema = Schema.fromValue . Value.Object $ Object.fromList
+                [ Member.fromTuple
+                      ( Name.fromString . String.fromText $ Text.pack "type"
+                      , Value.String . String.fromText $ Text.pack "boolean"
+                      )
+                ]
+        in
+            basicCodec schema Value.Boolean $ \value -> case value of
+                Value.Boolean boolean -> Just boolean
+                _ -> Nothing
 
 instance HasCodec Number.Number where
     codec =
         let
-            schema
-                :: Trans.AccumT
-                       (Map.Map Identifier.Identifier Schema.Schema)
-                       Identity.Identity
-                       (Maybe Identifier.Identifier, Schema.Schema)
-            schema =
-                pure
-                    . Schema.identified
-                          (Identifier.fromText $ Text.pack "number")
-                    . Schema.fromValue
-                    . Value.Object
-                    $ Object.fromList
-                          [ Member.fromTuple
-                                ( Name.fromString . String.fromText $ Text.pack
-                                    "type"
-                                , Value.String . String.fromText $ Text.pack
-                                    "number"
-                                )
-                          ]
-        in basicCodec "Number" schema Value.Number $ \value -> case value of
-            Value.Number number -> Just number
-            _ -> Nothing
+            schema = Schema.fromValue . Value.Object $ Object.fromList
+                [ Member.fromTuple
+                      ( Name.fromString . String.fromText $ Text.pack "type"
+                      , Value.String . String.fromText $ Text.pack "number"
+                      )
+                ]
+        in
+            basicCodec schema Value.Number $ \value -> case value of
+                Value.Number number -> Just number
+                _ -> Nothing
 
 instance HasCodec String.String where
     codec =
         let
-            schema
-                :: Trans.AccumT
-                       (Map.Map Identifier.Identifier Schema.Schema)
-                       Identity.Identity
-                       (Maybe Identifier.Identifier, Schema.Schema)
-            schema =
-                pure
-                    . Schema.identified
-                          (Identifier.fromText $ Text.pack "string")
-                    . Schema.fromValue
-                    . Value.Object
-                    $ Object.fromList
-                          [ Member.fromTuple
-                                ( Name.fromString . String.fromText $ Text.pack
-                                    "type"
-                                , Value.String . String.fromText $ Text.pack
-                                    "string"
-                                )
-                          ]
-        in basicCodec "String" schema Value.String $ \value -> case value of
-            Value.String string -> Just string
-            _ -> Nothing
+            schema = Schema.fromValue . Value.Object $ Object.fromList
+                [ Member.fromTuple
+                      ( Name.fromString . String.fromText $ Text.pack "type"
+                      , Value.String . String.fromText $ Text.pack "string"
+                      )
+                ]
+        in
+            basicCodec schema Value.String $ \value -> case value of
+                Value.String string -> Just string
+                _ -> Nothing
 
-instance HasCodec a => HasCodec (Array.Array a) where
-    codec = Codec.Codec
+instance (HasCodec a, Typeable.Typeable a) => HasCodec (Array.Array a) where
+    codec = Codec.identified Codec.Codec
         { Codec.decode = do
             array <- castValue "Array" $ \value -> case value of
                 Value.Array array -> Just array
@@ -172,14 +119,9 @@ instance HasCodec a => HasCodec (Array.Array a) where
             . fmap (Codec.encodeWith codec)
             . Array.toList
         , Codec.schema = do
-            (m, schema) <- Codec.schema (codec :: Codec.Value a)
+            (_, schema) <- Codec.schema (codec :: Codec.Value a)
             pure
-                . maybe
-                      Schema.unidentified
-                      (Schema.identified
-                      . (Identifier.fromText (Text.pack "array-") <>)
-                      )
-                      m
+                . Schema.unidentified
                 . Schema.fromValue
                 . Value.Object
                 $ Object.fromList
@@ -196,8 +138,8 @@ instance HasCodec a => HasCodec (Array.Array a) where
                       ]
         }
 
-instance HasCodec a => HasCodec (Object.Object a) where
-    codec = Codec.Codec
+instance (HasCodec a, Typeable.Typeable a) => HasCodec (Object.Object a) where
+    codec = Codec.identified Codec.Codec
         { Codec.decode = do
             object <- castValue "Object" $ \value -> case value of
                 Value.Object object -> Just object
@@ -220,14 +162,9 @@ instance HasCodec a => HasCodec (Object.Object a) where
                   )
             . Object.toList
         , Codec.schema = do
-            (m, schema) <- Codec.schema (codec :: Codec.Value a)
+            (_, schema) <- Codec.schema (codec :: Codec.Value a)
             pure
-                . maybe
-                      Schema.unidentified
-                      (Schema.identified
-                      . (Identifier.fromText (Text.pack "object-") <>)
-                      )
-                      m
+                . Schema.unidentified
                 . Schema.fromValue
                 . Value.Object
                 $ Object.fromList
@@ -244,35 +181,40 @@ instance HasCodec a => HasCodec (Object.Object a) where
                       ]
         }
 
-instance HasCodec a => HasCodec (Maybe a) where
+instance (HasCodec a, Typeable.Typeable a) => HasCodec (Maybe a) where
     codec =
-        Codec.mapMaybe (Just . Just) id codec
+        Codec.identified
+            $ Codec.mapMaybe (Just . Just) id codec
             <|> Codec.map (const Nothing) (const $ Null.fromUnit ()) codec
 
-instance (HasCodec a, HasCodec b) => HasCodec (Either a b) where
+instance (HasCodec a, HasCodec b, Typeable.Typeable a, Typeable.Typeable b) => HasCodec (Either a b) where
     codec =
-        Codec.mapMaybe
-                (Just . Left)
-                (either Just $ const Nothing)
-                (Codec.tagged "Left" codec)
+        Codec.identified
+            $ Codec.mapMaybe
+                  (Just . Left)
+                  (either Just $ const Nothing)
+                  (Codec.tagged "Left" codec)
             <|> Codec.mapMaybe
                     (Just . Right)
                     (either (const Nothing) Just)
                     (Codec.tagged "Right" codec)
 
 instance HasCodec () where
-    codec = Codec.fromArrayCodec Permission.Forbid $ pure ()
-
-instance (HasCodec a, HasCodec b) => HasCodec (a, b) where
     codec =
-        Codec.fromArrayCodec Permission.Forbid
+        Codec.identified . Codec.fromArrayCodec Permission.Forbid $ pure ()
+
+instance (HasCodec a, HasCodec b, Typeable.Typeable a, Typeable.Typeable b) => HasCodec (a, b) where
+    codec =
+        Codec.identified
+            . Codec.fromArrayCodec Permission.Forbid
             $ (,)
             <$> Codec.project fst (Codec.element codec)
             <*> Codec.project snd (Codec.element codec)
 
-instance (HasCodec a, HasCodec b, HasCodec c) => HasCodec (a, b, c) where
+instance (HasCodec a, HasCodec b, HasCodec c, Typeable.Typeable a, Typeable.Typeable b, Typeable.Typeable c) => HasCodec (a, b, c) where
     codec =
-        Codec.fromArrayCodec Permission.Forbid
+        Codec.identified
+            . Codec.fromArrayCodec Permission.Forbid
             $ (,,)
             <$> Codec.project (\(a, _, _) -> a) (Codec.element codec)
             <*> Codec.project (\(_, b, _) -> b) (Codec.element codec)
@@ -283,9 +225,11 @@ instance
     , HasCodec b
     , HasCodec c
     , HasCodec d
+    , Typeable.Typeable a, Typeable.Typeable b, Typeable.Typeable c, Typeable.Typeable d
     ) => HasCodec (a, b, c, d) where
     codec =
-        Codec.fromArrayCodec Permission.Forbid
+        Codec.identified
+            . Codec.fromArrayCodec Permission.Forbid
             $ (,,,)
             <$> Codec.project (\(a, _, _, _) -> a) (Codec.element codec)
             <*> Codec.project (\(_, b, _, _) -> b) (Codec.element codec)
@@ -298,9 +242,11 @@ instance
     , HasCodec c
     , HasCodec d
     , HasCodec e
+    , Typeable.Typeable a, Typeable.Typeable b, Typeable.Typeable c, Typeable.Typeable d, Typeable.Typeable e
     ) => HasCodec (a, b, c, d, e) where
     codec =
-        Codec.fromArrayCodec Permission.Forbid
+        Codec.identified
+            . Codec.fromArrayCodec Permission.Forbid
             $ (,,,,)
             <$> Codec.project (\(a, _, _, _, _) -> a) (Codec.element codec)
             <*> Codec.project (\(_, b, _, _, _) -> b) (Codec.element codec)
@@ -315,9 +261,11 @@ instance
     , HasCodec d
     , HasCodec e
     , HasCodec f
+    , Typeable.Typeable a, Typeable.Typeable b, Typeable.Typeable c, Typeable.Typeable d, Typeable.Typeable e, Typeable.Typeable f
     ) => HasCodec (a, b, c, d, e, f) where
     codec =
-        Codec.fromArrayCodec Permission.Forbid
+        Codec.identified
+            . Codec.fromArrayCodec Permission.Forbid
             $ (,,,,,)
             <$> Codec.project (\(a, _, _, _, _, _) -> a) (Codec.element codec)
             <*> Codec.project (\(_, b, _, _, _, _) -> b) (Codec.element codec)
@@ -334,9 +282,11 @@ instance
     , HasCodec e
     , HasCodec f
     , HasCodec g
+    , Typeable.Typeable a, Typeable.Typeable b, Typeable.Typeable c, Typeable.Typeable d, Typeable.Typeable e, Typeable.Typeable f, Typeable.Typeable g
     ) => HasCodec (a, b, c, d, e, f, g) where
     codec =
-        Codec.fromArrayCodec Permission.Forbid
+        Codec.identified
+            . Codec.fromArrayCodec Permission.Forbid
             $ (,,,,,,)
             <$> Codec.project
                     (\(a, _, _, _, _, _, _) -> a)
@@ -369,9 +319,11 @@ instance
     , HasCodec f
     , HasCodec g
     , HasCodec h
+    , Typeable.Typeable a, Typeable.Typeable b, Typeable.Typeable c, Typeable.Typeable d, Typeable.Typeable e, Typeable.Typeable f, Typeable.Typeable g, Typeable.Typeable h
     ) => HasCodec (a, b, c, d, e, f, g, h) where
     codec =
-        Codec.fromArrayCodec Permission.Forbid
+        Codec.identified
+            . Codec.fromArrayCodec Permission.Forbid
             $ (,,,,,,,)
             <$> Codec.project
                     (\(a, _, _, _, _, _, _, _) -> a)
@@ -399,59 +351,54 @@ instance
                     (Codec.element codec)
 
 instance HasCodec Bool where
-    codec = Codec.map Boolean.toBool Boolean.fromBool codec
+    codec = Codec.identified $ Codec.map Boolean.toBool Boolean.fromBool codec
 
 instance HasCodec Decimal.Decimal where
-    codec = Codec.map Number.toDecimal Number.fromDecimal codec
+    codec =
+        Codec.identified $ Codec.map Number.toDecimal Number.fromDecimal codec
 
 instance HasCodec Text.Text where
-    codec = Codec.map String.toText String.fromText codec
+    codec = Codec.identified $ Codec.map String.toText String.fromText codec
 
-instance {-# OVERLAPPABLE #-} HasCodec a => HasCodec [a] where
-    codec = Codec.map Array.toList Array.fromList codec
+instance {-# OVERLAPPABLE #-} (HasCodec a, Typeable.Typeable a) => HasCodec [a] where
+    codec = Codec.identified $ Codec.map Array.toList Array.fromList codec
 
-instance HasCodec a => HasCodec (Map.Map Name.Name a) where
-    codec = Codec.map
+instance (HasCodec a, Typeable.Typeable a) => HasCodec (Map.Map Name.Name a) where
+    codec = Codec.identified $ Codec.map
         (Map.fromList . fmap Member.toTuple . Object.toList)
         (Object.fromList . fmap Member.fromTuple . Map.toList)
         codec
 
-instance HasCodec a => HasCodec (Map.Map String.String a) where
-    codec = Codec.map
+instance (HasCodec a, Typeable.Typeable a) => HasCodec (Map.Map String.String a) where
+    codec = Codec.identified $ Codec.map
         (Map.mapKeys Name.toString)
         (Map.mapKeys Name.fromString)
         codec
 
-instance HasCodec a => HasCodec (Map.Map Text.Text a) where
-    codec = Codec.map
+instance (HasCodec a, Typeable.Typeable a) => HasCodec (Map.Map Text.Text a) where
+    codec = Codec.identified $ Codec.map
         (Map.mapKeys String.toText)
         (Map.mapKeys String.fromText)
         codec
 
-instance HasCodec a => HasCodec (Map.Map Text.LazyText a) where
-    codec = Codec.map
+instance (HasCodec a, Typeable.Typeable a) => HasCodec (Map.Map Text.LazyText a) where
+    codec = Codec.identified $ Codec.map
         (Map.mapKeys Text.fromStrict)
         (Map.mapKeys Text.toStrict)
         codec
 
-instance HasCodec a => HasCodec (Map.Map String a) where
-    codec = Codec.map (Map.mapKeys Text.unpack) (Map.mapKeys Text.pack) codec
+instance (HasCodec a, Typeable.Typeable a) => HasCodec (Map.Map String a) where
+    codec = Codec.identified
+        $ Codec.map (Map.mapKeys Text.unpack) (Map.mapKeys Text.pack) codec
 
 instance HasCodec String where
-    codec = Codec.map Text.unpack Text.pack codec
+    codec = Codec.identified $ Codec.map Text.unpack Text.pack codec
 
 instance HasCodec Char where
     codec =
         let
-            schema
-                :: Trans.AccumT
-                       (Map.Map Identifier.Identifier Schema.Schema)
-                       Identity.Identity
-                       (Maybe Identifier.Identifier, Schema.Schema)
             schema =
-                pure
-                    . Schema.identified
-                          (Identifier.fromText $ Text.pack "char")
+                Schema.unidentified
                     . Schema.fromValue
                     . Value.Object
                     $ Object.fromList
@@ -476,35 +423,25 @@ instance HasCodec Char where
                               $ Decimal.fromInteger 1
                               )
                           ]
-        in Codec.mapMaybe
-            (\x -> case Text.uncons x of
-                Just (y, z) | Text.null z -> Just y
-                _ -> Nothing
-            )
-            (Just . Text.singleton)
-            codec { Codec.schema = schema }
+        in
+            Codec.identified $ Codec.mapMaybe
+                (\x -> case Text.uncons x of
+                    Just (y, z) | Text.null z -> Just y
+                    _ -> Nothing
+                )
+                (Just . Text.singleton)
+                codec { Codec.schema = pure schema }
 
 instance HasCodec Text.LazyText where
-    codec = Codec.map Text.fromStrict Text.toStrict codec
+    codec = Codec.identified $ Codec.map Text.fromStrict Text.toStrict codec
 
-instance HasCodec a => HasCodec (NonEmpty.NonEmpty a) where
+instance (HasCodec a, Typeable.Typeable a) => HasCodec (NonEmpty.NonEmpty a) where
     codec =
         let
-            schema
-                :: Trans.AccumT
-                       (Map.Map Identifier.Identifier Schema.Schema)
-                       Identity.Identity
-                       (Maybe Identifier.Identifier, Schema.Schema)
             schema = do
-                (m, itemSchema) <- Codec.schema (codec :: Codec.Value a)
+                (_, itemSchema) <- Codec.schema (codec :: Codec.Value a)
                 pure
-                    . maybe
-                          Schema.unidentified
-                          (Schema.identified
-                          . (Identifier.fromText (Text.pack "non-empty-") <>
-                            )
-                          )
-                          m
+                    . Schema.unidentified
                     . Schema.fromValue
                     . Value.Object
                     $ Object.fromList
@@ -527,10 +464,11 @@ instance HasCodec a => HasCodec (NonEmpty.NonEmpty a) where
                               $ Decimal.fromInteger 1
                               )
                           ]
-        in Codec.mapMaybe
-            NonEmpty.nonEmpty
-            (Just . NonEmpty.toList)
-            codec { Codec.schema = schema }
+        in
+            Codec.identified $ Codec.mapMaybe
+                NonEmpty.nonEmpty
+                (Just . NonEmpty.toList)
+                codec { Codec.schema = schema }
 
 instance HasCodec Integer where
     codec =
@@ -542,8 +480,7 @@ instance HasCodec Integer where
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
                 pure
-                    . Schema.identified
-                          (Identifier.fromText $ Text.pack "integer")
+                    . Schema.unidentified
                     . Schema.fromValue
                     . Value.Object
                     $ Object.fromList
@@ -554,7 +491,7 @@ instance HasCodec Integer where
                                     "integer"
                                 )
                           ]
-        in Codec.mapMaybe
+        in Codec.identified $ Codec.mapMaybe
             Decimal.toInteger
             (Just . Decimal.fromInteger)
             codec { Codec.schema = schema }
@@ -571,7 +508,7 @@ instance HasCodec Int where
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
                 pure
-                    . Schema.identified (Identifier.fromText $ Text.pack "int")
+                    . Schema.unidentified
                     . Schema.fromValue
                     . Value.Object
                     $ Object.fromList
@@ -598,7 +535,10 @@ instance HasCodec Int where
                               $ toInteger (maxBound :: Int)
                               )
                           ]
-        in Codec.mapMaybe from (Just . into) codec { Codec.schema = schema }
+        in Codec.identified $ Codec.mapMaybe
+            from
+            (Just . into)
+            codec { Codec.schema = schema }
 
 instance HasCodec Int.Int8 where
     codec =
@@ -612,8 +552,7 @@ instance HasCodec Int.Int8 where
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
                 pure
-                    . Schema.identified
-                          (Identifier.fromText $ Text.pack "int8")
+                    . Schema.unidentified
                     . Schema.fromValue
                     . Value.Object
                     $ Object.fromList
@@ -640,7 +579,10 @@ instance HasCodec Int.Int8 where
                               $ toInteger (maxBound :: Int.Int8)
                               )
                           ]
-        in Codec.mapMaybe from (Just . into) codec { Codec.schema = schema }
+        in Codec.identified $ Codec.mapMaybe
+            from
+            (Just . into)
+            codec { Codec.schema = schema }
 
 instance HasCodec Int.Int16 where
     codec =
@@ -654,8 +596,7 @@ instance HasCodec Int.Int16 where
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
                 pure
-                    . Schema.identified
-                          (Identifier.fromText $ Text.pack "int16")
+                    . Schema.unidentified
                     . Schema.fromValue
                     . Value.Object
                     $ Object.fromList
@@ -682,7 +623,10 @@ instance HasCodec Int.Int16 where
                               $ toInteger (maxBound :: Int.Int16)
                               )
                           ]
-        in Codec.mapMaybe from (Just . into) codec { Codec.schema = schema }
+        in Codec.identified $ Codec.mapMaybe
+            from
+            (Just . into)
+            codec { Codec.schema = schema }
 
 instance HasCodec Int.Int32 where
     codec =
@@ -696,8 +640,7 @@ instance HasCodec Int.Int32 where
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
                 pure
-                    . Schema.identified
-                          (Identifier.fromText $ Text.pack "int32")
+                    . Schema.unidentified
                     . Schema.fromValue
                     . Value.Object
                     $ Object.fromList
@@ -724,7 +667,10 @@ instance HasCodec Int.Int32 where
                               $ toInteger (maxBound :: Int.Int32)
                               )
                           ]
-        in Codec.mapMaybe from (Just . into) codec { Codec.schema = schema }
+        in Codec.identified $ Codec.mapMaybe
+            from
+            (Just . into)
+            codec { Codec.schema = schema }
 
 instance HasCodec Int.Int64 where
     codec =
@@ -738,8 +684,7 @@ instance HasCodec Int.Int64 where
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
                 pure
-                    . Schema.identified
-                          (Identifier.fromText $ Text.pack "int64")
+                    . Schema.unidentified
                     . Schema.fromValue
                     . Value.Object
                     $ Object.fromList
@@ -766,7 +711,10 @@ instance HasCodec Int.Int64 where
                               $ toInteger (maxBound :: Int.Int64)
                               )
                           ]
-        in Codec.mapMaybe from (Just . into) codec { Codec.schema = schema }
+        in Codec.identified $ Codec.mapMaybe
+            from
+            (Just . into)
+            codec { Codec.schema = schema }
 
 instance HasCodec Natural.Natural where
     codec =
@@ -780,8 +728,7 @@ instance HasCodec Natural.Natural where
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
                 pure
-                    . Schema.identified
-                          (Identifier.fromText $ Text.pack "natural")
+                    . Schema.unidentified
                     . Schema.fromValue
                     . Value.Object
                     $ Object.fromList
@@ -799,7 +746,10 @@ instance HasCodec Natural.Natural where
                               $ Decimal.fromInteger 0
                               )
                           ]
-        in Codec.mapMaybe from (Just . into) codec { Codec.schema = schema }
+        in Codec.identified $ Codec.mapMaybe
+            from
+            (Just . into)
+            codec { Codec.schema = schema }
 
 instance HasCodec Word where
     codec =
@@ -813,8 +763,7 @@ instance HasCodec Word where
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
                 pure
-                    . Schema.identified
-                          (Identifier.fromText $ Text.pack "word")
+                    . Schema.unidentified
                     . Schema.fromValue
                     . Value.Object
                     $ Object.fromList
@@ -841,7 +790,10 @@ instance HasCodec Word where
                               $ toInteger (maxBound :: Word)
                               )
                           ]
-        in Codec.mapMaybe from (Just . into) codec { Codec.schema = schema }
+        in Codec.identified $ Codec.mapMaybe
+            from
+            (Just . into)
+            codec { Codec.schema = schema }
 
 instance HasCodec Word.Word8 where
     codec =
@@ -855,8 +807,7 @@ instance HasCodec Word.Word8 where
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
                 pure
-                    . Schema.identified
-                          (Identifier.fromText $ Text.pack "word8")
+                    . Schema.unidentified
                     . Schema.fromValue
                     . Value.Object
                     $ Object.fromList
@@ -883,7 +834,10 @@ instance HasCodec Word.Word8 where
                               $ toInteger (maxBound :: Word.Word8)
                               )
                           ]
-        in Codec.mapMaybe from (Just . into) codec { Codec.schema = schema }
+        in Codec.identified $ Codec.mapMaybe
+            from
+            (Just . into)
+            codec { Codec.schema = schema }
 
 instance HasCodec Word.Word16 where
     codec =
@@ -897,8 +851,7 @@ instance HasCodec Word.Word16 where
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
                 pure
-                    . Schema.identified
-                          (Identifier.fromText $ Text.pack "word16")
+                    . Schema.unidentified
                     . Schema.fromValue
                     . Value.Object
                     $ Object.fromList
@@ -925,7 +878,10 @@ instance HasCodec Word.Word16 where
                               $ toInteger (maxBound :: Word.Word16)
                               )
                           ]
-        in Codec.mapMaybe from (Just . into) codec { Codec.schema = schema }
+        in Codec.identified $ Codec.mapMaybe
+            from
+            (Just . into)
+            codec { Codec.schema = schema }
 
 instance HasCodec Word.Word32 where
     codec =
@@ -939,8 +895,7 @@ instance HasCodec Word.Word32 where
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
                 pure
-                    . Schema.identified
-                          (Identifier.fromText $ Text.pack "word32")
+                    . Schema.unidentified
                     . Schema.fromValue
                     . Value.Object
                     $ Object.fromList
@@ -967,7 +922,10 @@ instance HasCodec Word.Word32 where
                               $ toInteger (maxBound :: Word.Word32)
                               )
                           ]
-        in Codec.mapMaybe from (Just . into) codec { Codec.schema = schema }
+        in Codec.identified $ Codec.mapMaybe
+            from
+            (Just . into)
+            codec { Codec.schema = schema }
 
 instance HasCodec Word.Word64 where
     codec =
@@ -981,8 +939,7 @@ instance HasCodec Word.Word64 where
                        (Maybe Identifier.Identifier, Schema.Schema)
             schema =
                 pure
-                    . Schema.identified
-                          (Identifier.fromText $ Text.pack "word64")
+                    . Schema.unidentified
                     . Schema.fromValue
                     . Value.Object
                     $ Object.fromList
@@ -1009,18 +966,25 @@ instance HasCodec Word.Word64 where
                               $ toInteger (maxBound :: Word.Word64)
                               )
                           ]
-        in Codec.mapMaybe from (Just . into) codec { Codec.schema = schema }
+        in Codec.identified $ Codec.mapMaybe
+            from
+            (Just . into)
+            codec { Codec.schema = schema }
 
 instance HasCodec Float where
-    codec =
-        Codec.mapMaybe (Just . Decimal.toRealFloat) Decimal.fromRealFloat codec
+    codec = Codec.identified $ Codec.mapMaybe
+        (Just . Decimal.toRealFloat)
+        Decimal.fromRealFloat
+        codec
 
 instance HasCodec Double where
-    codec =
-        Codec.mapMaybe (Just . Decimal.toRealFloat) Decimal.fromRealFloat codec
+    codec = Codec.identified $ Codec.mapMaybe
+        (Just . Decimal.toRealFloat)
+        Decimal.fromRealFloat
+        codec
 
 instance HasCodec Pointer.Pointer where
-    codec = Codec.mapMaybe
+    codec = Codec.identified $ Codec.mapMaybe
         (either (const Nothing) Just
         . Decoder.run Pointer.decode
         . Text.encodeUtf8
@@ -1035,21 +999,21 @@ instance HasCodec Pointer.Pointer where
         codec
 
 instance HasCodec Schema.Schema where
-    codec = Codec.map Schema.fromValue Schema.toValue codec
+    codec = Codec.identified $ Codec.map Schema.fromValue Schema.toValue codec
 
 basicCodec
-    :: String
-    -> Trans.AccumT
-           (Map.Map Identifier.Identifier Schema.Schema)
-           Identity.Identity
-           (Maybe Identifier.Identifier, Schema.Schema)
+    :: forall a
+     . Typeable.Typeable a
+    => Schema.Schema
     -> (a -> Value.Value)
     -> (Value.Value -> Maybe a)
     -> Codec.Value a
-basicCodec expected schema toValue fromValue = Codec.Codec
-    { Codec.decode = castValue expected fromValue
+basicCodec schema toValue fromValue = Codec.identified Codec.Codec
+    { Codec.decode = castValue
+        (show $ Typeable.typeRep (Typeable.Proxy :: Typeable.Proxy a))
+        fromValue
     , Codec.encode = Codec.tap $ Trans.lift . Trans.put . toValue
-    , Codec.schema = schema
+    , Codec.schema = pure $ Schema.unidentified schema
     }
 
 castValue
