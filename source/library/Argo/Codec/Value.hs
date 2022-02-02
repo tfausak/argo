@@ -101,3 +101,30 @@ identified c =
         i = Identifier.fromText . Text.pack . show $ Typeable.typeRep
             (Typeable.Proxy :: Typeable.Proxy a)
     in c { Codec.schema = Schema.identified i . snd <$> Codec.schema c }
+
+getRef
+    :: Value a
+    -> Trans.AccumT
+           (Map.Map Identifier.Identifier Schema.Schema)
+           Identity.Identity
+           (Either Schema.Schema Identifier.Identifier)
+getRef c = do
+    (m, s) <- Codec.schema c
+    case m of
+        Nothing -> pure $ Left s
+        Just i -> do
+            Trans.add $ Map.singleton i s
+            pure $ Right i
+
+ref :: Either Schema.Schema Identifier.Identifier -> Value.Value
+ref e = case e of
+    Left s -> Schema.toValue s
+    Right i -> Value.Object $ Object.fromList
+        [ Member.fromTuple
+              ( Name.fromString . String.fromText $ Text.pack "$ref"
+              , Value.String
+              . String.fromText
+              . mappend (Text.pack "#/$defs/")
+              $ Identifier.toText i
+              )
+        ]
