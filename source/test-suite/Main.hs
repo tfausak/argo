@@ -1214,6 +1214,17 @@ main = Tasty.defaultMain $ Tasty.testGroup
                   encode (T1C1 4 Nothing Nothing (Just (Just 0)))
                       @?= "{\"t1c1f1\":4,\"t1c1f2\":null,\"t1c1f4\":0}"
               ]
+    , Tasty.testCase "T2" $ do
+        let expected = schemafy
+                (Just "T2")
+                [Argo.schema|
+                        { "type": "object"
+                        , "properties": { "t2c1f1": { "$ref": "#/$defs/T2" } }
+                        , "required": []
+                        , "additionalProperties": true
+                        } |]
+            actual = Codec.schema (Argo.codec :: Codec.Value T2)
+        Accum.evalAccumT actual mempty @?= Accum.evalAccumT expected mempty -- TODO: runAccumT
     ]
 
 fromValue :: Argo.HasCodec a => Argo.Value -> Either String a
@@ -1224,6 +1235,17 @@ toValue = Codec.encodeWith Argo.codec
 
 number :: Integer -> Integer -> Argo.Value
 number s = Argo.Number . Argo.Decimal s
+
+newtype T2 = T2C1
+    { t2c1f1 :: Maybe T2
+    } deriving (Eq, Show)
+
+instance Argo.HasCodec T2 where
+    codec =
+        Codec.identified
+            . Codec.fromObjectCodec Permission.Allow
+            $ T2C1
+            <$> Codec.project t2c1f1 (Codec.optional "t2c1f1" Argo.codec)
 
 data T1 = T1C1
     { t1c1f1 :: Float
