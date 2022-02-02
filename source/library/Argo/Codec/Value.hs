@@ -54,7 +54,7 @@ arrayCodec = Codec.Codec
     , Codec.encode = \x -> do
         Trans.lift . Trans.put $ Value.Array x
         pure x
-    , Codec.schema = pure (Nothing, Schema.false)
+    , Codec.schema = pure $ Schema.unidentified Schema.false
     }
 
 objectCodec :: Value (Object.Object Value.Value)
@@ -71,7 +71,7 @@ objectCodec = Codec.Codec
     , Codec.encode = \x -> do
         Trans.lift . Trans.put $ Value.Object x
         pure x
-    , Codec.schema = pure (Nothing, Schema.false)
+    , Codec.schema = pure $ Schema.unidentified Schema.false
     }
 
 literalCodec :: Value.Value -> Value ()
@@ -87,12 +87,16 @@ literalCodec expected = Codec.Codec
             <> show actual
     , Codec.encode = const . Trans.lift $ Trans.put expected
     , Codec.schema =
-        pure . (,) Nothing . Schema.fromValue . Value.Object $ Object.fromList
-            [ Member.fromTuple
-                  ( Name.fromString . String.fromText $ Text.pack "const"
-                  , expected
-                  )
-            ]
+        pure
+        . Schema.unidentified
+        . Schema.fromValue
+        . Value.Object
+        $ Object.fromList
+              [ Member.fromTuple
+                    ( Name.fromString . String.fromText $ Text.pack "const"
+                    , expected
+                    )
+              ]
     }
 
 identified :: forall a . Typeable.Typeable a => Value a -> Value a

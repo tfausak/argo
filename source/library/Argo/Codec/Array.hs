@@ -34,7 +34,7 @@ fromArrayCodec =
             (\permission schemasM -> do
                 schemas <- schemasM
                 pure
-                    . (,) Nothing
+                    . Schema.unidentified
                     . Schema.fromValue
                     . Value.Object
                     $ Object.fromList
@@ -78,5 +78,10 @@ element c = Codec.Codec
     , Codec.encode = \x -> do
         Trans.tell [Codec.encodeWith c x]
         pure x
-    , Codec.schema = pure <$> Codec.schema c
+    , Codec.schema =
+        pure
+        . Schema.unidentified
+        . Schema.fromValue
+        . Codec.ref
+        <$> Codec.getRef c
     }

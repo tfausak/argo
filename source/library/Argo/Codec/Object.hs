@@ -41,7 +41,7 @@ fromObjectCodec =
             (\permission schemasM -> do
                 schemas <- schemasM
                 pure
-                    . (,) Nothing
+                    . Schema.unidentified
                     . Schema.fromValue
                     . Value.Object
                     $ Object.fromList
@@ -98,7 +98,13 @@ required k c = Codec.Codec
     , Codec.encode = \x -> do
         Monad.void . Codec.encode (optional k c) $ Just x
         pure x
-    , Codec.schema = pure . (,) (k, True) <$> Codec.schema c
+    , Codec.schema =
+        pure
+        . (,) (k, True)
+        . Schema.unidentified
+        . Schema.fromValue
+        . Codec.ref
+        <$> Codec.getRef c
     }
 
 optional :: Name.Name -> Codec.Value a -> Object (Maybe a)
@@ -119,7 +125,13 @@ optional k c = Codec.Codec
             Nothing -> pure ()
             Just y -> Trans.tell [Member.Member k $ Codec.encodeWith c y]
         pure x
-    , Codec.schema = pure . (,) (k, False) <$> Codec.schema c
+    , Codec.schema =
+        pure
+        . (,) (k, False)
+        . Schema.unidentified
+        . Schema.fromValue
+        . Codec.ref
+        <$> Codec.getRef c
     }
 
 tagged :: String -> Codec.Value a -> Codec.Value a
