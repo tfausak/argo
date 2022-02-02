@@ -112,13 +112,20 @@ getRef
            (Map.Map Identifier.Identifier Schema.Schema)
            Identity.Identity
            (Either Schema.Schema Identifier.Identifier)
-getRef c = do
-    (m, s) <- Codec.schema c
-    case m of
-        Nothing -> pure $ Left s
-        Just i -> do
-            Trans.add $ Map.singleton i s
-            pure $ Right i
+getRef codec = do
+    let
+        (maybeIdentifier, schema) =
+            fst . Identity.runIdentity $ Trans.runAccumT
+                (Codec.schema codec)
+                Map.empty
+    case maybeIdentifier of
+        Nothing -> pure $ Left schema
+        Just identifier -> do
+            schemas <- Trans.look
+            Monad.unless (Map.member identifier schemas) $ do
+                Trans.add $ Map.singleton identifier schema
+                Monad.void $ Codec.schema codec
+            pure $ Right identifier
 
 ref :: Either Schema.Schema Identifier.Identifier -> Value.Value
 ref e = case e of

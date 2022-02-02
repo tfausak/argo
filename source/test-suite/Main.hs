@@ -1215,16 +1215,16 @@ main = Tasty.defaultMain $ Tasty.testGroup
                       @?= "{\"t1c1f1\":4,\"t1c1f2\":null,\"t1c1f4\":0}"
               ]
     , Tasty.testCase "T2" $ do
-        let expected = schemafy
-                (Just "T2")
-                [Argo.schema|
-                        { "type": "object"
-                        , "properties": { "t2c1f1": { "$ref": "#/$defs/T2" } }
-                        , "required": []
-                        , "additionalProperties": true
-                        } |]
+        let schema = [Argo.schema|
+                { "type": "object"
+                , "properties": { "t2c1f1": { "$ref": "#/$defs/T2" } }
+                , "required": []
+                , "additionalProperties": true
+                } |]
+            expected = schemafy (Just "T2") schema
             actual = Codec.schema (Argo.codec :: Codec.Value T2)
-        Accum.evalAccumT actual mempty @?= Accum.evalAccumT expected mempty -- TODO: runAccumT
+        Accum.runAccum actual mempty
+            @?= (Accum.evalAccum expected mempty, Map.singleton "T2" schema)
     ]
 
 fromValue :: Argo.HasCodec a => Argo.Value -> Either String a
