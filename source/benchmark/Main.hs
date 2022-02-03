@@ -1,232 +1,144 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 import qualified Argo
+import qualified Control.DeepSeq as DeepSeq
+import qualified Control.Exception as Exception
+import qualified Control.Monad.Trans.Writer as Writer
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Builder as Builder
 import qualified Data.ByteString.Lazy as LazyByteString
+import qualified Data.List as List
 import qualified Data.Text as Text
-import qualified Test.Tasty.Bench as Tasty
+import qualified Data.Text.Encoding as Encoding
+import qualified Test.Tasty as Tasty
+import qualified Test.Tasty.Bench as Bench
 
 main :: IO ()
-main = Tasty.defaultMain
-    [ Tasty.bgroup
-        "encode"
-        [ Tasty.bgroup "Null" [Tasty.bench "null" $ Tasty.nf encode Argo.Null]
-        , Tasty.bgroup
-            "Boolean"
-            [Tasty.bench "false" . Tasty.nf encode $ Argo.Boolean False]
-        , Tasty.bgroup
-            "Number"
-            [ Tasty.bench "zero" . Tasty.nf encode . Argo.Number $ Argo.Decimal
-                  0
-                  0
-            ]
-        , Tasty.bgroup
-            "String"
-            [ Tasty.bench "empty" . Tasty.nf encode $ Argo.String ""
-            , Tasty.bench "1 character"
-            . Tasty.nf encode
-            . Argo.String
-            . Text.pack
-            $ replicate 1 'a'
-            , Tasty.bench "10 characters"
-            . Tasty.nf encode
-            . Argo.String
-            . Text.pack
-            $ replicate 10 'a'
-            , Tasty.bench "100 characters"
-            . Tasty.nf encode
-            . Argo.String
-            . Text.pack
-            $ replicate 100 'a'
-            , Tasty.bench "1000 characters"
-            . Tasty.nf encode
-            . Argo.String
-            . Text.pack
-            $ replicate 1000 'a'
-            , Tasty.bench "10000 characters"
-            . Tasty.nf encode
-            . Argo.String
-            . Text.pack
-            $ replicate 10000 'a'
-            ]
-        , Tasty.bgroup
-            "Array"
-            [ Tasty.bench "empty" . Tasty.nf encode $ Argo.Array []
-            , Tasty.bench "1 element"
-            . Tasty.nf encode
-            . Argo.Array
-            $ replicate 1 Argo.Null
-            , Tasty.bench "10 elements"
-            . Tasty.nf encode
-            . Argo.Array
-            $ replicate 10 Argo.Null
-            , Tasty.bench "100 elements"
-            . Tasty.nf encode
-            . Argo.Array
-            $ replicate 100 Argo.Null
-            , Tasty.bench "1000 elements"
-            . Tasty.nf encode
-            . Argo.Array
-            $ replicate 1000 Argo.Null
-            , Tasty.bench "10000 elements"
-            . Tasty.nf encode
-            . Argo.Array
-            $ replicate 10000 Argo.Null
-            ]
-        , Tasty.bgroup
-            "Object"
-            [ Tasty.bench "empty" . Tasty.nf encode $ Argo.Object []
-            , Tasty.bench "1 element"
-            . Tasty.nf encode
-            . Argo.Object
-            . replicate 1
-            $ Argo.Member (Argo.Name "") Argo.Null
-            , Tasty.bench "10 elements"
-            . Tasty.nf encode
-            . Argo.Object
-            . replicate 10
-            $ Argo.Member (Argo.Name "") Argo.Null
-            , Tasty.bench "100 elements"
-            . Tasty.nf encode
-            . Argo.Object
-            . replicate 100
-            $ Argo.Member (Argo.Name "") Argo.Null
-            , Tasty.bench "1000 elements"
-            . Tasty.nf encode
-            . Argo.Object
-            . replicate 1000
-            $ Argo.Member (Argo.Name "") Argo.Null
-            , Tasty.bench "10000 elements"
-            . Tasty.nf encode
-            . Argo.Object
-            . replicate 10000
-            $ Argo.Member (Argo.Name "") Argo.Null
-            ]
-        ]
-    , Tasty.bgroup
-        "decode"
-        [ Tasty.bgroup "Null" [Tasty.bench "null" $ Tasty.nf decode "null"]
-        , Tasty.bgroup
-            "Boolean"
-            [Tasty.bench "false" $ Tasty.nf decode "false"]
-        , Tasty.bgroup "Number" [Tasty.bench "zero" $ Tasty.nf decode "0"]
-        , Tasty.bgroup
-            "String"
-            [ Tasty.bench "empty" $ Tasty.nf decode "\"\""
-            , Tasty.bench "one byte" $ Tasty.nf decode "\"$\""
-            , Tasty.bench "two bytes" $ Tasty.nf decode "\"\xc2\xa2\""
-            , Tasty.bench "three bytes" $ Tasty.nf decode "\"\xe2\x82\xac\""
-            , Tasty.bench "four bytes" $ Tasty.nf decode "\"\xf0\x90\x8d\x88\""
-            , Tasty.bench "short escape" $ Tasty.nf decode "\"\\n\""
-            , Tasty.bench "long escape" $ Tasty.nf decode "\"\\u001f\""
-            , Tasty.bench "surrogate pair"
-                $ Tasty.nf decode "\"\\ud834\\udd1e\""
-            , Tasty.bench "1 character"
-            . Tasty.nf decode
-            $ "\""
-            <> ByteString.replicate 1 0x61
-            <> "\""
-            , Tasty.bench "10 characters"
-            . Tasty.nf decode
-            $ "\""
-            <> ByteString.replicate 10 0x61
-            <> "\""
-            , Tasty.bench "100 characters"
-            . Tasty.nf decode
-            $ "\""
-            <> ByteString.replicate 100 0x61
-            <> "\""
-            , Tasty.bench "1000 characters"
-            . Tasty.nf decode
-            $ "\""
-            <> ByteString.replicate 1000 0x61
-            <> "\""
-            , Tasty.bench "10000 characters"
-            . Tasty.nf decode
-            $ "\""
-            <> ByteString.replicate 10000 0x61
-            <> "\""
-            ]
-        , Tasty.bgroup
-            "Array"
-            [ Tasty.bench "empty" $ Tasty.nf decode "[]"
-            , Tasty.bench "1 element" $ Tasty.nf decode "[null]"
-            , Tasty.bench "10 elements"
-            . Tasty.nf decode
-            $ "[null"
-            <> ByteString.pack
-                   (take (5 * 9) $ cycle [0x2c, 0x6e, 0x75, 0x6c, 0x6c])
-            <> "]"
-            , Tasty.bench "100 elements"
-            . Tasty.nf decode
-            $ "[null"
-            <> ByteString.pack
-                   (take (5 * 99) $ cycle [0x2c, 0x6e, 0x75, 0x6c, 0x6c])
-            <> "]"
-            , Tasty.bench "1000 elements"
-            . Tasty.nf decode
-            $ "[null"
-            <> ByteString.pack
-                   (take (5 * 999) $ cycle [0x2c, 0x6e, 0x75, 0x6c, 0x6c])
-            <> "]"
-            , Tasty.bench "10000 elements"
-            . Tasty.nf decode
-            $ "[null"
-            <> ByteString.pack
-                   (take (5 * 9999) $ cycle [0x2c, 0x6e, 0x75, 0x6c, 0x6c])
-            <> "]"
-            ]
-        , Tasty.bgroup
-            "Object"
-            [ Tasty.bench "empty" $ Tasty.nf decode "{}"
-            , Tasty.bench "1 element" $ Tasty.nf decode "{\"\":null}"
-            , Tasty.bench "10 elements"
-            . Tasty.nf decode
-            $ "{\"\":null"
-            <> ByteString.pack
-                   (take (5 * 9) $ cycle
-                       [0x2c, 0x22, 0x22, 0x3a, 0x6e, 0x75, 0x6c, 0x6c]
-                   )
-            <> "}"
-            , Tasty.bench "100 elements"
-            . Tasty.nf decode
-            $ "{\"\":null"
-            <> ByteString.pack
-                   (take (5 * 99) $ cycle
-                       [0x2c, 0x22, 0x22, 0x3a, 0x6e, 0x75, 0x6c, 0x6c]
-                   )
-            <> "}"
-            , Tasty.bench "1000 elements"
-            . Tasty.nf decode
-            $ "{\"\":null"
-            <> ByteString.pack
-                   (take (5 * 999) $ cycle
-                       [0x2c, 0x22, 0x22, 0x3a, 0x6e, 0x75, 0x6c, 0x6c]
-                   )
-            <> "}"
-            , Tasty.bench "10000 elements"
-            . Tasty.nf decode
-            $ "{\"\":null"
-            <> ByteString.pack
-                   (take (5 * 9999) $ cycle
-                       [0x2c, 0x22, 0x22, 0x3a, 0x6e, 0x75, 0x6c, 0x6c]
-                   )
-            <> "}"
-            ]
-        ]
-    , Tasty.bgroup
-        "Pointer"
-        [ Tasty.bench "decode" $ Tasty.nf Argo.decodePointer ""
-        , Tasty.bench "encode"
-        . Tasty.nf Builder.toLazyByteString
-        . Argo.encodePointer
-        $ Argo.Pointer []
-        ]
-    ]
+main = Bench.defaultMain . Writer.execWriter $ do
 
-encode :: Argo.Value -> LazyByteString.ByteString
-encode = Builder.toLazyByteString . Argo.encode
+    group "encode" $ do
 
-decode :: ByteString.ByteString -> Either String Argo.Value
-decode = Argo.decode
+        group "Null" $ do
+            bench "null" Argo.Null encode
+
+        group "Boolean" $ do
+            bench "false" (Argo.Boolean False) encode
+            bench "true" (Argo.Boolean True) encode
+
+        group "Number" $ do
+            bench "zero" (Argo.Number $ Argo.Decimal 0 0) encode
+
+        group "String" $ do
+            let f n = Argo.String . Text.replicate n $ Text.singleton 'a'
+            bench "empty" (f 0) encode
+            bench "1 character" (f 1) encode
+            bench "10 characters" (f 10) encode
+            bench "100 characters" (f 100) encode
+            bench "1000 characters" (f 1000) encode
+            bench "10000 characters" (f 10000) encode
+
+        group "Array" $ do
+            let f n = Argo.Array $ replicate n Argo.Null
+            bench "empty" (f 0) encode
+            bench "1 element" (f 1) encode
+            bench "10 elements" (f 10) encode
+            bench "100 elements" (f 100) encode
+            bench "1000 elements" (f 1000) encode
+            bench "10000 elements" (f 10000) encode
+
+        group "Object" $ do
+            let
+                f n = Argo.Object . replicate n $ Argo.Member
+                    (Argo.Name Text.empty)
+                    Argo.Null
+            bench "empty" (f 0) encode
+            bench "1 element" (f 1) encode
+            bench "10 elements" (f 10) encode
+            bench "100 elements" (f 100) encode
+            bench "1000 elements" (f 1000) encode
+            bench "10000 elements" (f 10000) encode
+
+    group "decode" $ do
+
+        group "Null" $ do
+            bench "null" (utf8 "null") decode
+
+        group "Boolean" $ do
+            bench "false" (utf8 "false") decode
+            bench "true" (utf8 "true") decode
+
+        group "Number" $ do
+            bench "zero" (utf8 "0") decode
+
+        group "String" $ do
+            let f n = utf8 . wrap "\"" "\"" $ replicate n 'a'
+            bench "empty" (f 0) decode
+            bench "one byte" (utf8 "\"$\"") decode
+            bench "two bytes" (utf8 "\"\xc2\xa2\"") decode
+            bench "three bytes" (utf8 "\"\xe2\x82\xac\"") decode
+            bench "four bytes" (utf8 "\"\xf0\x90\x8d\x88\"") decode
+            bench "short escape" (utf8 "\"\\n\"") decode
+            bench "long escape" (utf8 "\"\\u001f\"") decode
+            bench "surrogate pair" (utf8 "\"\\ud834\\udd1e\"") decode
+            bench "1 element" (f 1) decode
+            bench "10 elements" (f 10) decode
+            bench "100 elements" (f 100) decode
+            bench "1000 elements" (f 1000) decode
+            bench "10000 elements" (f 10000) decode
+
+        group "Array" $ do
+            let
+                f n = utf8 . wrap "[" "]" . List.intercalate "," $ replicate
+                    n
+                    "null"
+            bench "empty" (f 0) decode
+            bench "1 element" (f 1) decode
+            bench "10 elements" (f 10) decode
+            bench "100 elements" (f 100) decode
+            bench "1000 elements" (f 1000) decode
+            bench "10000 elements" (f 10000) decode
+
+        group "Object" $ do
+            let
+                f n = utf8 . wrap "{" "}" . List.intercalate "," $ replicate
+                    n
+                    "\"\":null"
+            bench "empty" (f 0) decode
+            bench "1 element" (f 1) decode
+            bench "10 elements" (f 10) decode
+            bench "100 elements" (f 100) decode
+            bench "1000 elements" (f 1000) decode
+            bench "10000 elements" (f 10000) decode
+
+bench
+    :: (DeepSeq.NFData a, DeepSeq.NFData b)
+    => String
+    -> a
+    -> (a -> IO b)
+    -> Writer.Writer [Bench.Benchmark] ()
+bench name x f =
+    Writer.tell
+        . pure
+        . Tasty.withResource (Exception.evaluate $ DeepSeq.force x) discard
+        $ Bench.bench name
+        . Bench.nfIO
+        . (>>= f)
+
+decode :: ByteString.ByteString -> IO Argo.Value
+decode = either fail pure . Argo.decode
+
+discard :: Applicative f => a -> f ()
+discard = const $ pure ()
+
+encode :: Argo.Value -> IO LazyByteString.ByteString
+encode = pure . Builder.toLazyByteString . Argo.encode
+
+group
+    :: String
+    -> Writer.Writer [Bench.Benchmark] a
+    -> Writer.Writer [Bench.Benchmark] ()
+group x = Writer.tell . pure . Bench.bgroup x . Writer.execWriter
+
+utf8 :: String -> ByteString.ByteString
+utf8 = Encoding.encodeUtf8 . Text.pack
+
+wrap :: Monoid a => a -> a -> a -> a
+wrap l r x = l <> x <> r

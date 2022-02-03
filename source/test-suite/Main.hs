@@ -17,12 +17,15 @@ import qualified Argo.Json.Null as Null
 import qualified Argo.Json.Number as Number
 import qualified Argo.Json.Object as Object
 import qualified Argo.Json.String as String
+import qualified Argo.Schema.Identifier as Identifier
 import qualified Argo.Schema.Schema as Schema
 import qualified Argo.Type.Decimal as Decimal
 import qualified Argo.Type.Permission as Permission
+import qualified Control.Monad.Trans.Accum as Accum
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Builder as Builder
 import qualified Data.ByteString.Lazy as LazyByteString
+import qualified Data.Functor.Identity as Identity
 import qualified Data.Int as Int
 import qualified Data.Map as Map
 import qualified Data.Text as Text
@@ -734,366 +737,436 @@ main = Tasty.defaultMain $ Tasty.testGroup
     , Tasty.testGroup
         "Schema"
         [ Tasty.testCase "value" $ do
-            let expected = [Argo.schema| true |]
+            let expected = schemafy (Just "Value") [Argo.schema| true |]
                 actual = Codec.schema (Argo.codec :: Codec.Value Argo.Value)
-            actual @?= expected
+            Accum.evalAccumT actual mempty @?= Accum.evalAccumT expected mempty
         , Tasty.testCase "null" $ do
-            let expected = [Argo.schema| { "type": "null" } |]
+            let expected =
+                    schemafy (Just "Null") [Argo.schema| { "type": "null" } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value Null.Null)
-            actual @?= expected
+            Accum.evalAccumT actual mempty @?= Accum.evalAccumT expected mempty
         , Tasty.testCase "boolean" $ do
-            let expected = [Argo.schema| { "type": "boolean" } |]
+            let expected = schemafy
+                    (Just "Boolean")
+                    [Argo.schema| { "type": "boolean" } |]
                 actual =
                     Codec.schema (Argo.codec :: Codec.Value Boolean.Boolean)
-            actual @?= expected
+            Accum.evalAccumT actual mempty @?= Accum.evalAccumT expected mempty
         , Tasty.testCase "number" $ do
-            let expected = [Argo.schema| { "type": "number" } |]
+            let expected = schemafy
+                    (Just "Number")
+                    [Argo.schema| { "type": "number" } |]
                 actual =
                     Codec.schema (Argo.codec :: Codec.Value Number.Number)
-            actual @?= expected
+            Accum.evalAccumT actual mempty @?= Accum.evalAccumT expected mempty
         , Tasty.testCase "string" $ do
-            let expected = [Argo.schema| { "type": "string" } |]
+            let expected = schemafy
+                    (Just "String")
+                    [Argo.schema| { "type": "string" } |]
                 actual =
                     Codec.schema (Argo.codec :: Codec.Value String.String)
-            actual @?= expected
+            Accum.evalAccumT actual mempty @?= Accum.evalAccumT expected mempty
         , Tasty.testCase "array boolean" $ do
-            let expected =
-                    Schema.fromValue
-                        [Argo.value| { "type": "array", "items": { "type": "boolean" } } |]
+            let expected = schemafy
+                    (Just "Array Boolean")
+                    [Argo.schema| { "type": "array", "items": { "$ref": "#/definitions/Boolean" } } |]
                 actual =
                     Codec.schema
                         (Argo.codec :: Codec.Value
                               (Array.Array Boolean.Boolean)
                         )
-            actual @?= expected
+            Accum.evalAccumT actual mempty @?= Accum.evalAccumT expected mempty
         , Tasty.testCase "object boolean" $ do
-            let expected =
-                    Schema.fromValue
-                        [Argo.value| { "type": "object", "additionalProperties": { "type": "boolean" } } |]
+            let expected = schemafy
+                    (Just "Object Boolean")
+                    [Argo.schema| { "type": "object", "additionalProperties": { "$ref": "#/definitions/Boolean" } } |]
                 actual =
                     Codec.schema
                         (Argo.codec :: Codec.Value
                               (Object.Object Boolean.Boolean)
                         )
-            actual @?= expected
+            Accum.evalAccumT actual mempty @?= Accum.evalAccumT expected mempty
         , Tasty.testCase "maybe boolean" $ do
-            let expected =
-                    Schema.fromValue
-                        [Argo.value| { "oneOf": [ { "type": "boolean" }, { "type": "null" } ] } |]
+            let expected = schemafy
+                    (Just "Maybe Boolean")
+                    [Argo.schema| { "oneOf": [ { "type": "boolean" }, { "type": "null" } ] } |]
                 actual = Codec.schema
                     (Argo.codec :: Codec.Value (Maybe Boolean.Boolean))
-            actual @?= expected
+            Accum.evalAccumT actual mempty @?= Accum.evalAccumT expected mempty
         , Tasty.testCase "either boolean number" $ do
-            let expected =
-                    Schema.fromValue
-                        [Argo.value| { "oneOf": [ { "type": "object", "properties": { "type": { "const": "Left" }, "value": { "type": "boolean" } }, "required": [ "type", "value" ], "additionalProperties": false }, { "type": "object", "properties": { "type": { "const": "Right" }, "value": { "type": "number" } }, "required": [ "type", "value" ], "additionalProperties": false } ] } |]
+            let expected = schemafy
+                    (Just "Either Boolean Number")
+                    [Argo.schema| { "oneOf": [ { "type": "object", "properties": { "type": { "const": "Left" }, "value": { "$ref": "#/definitions/Boolean" } }, "required": [ "type", "value" ], "additionalProperties": false }, { "type": "object", "properties": { "type": { "const": "Right" }, "value": { "$ref": "#/definitions/Number" } }, "required": [ "type", "value" ], "additionalProperties": false } ] } |]
                 actual =
                     Codec.schema
                         (Argo.codec :: Codec.Value
                               (Either Boolean.Boolean Number.Number)
                         )
-            actual @?= expected
+            Accum.evalAccumT actual mempty @?= Accum.evalAccumT expected mempty
         , Tasty.testCase "()" $ do
-            let expected =
-                    Schema.fromValue
-                        [Argo.value| { "type": "array", "items": [], "additionalItems": false } |]
+            let expected = schemafy
+                    (Just "()")
+                    [Argo.schema| { "type": "array", "items": [], "additionalItems": false } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value ())
-            actual @?= expected
+            Accum.evalAccumT actual mempty @?= Accum.evalAccumT expected mempty
         , Tasty.testCase "2-tuple" $ do
-            let expected = Schema.fromValue
-                    [Argo.value| { "type": "array", "items":
-                        [ { "type": "boolean" }
-                        , { "type": "boolean" }
+            let expected = schemafy
+                    (Just "(Value,Null)")
+                    [Argo.schema| { "type": "array", "items":
+                        [ { "$ref": "#/definitions/Value" }
+                        , { "$ref": "#/definitions/Null" }
                         ], "additionalItems": false } |]
-                actual = Codec.schema (Argo.codec :: Codec.Value (Bool, Bool))
-            actual @?= expected
+                actual = Codec.schema
+                    (Argo.codec :: Codec.Value (Argo.Value, Null.Null))
+            Accum.evalAccumT actual mempty @?= Accum.evalAccumT expected mempty
         , Tasty.testCase "3-tuple" $ do
-            let expected = Schema.fromValue
-                    [Argo.value| { "type": "array", "items":
-                        [ { "type": "boolean" }
-                        , { "type": "boolean" }
-                        , { "type": "boolean" }
+            let expected = schemafy
+                    (Just "(Value,Null,Boolean)")
+                    [Argo.schema| { "type": "array", "items":
+                        [ { "$ref": "#/definitions/Value" }
+                        , { "$ref": "#/definitions/Null" }
+                        , { "$ref": "#/definitions/Boolean" }
                         ], "additionalItems": false } |]
-                actual =
-                    Codec.schema (Argo.codec :: Codec.Value (Bool, Bool, Bool))
-            actual @?= expected
+                actual = Codec.schema
+                    (Argo.codec :: Codec.Value
+                          (Argo.Value, Null.Null, Boolean.Boolean)
+                    )
+            Accum.evalAccumT actual mempty @?= Accum.evalAccumT expected mempty
         , Tasty.testCase "4-tuple" $ do
-            let expected = Schema.fromValue
-                    [Argo.value| { "type": "array", "items":
-                        [ { "type": "boolean" }
-                        , { "type": "boolean" }
-                        , { "type": "boolean" }
-                        , { "type": "boolean" }
+            let expected = schemafy
+                    (Just "(Value,Null,Boolean,Number)")
+                    [Argo.schema| { "type": "array", "items":
+                        [ { "$ref": "#/definitions/Value" }
+                        , { "$ref": "#/definitions/Null" }
+                        , { "$ref": "#/definitions/Boolean" }
+                        , { "$ref": "#/definitions/Number" }
                         ], "additionalItems": false } |]
                 actual = Codec.schema
-                    (Argo.codec :: Codec.Value (Bool, Bool, Bool, Bool))
-            actual @?= expected
+                    (Argo.codec :: Codec.Value
+                          ( Argo.Value
+                          , Null.Null
+                          , Boolean.Boolean
+                          , Number.Number
+                          )
+                    )
+            Accum.evalAccumT actual mempty @?= Accum.evalAccumT expected mempty
         , Tasty.testCase "5-tuple" $ do
-            let expected = Schema.fromValue
-                    [Argo.value| { "type": "array", "items":
-                        [ { "type": "boolean" }
-                        , { "type": "boolean" }
-                        , { "type": "boolean" }
-                        , { "type": "boolean" }
-                        , { "type": "boolean" }
+            let expected = schemafy
+                    (Just "(Value,Null,Boolean,Number,Integer)")
+                    [Argo.schema| { "type": "array", "items":
+                        [ { "$ref": "#/definitions/Value" }
+                        , { "$ref": "#/definitions/Null" }
+                        , { "$ref": "#/definitions/Boolean" }
+                        , { "$ref": "#/definitions/Number" }
+                        , { "$ref": "#/definitions/Integer" }
                         ], "additionalItems": false } |]
-                actual =
-                    Codec.schema
-                        (Argo.codec :: Codec.Value
-                              (Bool, Bool, Bool, Bool, Bool)
-                        )
-            actual @?= expected
+                actual = Codec.schema
+                    (Argo.codec :: Codec.Value
+                          ( Argo.Value
+                          , Null.Null
+                          , Boolean.Boolean
+                          , Number.Number
+                          , Integer
+                          )
+                    )
+            Accum.evalAccumT actual mempty @?= Accum.evalAccumT expected mempty
         , Tasty.testCase "6-tuple" $ do
-            let expected = Schema.fromValue
-                    [Argo.value| { "type": "array", "items":
-                        [ { "type": "boolean" }
-                        , { "type": "boolean" }
-                        , { "type": "boolean" }
-                        , { "type": "boolean" }
-                        , { "type": "boolean" }
-                        , { "type": "boolean" }
+            let expected = schemafy
+                    (Just "(Value,Null,Boolean,Number,Integer,String)")
+                    [Argo.schema| { "type": "array", "items":
+                        [ { "$ref": "#/definitions/Value" }
+                        , { "$ref": "#/definitions/Null" }
+                        , { "$ref": "#/definitions/Boolean" }
+                        , { "$ref": "#/definitions/Number" }
+                        , { "$ref": "#/definitions/Integer" }
+                        , { "$ref": "#/definitions/String" }
                         ], "additionalItems": false } |]
-                actual =
-                    Codec.schema
-                        (Argo.codec :: Codec.Value
-                              (Bool, Bool, Bool, Bool, Bool, Bool)
-                        )
-            actual @?= expected
+                actual = Codec.schema
+                    (Argo.codec :: Codec.Value
+                          ( Argo.Value
+                          , Null.Null
+                          , Boolean.Boolean
+                          , Number.Number
+                          , Integer
+                          , String.String
+                          )
+                    )
+            Accum.evalAccumT actual mempty @?= Accum.evalAccumT expected mempty
         , Tasty.testCase "7-tuple" $ do
-            let expected = Schema.fromValue
-                    [Argo.value| { "type": "array", "items":
-                        [ { "type": "boolean" }
-                        , { "type": "boolean" }
-                        , { "type": "boolean" }
-                        , { "type": "boolean" }
-                        , { "type": "boolean" }
-                        , { "type": "boolean" }
-                        , { "type": "boolean" }
+            let expected = schemafy
+                    (Just "(Value,Null,Boolean,Number,Integer,String,())")
+                    [Argo.schema| { "type": "array", "items":
+                        [ { "$ref": "#/definitions/Value" }
+                        , { "$ref": "#/definitions/Null" }
+                        , { "$ref": "#/definitions/Boolean" }
+                        , { "$ref": "#/definitions/Number" }
+                        , { "$ref": "#/definitions/Integer" }
+                        , { "$ref": "#/definitions/String" }
+                        , { "$ref": "#/definitions/()" }
                         ], "additionalItems": false } |]
                 actual = Codec.schema
                     (Argo.codec :: Codec.Value
-                          (Bool, Bool, Bool, Bool, Bool, Bool, Bool)
+                          ( Argo.Value
+                          , Null.Null
+                          , Boolean.Boolean
+                          , Number.Number
+                          , Integer
+                          , String.String
+                          , ()
+                          )
                     )
-            actual @?= expected
+            Accum.evalAccumT actual mempty @?= Accum.evalAccumT expected mempty
         , Tasty.testCase "8-tuple" $ do
-            let expected = Schema.fromValue
-                    [Argo.value| { "type": "array", "items":
-                        [ { "type": "boolean" }
-                        , { "type": "boolean" }
-                        , { "type": "boolean" }
-                        , { "type": "boolean" }
-                        , { "type": "boolean" }
-                        , { "type": "boolean" }
-                        , { "type": "boolean" }
-                        , { "type": "boolean" }
+            let expected = schemafy
+                    (Just "(Value,Null,Boolean,Number,Integer,String,(),Char)")
+                    [Argo.schema| { "type": "array", "items":
+                        [ { "$ref": "#/definitions/Value" }
+                        , { "$ref": "#/definitions/Null" }
+                        , { "$ref": "#/definitions/Boolean" }
+                        , { "$ref": "#/definitions/Number" }
+                        , { "$ref": "#/definitions/Integer" }
+                        , { "$ref": "#/definitions/String" }
+                        , { "$ref": "#/definitions/()" }
+                        , { "$ref": "#/definitions/Char" }
                         ], "additionalItems": false } |]
                 actual = Codec.schema
                     (Argo.codec :: Codec.Value
-                          (Bool, Bool, Bool, Bool, Bool, Bool, Bool, Bool)
+                          ( Argo.Value
+                          , Null.Null
+                          , Boolean.Boolean
+                          , Number.Number
+                          , Integer
+                          , String.String
+                          , ()
+                          , Char
+                          )
                     )
-            actual @?= expected
+            Accum.evalAccumT actual mempty @?= Accum.evalAccumT expected mempty
         , Tasty.testCase "bool" $ do
-            let expected = [Argo.schema| { "type": "boolean" } |]
+            let expected = schemafy
+                    (Just "Bool")
+                    [Argo.schema| { "type": "boolean" } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value Bool)
-            actual @?= expected
+            Accum.evalAccumT actual mempty @?= Accum.evalAccumT expected mempty
         , Tasty.testCase "decimal" $ do
-            let expected = [Argo.schema| { "type": "number" } |]
+            let expected = schemafy
+                    (Just "Decimal")
+                    [Argo.schema| { "type": "number" } |]
                 actual =
                     Codec.schema (Argo.codec :: Codec.Value Decimal.Decimal)
-            actual @?= expected
+            Accum.evalAccumT actual mempty @?= Accum.evalAccumT expected mempty
         , Tasty.testCase "text" $ do
-            let expected = [Argo.schema| { "type": "string" } |]
+            let expected = schemafy
+                    (Just "Text")
+                    [Argo.schema| { "type": "string" } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value Text.Text)
-            actual @?= expected
+            Accum.evalAccumT actual mempty @?= Accum.evalAccumT expected mempty
         , Tasty.testCase "list boolean" $ do
-            let expected =
-                    Schema.fromValue
-                        [Argo.value| { "type": "array", "items": { "type": "boolean" } } |]
+            let expected = schemafy
+                    (Just "[Boolean]")
+                    [Argo.schema| { "type": "array", "items": { "$ref": "#/definitions/Boolean" } } |]
                 actual =
                     Codec.schema (Argo.codec :: Codec.Value [Boolean.Boolean])
-            actual @?= expected
+            Accum.evalAccumT actual mempty @?= Accum.evalAccumT expected mempty
         , Tasty.testCase "map name boolean" $ do
-            let expected =
-                    Schema.fromValue
-                        [Argo.value| { "type": "object", "additionalProperties": { "type": "boolean" } } |]
+            let expected = schemafy
+                    (Just "Map Name Boolean")
+                    [Argo.schema| { "type": "object", "additionalProperties": { "$ref": "#/definitions/Boolean" } } |]
                 actual =
                     Codec.schema
                         (Argo.codec :: Codec.Value
                               (Map.Map Name.Name Boolean.Boolean)
                         )
-            actual @?= expected
+            Accum.evalAccumT actual mempty @?= Accum.evalAccumT expected mempty
         , Tasty.testCase "map (argo) string boolean" $ do
-            let expected =
-                    Schema.fromValue
-                        [Argo.value| { "type": "object", "additionalProperties": { "type": "boolean" } } |]
+            let expected = schemafy
+                    (Just "Map String Boolean")
+                    [Argo.schema| { "type": "object", "additionalProperties": { "$ref": "#/definitions/Boolean" } } |]
                 actual = Codec.schema
                     (Argo.codec :: Codec.Value
                           (Map.Map String.String Boolean.Boolean)
                     )
-            actual @?= expected
+            Accum.evalAccumT actual mempty @?= Accum.evalAccumT expected mempty
         , Tasty.testCase "map (strict) text boolean" $ do
-            let expected =
-                    Schema.fromValue
-                        [Argo.value| { "type": "object", "additionalProperties": { "type": "boolean" } } |]
+            let expected = schemafy
+                    (Just "Map Text Boolean")
+                    [Argo.schema| { "type": "object", "additionalProperties": { "$ref": "#/definitions/Boolean" } } |]
                 actual =
                     Codec.schema
                         (Argo.codec :: Codec.Value
                               (Map.Map Text.Text Boolean.Boolean)
                         )
-            actual @?= expected
+            Accum.evalAccumT actual mempty @?= Accum.evalAccumT expected mempty
         , Tasty.testCase "map (lazy) text boolean" $ do
-            let expected =
-                    Schema.fromValue
-                        [Argo.value| { "type": "object", "additionalProperties": { "type": "boolean" } } |]
+            let expected = schemafy
+                    (Just "Map Text Boolean")
+                    [Argo.schema| { "type": "object", "additionalProperties": { "$ref": "#/definitions/Boolean" } } |]
                 actual = Codec.schema
                     (Argo.codec :: Codec.Value
                           (Map.Map LazyText.Text Boolean.Boolean)
                     )
-            actual @?= expected
+            Accum.evalAccumT actual mempty @?= Accum.evalAccumT expected mempty
         , Tasty.testCase "map (base) string boolean" $ do
-            let expected =
-                    Schema.fromValue
-                        [Argo.value| { "type": "object", "additionalProperties": { "type": "boolean" } } |]
+            let expected = schemafy
+                    (Just "Map [Char] Boolean")
+                    [Argo.schema| { "type": "object", "additionalProperties": { "$ref": "#/definitions/Boolean" } } |]
                 actual =
                     Codec.schema
                         (Argo.codec :: Codec.Value
                               (Map.Map String Boolean.Boolean)
                         )
-            actual @?= expected
+            Accum.evalAccumT actual mempty @?= Accum.evalAccumT expected mempty
         , Tasty.testCase "string" $ do
-            let expected = [Argo.schema| { "type": "string" } |]
+            let expected = schemafy
+                    (Just "[Char]")
+                    [Argo.schema| { "type": "string" } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value String)
-            actual @?= expected
+            Accum.evalAccumT actual mempty @?= Accum.evalAccumT expected mempty
         , Tasty.testCase "char" $ do
-            let expected =
-                    Schema.fromValue
-                        [Argo.value| { "type": "string", "minLength": 1, "maxLength": 1 } |]
+            let expected = schemafy
+                    (Just "Char")
+                    [Argo.schema| { "type": "string", "minLength": 1, "maxLength": 1 } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value Char)
-            actual @?= expected
+            Accum.evalAccumT actual mempty @?= Accum.evalAccumT expected mempty
         , Tasty.testCase "lazy text" $ do
-            let expected = [Argo.schema| { "type": "string" } |]
+            let expected = schemafy
+                    (Just "Text")
+                    [Argo.schema| { "type": "string" } |]
                 actual =
                     Codec.schema (Argo.codec :: Codec.Value LazyText.Text)
-            actual @?= expected
-        , Tasty.testCase "list boolean" $ do
-            let expected =
-                    Schema.fromValue
-                        [Argo.value| { "type": "array", "items": { "type": "boolean" }, "minItems": 1 } |]
+            Accum.evalAccumT actual mempty @?= Accum.evalAccumT expected mempty
+        , Tasty.testCase "non-empty boolean" $ do
+            let expected = schemafy
+                    (Just "NonEmpty Boolean")
+                    [Argo.schema| { "type": "array", "items": { "type": "boolean" }, "minItems": 1 } |]
                 actual = Codec.schema
                     (Argo.codec :: Codec.Value (NonEmpty Boolean.Boolean))
-            actual @?= expected
+            Accum.evalAccumT actual mempty @?= Accum.evalAccumT expected mempty
         , Tasty.testCase "integer" $ do
-            let expected = [Argo.schema| { "type": "integer" } |]
+            let expected = schemafy
+                    (Just "Integer")
+                    [Argo.schema| { "type": "integer" } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value Integer)
-            actual @?= expected
+            Accum.evalAccumT actual mempty @?= Accum.evalAccumT expected mempty
         , Tasty.testCase "int" $ do
-            let expected =
-                    Schema.fromValue
-                        [Argo.value| { "type": "integer", "minimum": -9223372036854775808, "maximum": 9223372036854775807 } |]
+            let expected = schemafy
+                    (Just "Int")
+                    [Argo.schema| { "type": "integer", "minimum": -9223372036854775808, "maximum": 9223372036854775807 } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value Int)
-            actual @?= expected
+            Accum.evalAccumT actual mempty @?= Accum.evalAccumT expected mempty
         , Tasty.testCase "int8" $ do
-            let expected =
-                    Schema.fromValue
-                        [Argo.value| { "type": "integer", "minimum": -128, "maximum": 127 } |]
+            let expected = schemafy
+                    (Just "Int8")
+                    [Argo.schema| { "type": "integer", "minimum": -128, "maximum": 127 } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value Int.Int8)
-            actual @?= expected
+            Accum.evalAccumT actual mempty @?= Accum.evalAccumT expected mempty
         , Tasty.testCase "int16" $ do
-            let expected =
-                    Schema.fromValue
-                        [Argo.value| { "type": "integer", "minimum": -32768, "maximum": 32767 } |]
+            let expected = schemafy
+                    (Just "Int16")
+                    [Argo.schema| { "type": "integer", "minimum": -32768, "maximum": 32767 } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value Int.Int16)
-            actual @?= expected
+            Accum.evalAccumT actual mempty @?= Accum.evalAccumT expected mempty
         , Tasty.testCase "int32" $ do
-            let expected =
-                    Schema.fromValue
-                        [Argo.value| { "type": "integer", "minimum": -2147483648, "maximum": 2147483647 } |]
+            let expected = schemafy
+                    (Just "Int32")
+                    [Argo.schema| { "type": "integer", "minimum": -2147483648, "maximum": 2147483647 } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value Int.Int32)
-            actual @?= expected
+            Accum.evalAccumT actual mempty @?= Accum.evalAccumT expected mempty
         , Tasty.testCase "int64" $ do
-            let expected =
-                    Schema.fromValue
-                        [Argo.value| { "type": "integer", "minimum": -9223372036854775808, "maximum": 9223372036854775807 } |]
+            let expected = schemafy
+                    (Just "Int64")
+                    [Argo.schema| { "type": "integer", "minimum": -9223372036854775808, "maximum": 9223372036854775807 } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value Int.Int64)
-            actual @?= expected
+            Accum.evalAccumT actual mempty @?= Accum.evalAccumT expected mempty
         , Tasty.testCase "natural" $ do
-            let expected = Schema.fromValue
-                    [Argo.value| { "type": "integer", "minimum": 0 } |]
+            let expected = schemafy
+                    (Just "Natural")
+                    [Argo.schema| { "type": "integer", "minimum": 0 } |]
                 actual =
                     Codec.schema (Argo.codec :: Codec.Value Natural.Natural)
-            actual @?= expected
+            Accum.evalAccumT actual mempty @?= Accum.evalAccumT expected mempty
         , Tasty.testCase "word" $ do
-            let expected =
-                    Schema.fromValue
-                        [Argo.value| { "type": "integer", "minimum": 0, "maximum": 18446744073709551615 } |]
+            let expected = schemafy
+                    (Just "Word")
+                    [Argo.schema| { "type": "integer", "minimum": 0, "maximum": 18446744073709551615 } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value Word)
-            actual @?= expected
+            Accum.evalAccumT actual mempty @?= Accum.evalAccumT expected mempty
         , Tasty.testCase "word8" $ do
-            let expected =
-                    Schema.fromValue
-                        [Argo.value| { "type": "integer", "minimum": 0, "maximum": 255 } |]
+            let expected = schemafy
+                    (Just "Word8")
+                    [Argo.schema| { "type": "integer", "minimum": 0, "maximum": 255 } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value Word.Word8)
-            actual @?= expected
+            Accum.evalAccumT actual mempty @?= Accum.evalAccumT expected mempty
         , Tasty.testCase "word16" $ do
-            let expected =
-                    Schema.fromValue
-                        [Argo.value| { "type": "integer", "minimum": 0, "maximum": 65535 } |]
+            let expected = schemafy
+                    (Just "Word16")
+                    [Argo.schema| { "type": "integer", "minimum": 0, "maximum": 65535 } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value Word.Word16)
-            actual @?= expected
+            Accum.evalAccumT actual mempty @?= Accum.evalAccumT expected mempty
         , Tasty.testCase "word32" $ do
-            let expected =
-                    Schema.fromValue
-                        [Argo.value| { "type": "integer", "minimum": 0, "maximum": 4294967295 } |]
+            let expected = schemafy
+                    (Just "Word32")
+                    [Argo.schema| { "type": "integer", "minimum": 0, "maximum": 4294967295 } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value Word.Word32)
-            actual @?= expected
+            Accum.evalAccumT actual mempty @?= Accum.evalAccumT expected mempty
         , Tasty.testCase "word64" $ do
-            let expected =
-                    Schema.fromValue
-                        [Argo.value| { "type": "integer", "minimum": 0, "maximum": 18446744073709551615 } |]
+            let expected = schemafy
+                    (Just "Word64")
+                    [Argo.schema| { "type": "integer", "minimum": 0, "maximum": 18446744073709551615 } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value Word.Word64)
-            actual @?= expected
+            Accum.evalAccumT actual mempty @?= Accum.evalAccumT expected mempty
         , Tasty.testCase "float" $ do
-            let expected = [Argo.schema| { "type": "number" } |]
+            let expected = schemafy
+                    (Just "Float")
+                    [Argo.schema| { "type": "number" } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value Float)
-            actual @?= expected
+            Accum.evalAccumT actual mempty @?= Accum.evalAccumT expected mempty
         , Tasty.testCase "double" $ do
-            let expected = [Argo.schema| { "type": "number" } |]
+            let expected = schemafy
+                    (Just "Double")
+                    [Argo.schema| { "type": "number" } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value Double)
-            actual @?= expected
+            Accum.evalAccumT actual mempty @?= Accum.evalAccumT expected mempty
         , Tasty.testCase "pointer" $ do
-            let expected = [Argo.schema| { "type": "string" } |]
+            let expected = schemafy
+                    (Just "Pointer")
+                    [Argo.schema| { "type": "string" } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value Argo.Pointer)
-            actual @?= expected
+            Accum.evalAccumT actual mempty @?= Accum.evalAccumT expected mempty
         , Tasty.testCase "schema" $ do
-            let expected = [Argo.schema| true |]
+            let expected = schemafy (Just "Schema") [Argo.schema| true |]
                 actual =
                     Codec.schema (Argo.codec :: Codec.Value Schema.Schema)
-            actual @?= expected
+            Accum.evalAccumT actual mempty @?= Accum.evalAccumT expected mempty
         , Tasty.testCase "record" $ do
-            let expected
-                    = [Argo.schema| { "type": "object", "properties": { "bool": { "type": "boolean" }, "text": { "type": "string" } }, "required": [ "bool" ], "additionalProperties": true } |]
+            let expected = schemafy
+                    Nothing
+                    [Argo.schema| { "type": "object", "properties": { "bool": { "$ref": "#/definitions/Bool" }, "text": { "$ref": "#/definitions/Text" } }, "required": [ "bool" ], "additionalProperties": true } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value Record)
-            actual @?= expected
+            Accum.evalAccumT actual mempty @?= Accum.evalAccumT expected mempty
         ]
     , Tasty.testGroup "T1"
         $ let codec = Argo.codec :: Codec.Value T1
           in
               [ Tasty.testCase "schema" $ do
-                  let expected = [Argo.schema|
+                  let expected = schemafy
+                          Nothing
+                          [Argo.schema|
                             {
                                 "type": "object",
                                 "properties": {
-                                    "t1c1f1": { "type": "number" },
-                                    "t1c1f2": { "oneOf": [ { "type": "number" }, { "type": "null" } ] },
-                                    "t1c1f3": { "type": "number" },
-                                    "t1c1f4": { "oneOf": [ { "type": "number" }, { "type": "null" } ] }
+                                    "t1c1f1": { "$ref": "#/definitions/Float" },
+                                    "t1c1f2": { "$ref": "#/definitions/Maybe Float" },
+                                    "t1c1f3": { "$ref": "#/definitions/Float" },
+                                    "t1c1f4": { "$ref": "#/definitions/Maybe Float" }
                                 },
                                 "required": [ "t1c1f1", "t1c1f2" ],
                                 "additionalProperties": true
                             }
                         |]
                       actual = Codec.schema codec
-                  actual @?= expected
+                  Accum.evalAccumT actual mempty
+                      @?= Accum.evalAccumT expected mempty
               , Tasty.testCase "decode" $ do
                   hush (Argo.decode "{ \"t1c1f1\": 0 }")
                       @?= (Nothing :: Maybe T1)
@@ -1141,6 +1214,17 @@ main = Tasty.defaultMain $ Tasty.testGroup
                   encode (T1C1 4 Nothing Nothing (Just (Just 0)))
                       @?= "{\"t1c1f1\":4,\"t1c1f2\":null,\"t1c1f4\":0}"
               ]
+    , Tasty.testCase "T2" $ do
+        let schema = [Argo.schema|
+                { "type": "object"
+                , "properties": { "t2c1f1": { "$ref": "#/definitions/T2" } }
+                , "required": []
+                , "additionalProperties": true
+                } |]
+            expected = schemafy (Just "T2") schema
+            actual = Codec.schema (Argo.codec :: Codec.Value T2)
+        Accum.runAccum actual mempty
+            @?= (Accum.evalAccum expected mempty, Map.singleton "T2" schema)
     ]
 
 fromValue :: Argo.HasCodec a => Argo.Value -> Either String a
@@ -1151,6 +1235,17 @@ toValue = Codec.encodeWith Argo.codec
 
 number :: Integer -> Integer -> Argo.Value
 number s = Argo.Number . Argo.Decimal s
+
+newtype T2 = T2C1
+    { t2c1f1 :: Maybe T2
+    } deriving (Eq, Show)
+
+instance Argo.HasCodec T2 where
+    codec =
+        Codec.identified
+            . Codec.fromObjectCodec Permission.Allow
+            $ T2C1
+            <$> Codec.project t2c1f1 (Codec.optional "t2c1f1" Argo.codec)
 
 data T1 = T1C1
     { t1c1f1 :: Float
@@ -1205,3 +1300,12 @@ propertyWith n g s f =
 
 hush :: Either String a -> Maybe a
 hush = either (const Nothing) Just
+
+schemafy
+    :: Maybe Identifier.Identifier
+    -> Schema.Schema
+    -> Accum.AccumT
+           (Map.Map Identifier.Identifier Schema.Schema)
+           Identity.Identity
+           (Maybe Identifier.Identifier, Schema.Schema)
+schemafy m = pure . maybe Schema.unidentified Schema.identified m

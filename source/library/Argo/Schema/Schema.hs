@@ -11,6 +11,7 @@ import qualified Argo.Json.Name as Name
 import qualified Argo.Json.Object as Object
 import qualified Argo.Json.String as String
 import qualified Argo.Json.Value as Value
+import qualified Argo.Schema.Identifier as Identifier
 import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.TemplateHaskell as TH
 import qualified Argo.Vendor.Text as Text
@@ -44,3 +45,10 @@ false = fromValue . Value.Boolean $ Boolean.fromBool False
 
 true :: Schema
 true = fromValue . Value.Boolean $ Boolean.fromBool True
+
+unidentified :: Schema -> (Maybe Identifier.Identifier, Schema)
+unidentified s = (Nothing, s)
+
+identified
+    :: Identifier.Identifier -> Schema -> (Maybe Identifier.Identifier, Schema)
+identified i s = (Just i, s)

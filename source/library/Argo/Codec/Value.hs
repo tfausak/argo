@@ -1,3 +1,5 @@
+{-# LANGUAGE ScopedTypeVariables #-}
+
 module Argo.Codec.Value where
 
 import qualified Argo.Codec.Codec as Codec
@@ -8,11 +10,14 @@ import qualified Argo.Json.Null as Null
 import qualified Argo.Json.Object as Object
 import qualified Argo.Json.String as String
 import qualified Argo.Json.Value as Value
+import qualified Argo.Schema.Identifier as Identifier
 import qualified Argo.Schema.Schema as Schema
+import qualified Argo.Vendor.Map as Map
 import qualified Argo.Vendor.Text as Text
 import qualified Argo.Vendor.Transformers as Trans
 import qualified Control.Monad as Monad
 import qualified Data.Functor.Identity as Identity
+import qualified Data.Typeable as Typeable
 
 decodeWith :: Value a -> Value.Value -> Either String a
 decodeWith c =
@@ -30,7 +35,11 @@ type Value a
     = Codec.Codec
           (Trans.ReaderT Value.Value (Trans.ExceptT String Identity.Identity))
           (Trans.MaybeT (Trans.StateT Value.Value Identity.Identity))
-          Schema.Schema
+          ( Trans.AccumT
+                (Map.Map Identifier.Identifier Schema.Schema)
+                Identity.Identity
+                (Maybe Identifier.Identifier, Schema.Schema)
+          )
           a
           a
 
@@ -45,7 +54,7 @@ arrayCodec = Codec.Codec
     , Codec.encode = \x -> do
         Trans.lift . Trans.put $ Value.Array x
         pure x
-    , Codec.schema = Schema.false
+    , Codec.schema = pure $ Schema.unidentified Schema.false
     }
 
 objectCodec :: Value (Object.Object Value.Value)
@@ -62,7 +71,7 @@ objectCodec = Codec.Codec
     , Codec.encode = \x -> do
         Trans.lift . Trans.put $ Value.Object x
         pure x
-    , Codec.schema = Schema.false
+    , Codec.schema = pure $ Schema.unidentified Schema.false
     }
 
 literalCodec :: Value.Value -> Value ()
@@ -77,8 +86,56 @@ literalCodec expected = Codec.Codec
             <> " but got "
             <> show actual
     , Codec.encode = const . Trans.lift $ Trans.put expected
-    , Codec.schema = Schema.fromValue . Value.Object $ Object.fromList
-        [ Member.fromTuple
-              (Name.fromString . String.fromText $ Text.pack "const", expected)
-        ]
+    , Codec.schema =
+        pure
+        . Schema.unidentified
+        . Schema.fromValue
+        . Value.Object
+        $ Object.fromList
+              [ Member.fromTuple
+                    ( Name.fromString . String.fromText $ Text.pack "const"
+                    , expected
+                    )
+              ]
     }
+
+identified :: forall a . Typeable.Typeable a => Value a -> Value a
+identified c =
+    let
+        i = Identifier.fromText . Text.pack . show $ Typeable.typeRep
+            (Typeable.Proxy :: Typeable.Proxy a)
+    in c { Codec.schema = Schema.identified i . snd <$> Codec.schema c }
+
+getRef
+    :: Value a
+    -> Trans.AccumT
+           (Map.Map Identifier.Identifier Schema.Schema)
+           Identity.Identity
+           (Either Schema.Schema Identifier.Identifier)
+getRef codec = do
+    let
+        (maybeIdentifier, schema) =
+            fst . Identity.runIdentity $ Trans.runAccumT
+                (Codec.schema codec)
+                Map.empty
+    case maybeIdentifier of
+        Nothing -> pure $ Left schema
+        Just identifier -> do
+            schemas <- Trans.look
+            Monad.unless (Map.member identifier schemas) $ do
+                Trans.add $ Map.singleton identifier schema
+                Monad.void $ Codec.schema codec
+            pure $ Right identifier
+
+ref :: Either Schema.Schema Identifier.Identifier -> Value.Value
+ref e = case e of
+    Left s -> Schema.toValue s
+    Right i -> Value.Object $ Object.fromList
+        [ Member.fromTuple
+              ( Name.fromString . String.fromText $ Text.pack "$ref"
+              , Value.String
+              . String.fromText
+              . mappend (Text.pack "#/definitions/")
+              $ Identifier.toText i
+              )
+        ]

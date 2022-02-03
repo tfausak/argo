@@ -2,8 +2,10 @@ module Argo.Codec.List where
 
 import qualified Argo.Codec.Codec as Codec
 import qualified Argo.Codec.Value as Codec
+import qualified Argo.Schema.Identifier as Identifier
 import qualified Argo.Schema.Schema as Schema
 import qualified Argo.Type.Permission as Permission
+import qualified Argo.Vendor.Map as Map
 import qualified Argo.Vendor.Transformers as Trans
 import qualified Control.Monad as Monad
 import qualified Data.Functor.Identity as Identity
@@ -17,7 +19,13 @@ type List s e a
           a
 
 fromListCodec
-    :: (Permission.Permission -> s -> Schema.Schema)
+    :: ( Permission.Permission
+       -> s
+       -> Trans.AccumT
+              (Map.Map Identifier.Identifier Schema.Schema)
+              Identity.Identity
+              (Maybe Identifier.Identifier, Schema.Schema)
+       )
     -> Codec.Value [e]
     -> Permission.Permission
     -> List s e a

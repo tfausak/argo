@@ -90,6 +90,7 @@ library
         Argo.Pointer.Pointer
         Argo.Pointer.Token
         Argo.QuasiQuoter
+        Argo.Schema.Identifier
         Argo.Schema.Schema
         Argo.Type.Config
         Argo.Type.Decimal
@@ -132,6 +133,7 @@ benchmark argo-benchmark
     import: executable
 
     build-depends:
+        , tasty >= 1.4.2 && < 1.5
         , tasty-bench >= 0.2.5 && < 0.4
     hs-source-dirs: source/benchmark
     main-is: Main.hs

@@ -1,3 +1,5 @@
+{-# LANGUAGE FlexibleInstances #-}
+
 module Argo.Codec.Codec where
 
 import Control.Applicative ((<|>))
@@ -20,30 +22,35 @@ instance (Functor r, Functor w) => Functor (Codec r w s i) where
 instance
     ( Applicative r
     , Applicative w
-    , Monoid s
-    ) => Applicative (Codec r w s i) where
-    pure x =
-        Codec { decode = pure x, encode = const $ pure x, schema = mempty }
+    , Applicative s
+    , Monoid a
+    ) => Applicative (Codec r w (s a) i) where
+    pure x = Codec
+        { decode = pure x
+        , encode = const $ pure x
+        , schema = pure mempty
+        }
     cf <*> cx = Codec
         { decode = decode cf <*> decode cx
         , encode = \i -> encode cf i <*> encode cx i
-        , schema = schema cf <> schema cx
+        , schema = (<>) <$> schema cf <*> schema cx
         }
 
 instance
     ( Applicative.Alternative r
     , Applicative.Alternative w
-    , Monoid s
-    ) => Applicative.Alternative (Codec r w s i) where
+    , Applicative s
+    , Monoid a
+    ) => Applicative.Alternative (Codec r w (s a) i) where
     empty = Codec
         { decode = Applicative.empty
         , encode = const Applicative.empty
-        , schema = mempty
+        , schema = pure mempty
         }
     cx <|> cy = Codec
         { decode = decode cx <|> decode cy
         , encode = \i -> encode cx i <|> encode cy i
-        , schema = schema cx <> schema cy
+        , schema = (<>) <$> schema cx <*> schema cy
         }
 
 map
