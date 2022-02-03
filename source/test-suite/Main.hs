@@ -769,7 +769,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
         , Tasty.testCase "array boolean" $ do
             let expected = schemafy
                     (Just "Array Boolean")
-                    [Argo.schema| { "type": "array", "items": { "$ref": "#/$defs/Boolean" } } |]
+                    [Argo.schema| { "type": "array", "items": { "$ref": "#/definitions/Boolean" } } |]
                 actual =
                     Codec.schema
                         (Argo.codec :: Codec.Value
@@ -779,7 +779,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
         , Tasty.testCase "object boolean" $ do
             let expected = schemafy
                     (Just "Object Boolean")
-                    [Argo.schema| { "type": "object", "additionalProperties": { "$ref": "#/$defs/Boolean" } } |]
+                    [Argo.schema| { "type": "object", "additionalProperties": { "$ref": "#/definitions/Boolean" } } |]
                 actual =
                     Codec.schema
                         (Argo.codec :: Codec.Value
@@ -796,7 +796,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
         , Tasty.testCase "either boolean number" $ do
             let expected = schemafy
                     (Just "Either Boolean Number")
-                    [Argo.schema| { "oneOf": [ { "type": "object", "properties": { "type": { "const": "Left" }, "value": { "$ref": "#/$defs/Boolean" } }, "required": [ "type", "value" ], "additionalProperties": false }, { "type": "object", "properties": { "type": { "const": "Right" }, "value": { "$ref": "#/$defs/Number" } }, "required": [ "type", "value" ], "additionalProperties": false } ] } |]
+                    [Argo.schema| { "oneOf": [ { "type": "object", "properties": { "type": { "const": "Left" }, "value": { "$ref": "#/definitions/Boolean" } }, "required": [ "type", "value" ], "additionalProperties": false }, { "type": "object", "properties": { "type": { "const": "Right" }, "value": { "$ref": "#/definitions/Number" } }, "required": [ "type", "value" ], "additionalProperties": false } ] } |]
                 actual =
                     Codec.schema
                         (Argo.codec :: Codec.Value
@@ -813,8 +813,8 @@ main = Tasty.defaultMain $ Tasty.testGroup
             let expected = schemafy
                     (Just "(Value,Null)")
                     [Argo.schema| { "type": "array", "items":
-                        [ { "$ref": "#/$defs/Value" }
-                        , { "$ref": "#/$defs/Null" }
+                        [ { "$ref": "#/definitions/Value" }
+                        , { "$ref": "#/definitions/Null" }
                         ], "additionalItems": false } |]
                 actual = Codec.schema
                     (Argo.codec :: Codec.Value (Argo.Value, Null.Null))
@@ -823,9 +823,9 @@ main = Tasty.defaultMain $ Tasty.testGroup
             let expected = schemafy
                     (Just "(Value,Null,Boolean)")
                     [Argo.schema| { "type": "array", "items":
-                        [ { "$ref": "#/$defs/Value" }
-                        , { "$ref": "#/$defs/Null" }
-                        , { "$ref": "#/$defs/Boolean" }
+                        [ { "$ref": "#/definitions/Value" }
+                        , { "$ref": "#/definitions/Null" }
+                        , { "$ref": "#/definitions/Boolean" }
                         ], "additionalItems": false } |]
                 actual = Codec.schema
                     (Argo.codec :: Codec.Value
@@ -836,10 +836,10 @@ main = Tasty.defaultMain $ Tasty.testGroup
             let expected = schemafy
                     (Just "(Value,Null,Boolean,Number)")
                     [Argo.schema| { "type": "array", "items":
-                        [ { "$ref": "#/$defs/Value" }
-                        , { "$ref": "#/$defs/Null" }
-                        , { "$ref": "#/$defs/Boolean" }
-                        , { "$ref": "#/$defs/Number" }
+                        [ { "$ref": "#/definitions/Value" }
+                        , { "$ref": "#/definitions/Null" }
+                        , { "$ref": "#/definitions/Boolean" }
+                        , { "$ref": "#/definitions/Number" }
                         ], "additionalItems": false } |]
                 actual = Codec.schema
                     (Argo.codec :: Codec.Value
@@ -854,11 +854,11 @@ main = Tasty.defaultMain $ Tasty.testGroup
             let expected = schemafy
                     (Just "(Value,Null,Boolean,Number,Integer)")
                     [Argo.schema| { "type": "array", "items":
-                        [ { "$ref": "#/$defs/Value" }
-                        , { "$ref": "#/$defs/Null" }
-                        , { "$ref": "#/$defs/Boolean" }
-                        , { "$ref": "#/$defs/Number" }
-                        , { "$ref": "#/$defs/Integer" }
+                        [ { "$ref": "#/definitions/Value" }
+                        , { "$ref": "#/definitions/Null" }
+                        , { "$ref": "#/definitions/Boolean" }
+                        , { "$ref": "#/definitions/Number" }
+                        , { "$ref": "#/definitions/Integer" }
                         ], "additionalItems": false } |]
                 actual = Codec.schema
                     (Argo.codec :: Codec.Value
@@ -874,12 +874,12 @@ main = Tasty.defaultMain $ Tasty.testGroup
             let expected = schemafy
                     (Just "(Value,Null,Boolean,Number,Integer,String)")
                     [Argo.schema| { "type": "array", "items":
-                        [ { "$ref": "#/$defs/Value" }
-                        , { "$ref": "#/$defs/Null" }
-                        , { "$ref": "#/$defs/Boolean" }
-                        , { "$ref": "#/$defs/Number" }
-                        , { "$ref": "#/$defs/Integer" }
-                        , { "$ref": "#/$defs/String" }
+                        [ { "$ref": "#/definitions/Value" }
+                        , { "$ref": "#/definitions/Null" }
+                        , { "$ref": "#/definitions/Boolean" }
+                        , { "$ref": "#/definitions/Number" }
+                        , { "$ref": "#/definitions/Integer" }
+                        , { "$ref": "#/definitions/String" }
                         ], "additionalItems": false } |]
                 actual = Codec.schema
                     (Argo.codec :: Codec.Value
@@ -896,13 +896,13 @@ main = Tasty.defaultMain $ Tasty.testGroup
             let expected = schemafy
                     (Just "(Value,Null,Boolean,Number,Integer,String,())")
                     [Argo.schema| { "type": "array", "items":
-                        [ { "$ref": "#/$defs/Value" }
-                        , { "$ref": "#/$defs/Null" }
-                        , { "$ref": "#/$defs/Boolean" }
-                        , { "$ref": "#/$defs/Number" }
-                        , { "$ref": "#/$defs/Integer" }
-                        , { "$ref": "#/$defs/String" }
-                        , { "$ref": "#/$defs/()" }
+                        [ { "$ref": "#/definitions/Value" }
+                        , { "$ref": "#/definitions/Null" }
+                        , { "$ref": "#/definitions/Boolean" }
+                        , { "$ref": "#/definitions/Number" }
+                        , { "$ref": "#/definitions/Integer" }
+                        , { "$ref": "#/definitions/String" }
+                        , { "$ref": "#/definitions/()" }
                         ], "additionalItems": false } |]
                 actual = Codec.schema
                     (Argo.codec :: Codec.Value
@@ -920,14 +920,14 @@ main = Tasty.defaultMain $ Tasty.testGroup
             let expected = schemafy
                     (Just "(Value,Null,Boolean,Number,Integer,String,(),Char)")
                     [Argo.schema| { "type": "array", "items":
-                        [ { "$ref": "#/$defs/Value" }
-                        , { "$ref": "#/$defs/Null" }
-                        , { "$ref": "#/$defs/Boolean" }
-                        , { "$ref": "#/$defs/Number" }
-                        , { "$ref": "#/$defs/Integer" }
-                        , { "$ref": "#/$defs/String" }
-                        , { "$ref": "#/$defs/()" }
-                        , { "$ref": "#/$defs/Char" }
+                        [ { "$ref": "#/definitions/Value" }
+                        , { "$ref": "#/definitions/Null" }
+                        , { "$ref": "#/definitions/Boolean" }
+                        , { "$ref": "#/definitions/Number" }
+                        , { "$ref": "#/definitions/Integer" }
+                        , { "$ref": "#/definitions/String" }
+                        , { "$ref": "#/definitions/()" }
+                        , { "$ref": "#/definitions/Char" }
                         ], "additionalItems": false } |]
                 actual = Codec.schema
                     (Argo.codec :: Codec.Value
@@ -964,14 +964,14 @@ main = Tasty.defaultMain $ Tasty.testGroup
         , Tasty.testCase "list boolean" $ do
             let expected = schemafy
                     (Just "[Boolean]")
-                    [Argo.schema| { "type": "array", "items": { "$ref": "#/$defs/Boolean" } } |]
+                    [Argo.schema| { "type": "array", "items": { "$ref": "#/definitions/Boolean" } } |]
                 actual =
                     Codec.schema (Argo.codec :: Codec.Value [Boolean.Boolean])
             Accum.evalAccumT actual mempty @?= Accum.evalAccumT expected mempty
         , Tasty.testCase "map name boolean" $ do
             let expected = schemafy
                     (Just "Map Name Boolean")
-                    [Argo.schema| { "type": "object", "additionalProperties": { "$ref": "#/$defs/Boolean" } } |]
+                    [Argo.schema| { "type": "object", "additionalProperties": { "$ref": "#/definitions/Boolean" } } |]
                 actual =
                     Codec.schema
                         (Argo.codec :: Codec.Value
@@ -981,7 +981,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
         , Tasty.testCase "map (argo) string boolean" $ do
             let expected = schemafy
                     (Just "Map String Boolean")
-                    [Argo.schema| { "type": "object", "additionalProperties": { "$ref": "#/$defs/Boolean" } } |]
+                    [Argo.schema| { "type": "object", "additionalProperties": { "$ref": "#/definitions/Boolean" } } |]
                 actual = Codec.schema
                     (Argo.codec :: Codec.Value
                           (Map.Map String.String Boolean.Boolean)
@@ -990,7 +990,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
         , Tasty.testCase "map (strict) text boolean" $ do
             let expected = schemafy
                     (Just "Map Text Boolean")
-                    [Argo.schema| { "type": "object", "additionalProperties": { "$ref": "#/$defs/Boolean" } } |]
+                    [Argo.schema| { "type": "object", "additionalProperties": { "$ref": "#/definitions/Boolean" } } |]
                 actual =
                     Codec.schema
                         (Argo.codec :: Codec.Value
@@ -1000,7 +1000,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
         , Tasty.testCase "map (lazy) text boolean" $ do
             let expected = schemafy
                     (Just "Map Text Boolean")
-                    [Argo.schema| { "type": "object", "additionalProperties": { "$ref": "#/$defs/Boolean" } } |]
+                    [Argo.schema| { "type": "object", "additionalProperties": { "$ref": "#/definitions/Boolean" } } |]
                 actual = Codec.schema
                     (Argo.codec :: Codec.Value
                           (Map.Map LazyText.Text Boolean.Boolean)
@@ -1009,7 +1009,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
         , Tasty.testCase "map (base) string boolean" $ do
             let expected = schemafy
                     (Just "Map [Char] Boolean")
-                    [Argo.schema| { "type": "object", "additionalProperties": { "$ref": "#/$defs/Boolean" } } |]
+                    [Argo.schema| { "type": "object", "additionalProperties": { "$ref": "#/definitions/Boolean" } } |]
                 actual =
                     Codec.schema
                         (Argo.codec :: Codec.Value
@@ -1141,7 +1141,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
         , Tasty.testCase "record" $ do
             let expected = schemafy
                     Nothing
-                    [Argo.schema| { "type": "object", "properties": { "bool": { "$ref": "#/$defs/Bool" }, "text": { "$ref": "#/$defs/Text" } }, "required": [ "bool" ], "additionalProperties": true } |]
+                    [Argo.schema| { "type": "object", "properties": { "bool": { "$ref": "#/definitions/Bool" }, "text": { "$ref": "#/definitions/Text" } }, "required": [ "bool" ], "additionalProperties": true } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value Record)
             Accum.evalAccumT actual mempty @?= Accum.evalAccumT expected mempty
         ]
@@ -1155,10 +1155,10 @@ main = Tasty.defaultMain $ Tasty.testGroup
                             {
                                 "type": "object",
                                 "properties": {
-                                    "t1c1f1": { "$ref": "#/$defs/Float" },
-                                    "t1c1f2": { "$ref": "#/$defs/Maybe Float" },
-                                    "t1c1f3": { "$ref": "#/$defs/Float" },
-                                    "t1c1f4": { "$ref": "#/$defs/Maybe Float" }
+                                    "t1c1f1": { "$ref": "#/definitions/Float" },
+                                    "t1c1f2": { "$ref": "#/definitions/Maybe Float" },
+                                    "t1c1f3": { "$ref": "#/definitions/Float" },
+                                    "t1c1f4": { "$ref": "#/definitions/Maybe Float" }
                                 },
                                 "required": [ "t1c1f1", "t1c1f2" ],
                                 "additionalProperties": true
@@ -1217,7 +1217,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
     , Tasty.testCase "T2" $ do
         let schema = [Argo.schema|
                 { "type": "object"
-                , "properties": { "t2c1f1": { "$ref": "#/$defs/T2" } }
+                , "properties": { "t2c1f1": { "$ref": "#/definitions/T2" } }
                 , "required": []
                 , "additionalProperties": true
                 } |]

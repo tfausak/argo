@@ -135,7 +135,7 @@ ref e = case e of
               ( Name.fromString . String.fromText $ Text.pack "$ref"
               , Value.String
               . String.fromText
-              . mappend (Text.pack "#/$defs/")
+              . mappend (Text.pack "#/definitions/")
               $ Identifier.toText i
               )
         ]
