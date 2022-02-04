@@ -106,6 +106,7 @@ library
         Argo.Vendor.ByteString
         Argo.Vendor.DeepSeq
         Argo.Vendor.Map
+        Argo.Vendor.Set
         Argo.Vendor.TemplateHaskell
         Argo.Vendor.Text
         Argo.Vendor.Transformers
