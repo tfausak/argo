@@ -806,13 +806,13 @@ main = Tasty.defaultMain $ Tasty.testGroup
         , Tasty.testCase "()" $ do
             let expected = schemafy
                     (Just "()")
-                    [Argo.schema| { "type": "array", "maxItems": 0, "additionalItems": false } |]
+                    [Argo.schema| { "type": "array", "minItems": 0, "maxItems": 0 } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value ())
             Accum.evalAccumT actual mempty @?= Accum.evalAccumT expected mempty
         , Tasty.testCase "2-tuple" $ do
             let expected = schemafy
                     (Just "(Value,Null)")
-                    [Argo.schema| { "type": "array", "items":
+                    [Argo.schema| { "type": "array", "minItems": 2, "items":
                         [ { "$ref": "#/definitions/Value" }
                         , { "$ref": "#/definitions/Null" }
                         ], "additionalItems": false } |]
@@ -822,7 +822,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
         , Tasty.testCase "3-tuple" $ do
             let expected = schemafy
                     (Just "(Value,Null,Boolean)")
-                    [Argo.schema| { "type": "array", "items":
+                    [Argo.schema| { "type": "array", "minItems": 3, "items":
                         [ { "$ref": "#/definitions/Value" }
                         , { "$ref": "#/definitions/Null" }
                         , { "$ref": "#/definitions/Boolean" }
@@ -835,7 +835,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
         , Tasty.testCase "4-tuple" $ do
             let expected = schemafy
                     (Just "(Value,Null,Boolean,Number)")
-                    [Argo.schema| { "type": "array", "items":
+                    [Argo.schema| { "type": "array", "minItems": 4, "items":
                         [ { "$ref": "#/definitions/Value" }
                         , { "$ref": "#/definitions/Null" }
                         , { "$ref": "#/definitions/Boolean" }
@@ -853,7 +853,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
         , Tasty.testCase "5-tuple" $ do
             let expected = schemafy
                     (Just "(Value,Null,Boolean,Number,Integer)")
-                    [Argo.schema| { "type": "array", "items":
+                    [Argo.schema| { "type": "array", "minItems": 5, "items":
                         [ { "$ref": "#/definitions/Value" }
                         , { "$ref": "#/definitions/Null" }
                         , { "$ref": "#/definitions/Boolean" }
@@ -873,7 +873,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
         , Tasty.testCase "6-tuple" $ do
             let expected = schemafy
                     (Just "(Value,Null,Boolean,Number,Integer,String)")
-                    [Argo.schema| { "type": "array", "items":
+                    [Argo.schema| { "type": "array", "minItems": 6, "items":
                         [ { "$ref": "#/definitions/Value" }
                         , { "$ref": "#/definitions/Null" }
                         , { "$ref": "#/definitions/Boolean" }
@@ -895,7 +895,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
         , Tasty.testCase "7-tuple" $ do
             let expected = schemafy
                     (Just "(Value,Null,Boolean,Number,Integer,String,())")
-                    [Argo.schema| { "type": "array", "items":
+                    [Argo.schema| { "type": "array", "minItems": 7, "items":
                         [ { "$ref": "#/definitions/Value" }
                         , { "$ref": "#/definitions/Null" }
                         , { "$ref": "#/definitions/Boolean" }
@@ -919,7 +919,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
         , Tasty.testCase "8-tuple" $ do
             let expected = schemafy
                     (Just "(Value,Null,Boolean,Number,Integer,String,(),Char)")
-                    [Argo.schema| { "type": "array", "items":
+                    [Argo.schema| { "type": "array", "minItems": 8, "items":
                         [ { "$ref": "#/definitions/Value" }
                         , { "$ref": "#/definitions/Null" }
                         , { "$ref": "#/definitions/Boolean" }

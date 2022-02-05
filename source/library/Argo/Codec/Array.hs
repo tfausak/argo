@@ -39,42 +39,41 @@ fromArrayCodec =
                     . Schema.unidentified
                     . Schema.fromValue
                     . Value.Object
-                    $ Object.fromList
-                          [ Member.fromTuple
-                              ( Name.fromString . String.fromText $ Text.pack
-                                  "type"
-                              , Value.String . String.fromText $ Text.pack
-                                  "array"
-                              )
-                          , if null schemas
-                              then Member.fromTuple
-                                  ( Name.fromString
-                                  . String.fromText
-                                  $ Text.pack "maxItems"
-                                  , Value.Number
-                                  . Number.fromDecimal
-                                  $ Decimal.decimal 0 0
-                                  )
-                              else Member.fromTuple
-                                  ( Name.fromString
-                                  . String.fromText
-                                  $ Text.pack "items"
-                                  , Value.Array . Array.fromList $ fmap
-                                      (Schema.toValue . snd)
-                                      schemas
-                                  )
-                          , Member.fromTuple
-                              ( Name.fromString . String.fromText $ Text.pack
-                                  "additionalItems"
-                              , Value.Boolean
+                    . Object.fromList
+                    $ member
+                          "type"
+                          (Value.String . String.fromText $ Text.pack "array")
+                    : member
+                          "minItems"
+                          (Value.Number
+                          . Number.fromDecimal
+                          . Decimal.fromInteger
+                          . toInteger
+                          $ length schemas
+                          )
+                    : if null schemas
+                          then
+                              [ member "maxItems"
+                                . Value.Number
+                                . Number.fromDecimal
+                                $ Decimal.fromInteger 0
+                              ]
+                          else
+                              [ member "items"
+                              . Value.Array
+                              . Array.fromList
+                              $ fmap (Schema.toValue . snd) schemas
+                              , member "additionalItems"
+                              . Value.Boolean
                               . Boolean.fromBool
-                              $ case permission of
-                                    Permission.Allow -> True
-                                    Permission.Forbid -> False
-                              )
-                          ]
+                              $ Permission.toBool permission
+                              ]
             )
         $ Codec.map Array.toList Array.fromList Codec.arrayCodec
+
+member :: String -> a -> Member.Member a
+member k v =
+    Member.fromTuple (Name.fromString . String.fromText $ Text.pack k, v)
 
 element :: Codec.Value a -> Array a
 element c = Codec.Codec
