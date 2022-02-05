@@ -1308,4 +1308,4 @@ schemafy
            (Map.Map Identifier.Identifier Schema.Schema)
            Identity.Identity
            (Maybe Identifier.Identifier, Schema.Schema)
-schemafy m = pure . maybe Schema.unidentified Schema.identified m
+schemafy m = pure . maybe Schema.unidentified Schema.withIdentifier m
