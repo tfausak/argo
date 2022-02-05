@@ -7,11 +7,13 @@ import qualified Argo.Json.Array as Array
 import qualified Argo.Json.Boolean as Boolean
 import qualified Argo.Json.Member as Member
 import qualified Argo.Json.Name as Name
+import qualified Argo.Json.Number as Number
 import qualified Argo.Json.Object as Object
 import qualified Argo.Json.String as String
 import qualified Argo.Json.Value as Value
 import qualified Argo.Schema.Identifier as Identifier
 import qualified Argo.Schema.Schema as Schema
+import qualified Argo.Type.Decimal as Decimal
 import qualified Argo.Type.Permission as Permission
 import qualified Argo.Vendor.Map as Map
 import qualified Argo.Vendor.Text as Text
@@ -44,13 +46,23 @@ fromArrayCodec =
                               , Value.String . String.fromText $ Text.pack
                                   "array"
                               )
-                          , Member.fromTuple
-                              ( Name.fromString . String.fromText $ Text.pack
-                                  "items"
-                              , Value.Array . Array.fromList $ fmap
-                                  (Schema.toValue . snd)
-                                  schemas
-                              )
+                          , if null schemas
+                              then Member.fromTuple
+                                  ( Name.fromString
+                                  . String.fromText
+                                  $ Text.pack "maxItems"
+                                  , Value.Number
+                                  . Number.fromDecimal
+                                  $ Decimal.decimal 0 0
+                                  )
+                              else Member.fromTuple
+                                  ( Name.fromString
+                                  . String.fromText
+                                  $ Text.pack "items"
+                                  , Value.Array . Array.fromList $ fmap
+                                      (Schema.toValue . snd)
+                                      schemas
+                                  )
                           , Member.fromTuple
                               ( Name.fromString . String.fromText $ Text.pack
                                   "additionalItems"

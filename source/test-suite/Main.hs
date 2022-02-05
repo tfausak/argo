@@ -806,7 +806,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
         , Tasty.testCase "()" $ do
             let expected = schemafy
                     (Just "()")
-                    [Argo.schema| { "type": "array", "items": [], "additionalItems": false } |]
+                    [Argo.schema| { "type": "array", "maxItems": 0, "additionalItems": false } |]
                 actual = Codec.schema (Argo.codec :: Codec.Value ())
             Accum.evalAccumT actual mempty @?= Accum.evalAccumT expected mempty
         , Tasty.testCase "2-tuple" $ do
