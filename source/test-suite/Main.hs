@@ -902,7 +902,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
                         , { "$ref": "#/definitions/Number" }
                         , { "$ref": "#/definitions/Integer" }
                         , { "$ref": "#/definitions/String" }
-                        , { "$ref": "#/definitions/%28%29" }
+                        , { "$ref": "#/definitions/()" }
                         ], "additionalItems": false } |]
                 actual = Codec.schema
                     (Argo.codec :: Codec.Value
@@ -926,7 +926,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
                         , { "$ref": "#/definitions/Number" }
                         , { "$ref": "#/definitions/Integer" }
                         , { "$ref": "#/definitions/String" }
-                        , { "$ref": "#/definitions/%28%29" }
+                        , { "$ref": "#/definitions/()" }
                         , { "$ref": "#/definitions/Char" }
                         ], "additionalItems": false } |]
                 actual = Codec.schema
@@ -1156,9 +1156,9 @@ main = Tasty.defaultMain $ Tasty.testGroup
                                 "type": "object",
                                 "properties": {
                                     "t1c1f1": { "$ref": "#/definitions/Float" },
-                                    "t1c1f2": { "$ref": "#/definitions/Maybe%20Float" },
+                                    "t1c1f2": { "$ref": "#/definitions/Maybe Float" },
                                     "t1c1f3": { "$ref": "#/definitions/Float" },
-                                    "t1c1f4": { "$ref": "#/definitions/Maybe%20Float" }
+                                    "t1c1f4": { "$ref": "#/definitions/Maybe Float" }
                                 },
                                 "required": [ "t1c1f1", "t1c1f2" ],
                                 "additionalProperties": true

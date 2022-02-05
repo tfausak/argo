@@ -1,7 +1,6 @@
 module Argo.Vendor.Text
     ( LazyText
     , Text.Text
-    , Text.concatMap
     , Encoding.decodeUtf8'
     , Encoding.encodeUtf8
     , Encoding.encodeUtf8BuilderEscaped

@@ -12,15 +12,12 @@ import qualified Argo.Json.String as String
 import qualified Argo.Json.Value as Value
 import qualified Argo.Schema.Identifier as Identifier
 import qualified Argo.Schema.Schema as Schema
-import qualified Argo.Vendor.ByteString as ByteString
 import qualified Argo.Vendor.Map as Map
-import qualified Argo.Vendor.Set as Set
 import qualified Argo.Vendor.Text as Text
 import qualified Argo.Vendor.Transformers as Trans
 import qualified Control.Monad as Monad
 import qualified Data.Functor.Identity as Identity
 import qualified Data.Typeable as Typeable
-import qualified Text.Printf as Printf
 
 decodeWith :: Value a -> Value.Value -> Either String a
 decodeWith c =
@@ -145,23 +142,6 @@ ref e = case e of
               , Value.String
               . String.fromText
               . mappend (Text.pack "#/definitions/")
-              . urlEncode
               $ Identifier.toText i
               )
         ]
-
-urlEncode :: Text.Text -> Text.Text
-urlEncode =
-    let
-        -- https://datatracker.ietf.org/doc/html/rfc3986/#section-2.3
-        unreservedCharacters = Set.fromList
-            $ mconcat [['A' .. 'Z'], ['a' .. 'z'], ['0' .. '9'], "-._~"]
-        isUnreserved = flip Set.member unreservedCharacters
-        encode =
-            Text.pack
-                . concatMap (Printf.printf "%%%02x")
-                . ByteString.unpack
-                . Text.encodeUtf8
-                . Text.singleton
-    in Text.concatMap
-        $ \c -> if isUnreserved c then Text.singleton c else encode c
