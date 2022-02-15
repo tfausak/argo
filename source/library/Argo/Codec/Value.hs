@@ -89,14 +89,7 @@ literalCodec expected = Codec.Codec
     , Codec.schema =
         pure
         . Schema.unidentified
-        . Schema.fromValue
-        . Value.Object
-        $ Object.fromList
-              [ Member.fromTuple
-                    ( Name.fromString . String.fromText $ Text.pack "const"
-                    , expected
-                    )
-              ]
+        $ Schema.Const expected
     }
 
 identified :: forall a . Typeable.Typeable a => Value a -> Value a

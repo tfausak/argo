@@ -18,7 +18,7 @@ pointer = defaultQuasiQuoter
 schema :: TH.QuasiQuoter
 schema = defaultQuasiQuoter
     { TH.quoteExp =
-        either fail (TH.lift . Schema.fromValue)
+        either fail (TH.lift . (\ x -> x :: Schema.Schema) . error "TODO" . (\ x -> x :: Value.Value))
         . Decode.decode
         . Text.encodeUtf8
         . Text.pack

@@ -3,8 +3,6 @@ module Argo.Codec.Object where
 import qualified Argo.Codec.Codec as Codec
 import qualified Argo.Codec.List as Codec
 import qualified Argo.Codec.Value as Codec
-import qualified Argo.Json.Array as Array
-import qualified Argo.Json.Boolean as Boolean
 import qualified Argo.Json.Member as Member
 import qualified Argo.Json.Name as Name
 import qualified Argo.Json.Null as Null
@@ -20,7 +18,6 @@ import qualified Argo.Vendor.Transformers as Trans
 import qualified Control.Monad as Monad
 import qualified Data.Functor.Identity as Identity
 import qualified Data.List as List
-import qualified Data.Maybe as Maybe
 
 type Object a
     = Codec.List
@@ -42,45 +39,7 @@ fromObjectCodec =
                 schemas <- schemasM
                 pure
                     . Schema.unidentified
-                    . Schema.fromValue
-                    . Value.Object
-                    $ Object.fromList
-                          [ Member.fromTuple
-                              ( Name.fromString . String.fromText $ Text.pack
-                                  "type"
-                              , Value.String . String.fromText $ Text.pack
-                                  "object"
-                              )
-                          , Member.fromTuple
-                              ( Name.fromString . String.fromText $ Text.pack
-                                  "properties"
-                              , Value.Object . Object.fromList $ fmap
-                                  (\((k, _), (_, s)) ->
-                                      Member.fromTuple (k, Schema.toValue s)
-                                  )
-                                  schemas
-                              )
-                          , Member.fromTuple
-                              ( Name.fromString . String.fromText $ Text.pack
-                                  "required"
-                              , Value.Array . Array.fromList $ Maybe.mapMaybe
-                                  (\((k, r), _) -> if r
-                                      then Just . Value.String $ Name.toString
-                                          k
-                                      else Nothing
-                                  )
-                                  schemas
-                              )
-                          , Member.fromTuple
-                              ( Name.fromString . String.fromText $ Text.pack
-                                  "additionalProperties"
-                              , Value.Boolean
-                              . Boolean.fromBool
-                              $ case permission of
-                                    Permission.Allow -> True
-                                    Permission.Forbid -> False
-                              )
-                          ]
+                    $ Schema.Object permission schemas Nothing
             )
         $ Codec.map Object.toList Object.fromList Codec.objectCodec
 
@@ -102,8 +61,7 @@ required k c = Codec.Codec
         pure
         . (,) (k, True)
         . Schema.unidentified
-        . Schema.fromValue
-        . Codec.ref
+        . either id Schema.Ref
         <$> Codec.getRef c
     }
 
@@ -129,8 +87,7 @@ optional k c = Codec.Codec
         pure
         . (,) (k, False)
         . Schema.unidentified
-        . Schema.fromValue
-        . Codec.ref
+        . either id Schema.Ref
         <$> Codec.getRef c
     }
 
