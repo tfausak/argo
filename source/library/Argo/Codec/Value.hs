@@ -104,7 +104,13 @@ identified c =
     let
         i = Identifier.fromText . Text.pack . show $ Typeable.typeRep
             (Typeable.Proxy :: Typeable.Proxy a)
-    in c { Codec.schema = Schema.identified i . snd <$> Codec.schema c }
+    in
+        c
+            { Codec.schema = do
+                (_, s) <- Codec.schema c
+                Trans.add $ Map.singleton i s
+                pure $ Schema.withIdentifier i s
+            }
 
 getRef
     :: Value a

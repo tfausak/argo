@@ -38,11 +38,11 @@ import qualified Data.Typeable as Typeable
 import qualified Data.Word as Word
 import qualified Numeric.Natural as Natural
 
-class HasCodec a where
+class Typeable.Typeable a => HasCodec a where
     codec :: Codec.Value a
 
 instance HasCodec Value.Value where
-    codec = basicCodec Schema.true id Just
+    codec = valueCodec Schema.true id Just
 
 instance HasCodec Null.Null where
     codec =
@@ -54,7 +54,7 @@ instance HasCodec Null.Null where
                       )
                 ]
         in
-            basicCodec schema Value.Null $ \value -> case value of
+            valueCodec schema Value.Null $ \value -> case value of
                 Value.Null null_ -> Just null_
                 _ -> Nothing
 
@@ -68,7 +68,7 @@ instance HasCodec Boolean.Boolean where
                       )
                 ]
         in
-            basicCodec schema Value.Boolean $ \value -> case value of
+            valueCodec schema Value.Boolean $ \value -> case value of
                 Value.Boolean boolean -> Just boolean
                 _ -> Nothing
 
@@ -82,7 +82,7 @@ instance HasCodec Number.Number where
                       )
                 ]
         in
-            basicCodec schema Value.Number $ \value -> case value of
+            valueCodec schema Value.Number $ \value -> case value of
                 Value.Number number -> Just number
                 _ -> Nothing
 
@@ -96,11 +96,11 @@ instance HasCodec String.String where
                       )
                 ]
         in
-            basicCodec schema Value.String $ \value -> case value of
+            valueCodec schema Value.String $ \value -> case value of
                 Value.String string -> Just string
                 _ -> Nothing
 
-instance (HasCodec a, Typeable.Typeable a) => HasCodec (Array.Array a) where
+instance HasCodec a => HasCodec (Array.Array a) where
     codec = Codec.identified Codec.Codec
         { Codec.decode = do
             array <- castValue "Array" $ \value -> case value of
@@ -137,7 +137,7 @@ instance (HasCodec a, Typeable.Typeable a) => HasCodec (Array.Array a) where
                       ]
         }
 
-instance (HasCodec a, Typeable.Typeable a) => HasCodec (Object.Object a) where
+instance HasCodec a => HasCodec (Object.Object a) where
     codec = Codec.identified Codec.Codec
         { Codec.decode = do
             object <- castValue "Object" $ \value -> case value of
@@ -180,7 +180,7 @@ instance (HasCodec a, Typeable.Typeable a) => HasCodec (Object.Object a) where
                       ]
         }
 
-instance (HasCodec a, Typeable.Typeable a) => HasCodec (Maybe a) where
+instance HasCodec a => HasCodec (Maybe a) where
     codec =
         Codec.identified
             $ Codec.mapMaybe (Just . Just) id codec
@@ -189,8 +189,6 @@ instance (HasCodec a, Typeable.Typeable a) => HasCodec (Maybe a) where
 instance
     ( HasCodec a
     , HasCodec b
-    , Typeable.Typeable a
-    , Typeable.Typeable b
     ) => HasCodec (Either a b) where
     codec =
         Codec.identified
@@ -210,8 +208,6 @@ instance HasCodec () where
 instance
     ( HasCodec a
     , HasCodec b
-    , Typeable.Typeable a
-    , Typeable.Typeable b
     ) => HasCodec (a, b) where
     codec =
         Codec.identified
@@ -224,9 +220,6 @@ instance
     ( HasCodec a
     , HasCodec b
     , HasCodec c
-    , Typeable.Typeable a
-    , Typeable.Typeable b
-    , Typeable.Typeable c
     ) => HasCodec (a, b, c) where
     codec =
         Codec.identified
@@ -241,10 +234,6 @@ instance
     , HasCodec b
     , HasCodec c
     , HasCodec d
-    , Typeable.Typeable a
-    , Typeable.Typeable b
-    , Typeable.Typeable c
-    , Typeable.Typeable d
     ) => HasCodec (a, b, c, d) where
     codec =
         Codec.identified
@@ -261,11 +250,6 @@ instance
     , HasCodec c
     , HasCodec d
     , HasCodec e
-    , Typeable.Typeable a
-    , Typeable.Typeable b
-    , Typeable.Typeable c
-    , Typeable.Typeable d
-    , Typeable.Typeable e
     ) => HasCodec (a, b, c, d, e) where
     codec =
         Codec.identified
@@ -284,12 +268,6 @@ instance
     , HasCodec d
     , HasCodec e
     , HasCodec f
-    , Typeable.Typeable a
-    , Typeable.Typeable b
-    , Typeable.Typeable c
-    , Typeable.Typeable d
-    , Typeable.Typeable e
-    , Typeable.Typeable f
     ) => HasCodec (a, b, c, d, e, f) where
     codec =
         Codec.identified
@@ -310,13 +288,6 @@ instance
     , HasCodec e
     , HasCodec f
     , HasCodec g
-    , Typeable.Typeable a
-    , Typeable.Typeable b
-    , Typeable.Typeable c
-    , Typeable.Typeable d
-    , Typeable.Typeable e
-    , Typeable.Typeable f
-    , Typeable.Typeable g
     ) => HasCodec (a, b, c, d, e, f, g) where
     codec =
         Codec.identified
@@ -353,14 +324,6 @@ instance
     , HasCodec f
     , HasCodec g
     , HasCodec h
-    , Typeable.Typeable a
-    , Typeable.Typeable b
-    , Typeable.Typeable c
-    , Typeable.Typeable d
-    , Typeable.Typeable e
-    , Typeable.Typeable f
-    , Typeable.Typeable g
-    , Typeable.Typeable h
     ) => HasCodec (a, b, c, d, e, f, g, h) where
     codec =
         Codec.identified
@@ -401,34 +364,34 @@ instance HasCodec Decimal.Decimal where
 instance HasCodec Text.Text where
     codec = Codec.identified $ Codec.map String.toText String.fromText codec
 
-instance {-# OVERLAPPABLE #-} (HasCodec a, Typeable.Typeable a) => HasCodec [a] where
+instance {-# OVERLAPPABLE #-} HasCodec a => HasCodec [a] where
     codec = Codec.identified $ Codec.map Array.toList Array.fromList codec
 
-instance (HasCodec a, Typeable.Typeable a) => HasCodec (Map.Map Name.Name a) where
+instance HasCodec a => HasCodec (Map.Map Name.Name a) where
     codec = Codec.identified $ Codec.map
         (Map.fromList . fmap Member.toTuple . Object.toList)
         (Object.fromList . fmap Member.fromTuple . Map.toList)
         codec
 
-instance (HasCodec a, Typeable.Typeable a) => HasCodec (Map.Map String.String a) where
+instance HasCodec a => HasCodec (Map.Map String.String a) where
     codec = Codec.identified $ Codec.map
         (Map.mapKeys Name.toString)
         (Map.mapKeys Name.fromString)
         codec
 
-instance (HasCodec a, Typeable.Typeable a) => HasCodec (Map.Map Text.Text a) where
+instance HasCodec a => HasCodec (Map.Map Text.Text a) where
     codec = Codec.identified $ Codec.map
         (Map.mapKeys String.toText)
         (Map.mapKeys String.fromText)
         codec
 
-instance (HasCodec a, Typeable.Typeable a) => HasCodec (Map.Map Text.LazyText a) where
+instance HasCodec a => HasCodec (Map.Map Text.LazyText a) where
     codec = Codec.identified $ Codec.map
         (Map.mapKeys Text.fromStrict)
         (Map.mapKeys Text.toStrict)
         codec
 
-instance (HasCodec a, Typeable.Typeable a) => HasCodec (Map.Map String a) where
+instance HasCodec a => HasCodec (Map.Map String a) where
     codec = Codec.identified
         $ Codec.map (Map.mapKeys Text.unpack) (Map.mapKeys Text.pack) codec
 
@@ -476,7 +439,7 @@ instance HasCodec Char where
 instance HasCodec Text.LazyText where
     codec = Codec.identified $ Codec.map Text.fromStrict Text.toStrict codec
 
-instance (HasCodec a, Typeable.Typeable a) => HasCodec (NonEmpty.NonEmpty a) where
+instance HasCodec a => HasCodec (NonEmpty.NonEmpty a) where
     codec =
         let
             schema = do
@@ -533,194 +496,19 @@ instance HasCodec Integer where
                 codec { Codec.schema = pure schema }
 
 instance HasCodec Int where
-    codec =
-        let
-            from = Bits.toIntegralSized :: Integer -> Maybe Int
-            into = fromIntegral :: Int -> Integer
-            schema =
-                Schema.unidentified
-                    . Schema.fromValue
-                    . Value.Object
-                    $ Object.fromList
-                          [ Member.fromTuple
-                              ( Name.fromString . String.fromText $ Text.pack
-                                  "type"
-                              , Value.String . String.fromText $ Text.pack
-                                  "integer"
-                              )
-                          , Member.fromTuple
-                              ( Name.fromString . String.fromText $ Text.pack
-                                  "minimum"
-                              , Value.Number
-                              . Number.fromDecimal
-                              . Decimal.fromInteger
-                              $ toInteger (minBound :: Int)
-                              )
-                          , Member.fromTuple
-                              ( Name.fromString . String.fromText $ Text.pack
-                                  "maximum"
-                              , Value.Number
-                              . Number.fromDecimal
-                              . Decimal.fromInteger
-                              $ toInteger (maxBound :: Int)
-                              )
-                          ]
-        in Codec.identified $ Codec.mapMaybe
-            from
-            (Just . into)
-            codec { Codec.schema = pure schema }
+    codec = integralCodec
 
 instance HasCodec Int.Int8 where
-    codec =
-        let
-            from = Bits.toIntegralSized :: Integer -> Maybe Int.Int8
-            into = fromIntegral :: Int.Int8 -> Integer
-            schema =
-                Schema.unidentified
-                    . Schema.fromValue
-                    . Value.Object
-                    $ Object.fromList
-                          [ Member.fromTuple
-                              ( Name.fromString . String.fromText $ Text.pack
-                                  "type"
-                              , Value.String . String.fromText $ Text.pack
-                                  "integer"
-                              )
-                          , Member.fromTuple
-                              ( Name.fromString . String.fromText $ Text.pack
-                                  "minimum"
-                              , Value.Number
-                              . Number.fromDecimal
-                              . Decimal.fromInteger
-                              $ toInteger (minBound :: Int.Int8)
-                              )
-                          , Member.fromTuple
-                              ( Name.fromString . String.fromText $ Text.pack
-                                  "maximum"
-                              , Value.Number
-                              . Number.fromDecimal
-                              . Decimal.fromInteger
-                              $ toInteger (maxBound :: Int.Int8)
-                              )
-                          ]
-        in Codec.identified $ Codec.mapMaybe
-            from
-            (Just . into)
-            codec { Codec.schema = pure schema }
+    codec = integralCodec
 
 instance HasCodec Int.Int16 where
-    codec =
-        let
-            from = Bits.toIntegralSized :: Integer -> Maybe Int.Int16
-            into = fromIntegral :: Int.Int16 -> Integer
-            schema =
-                Schema.unidentified
-                    . Schema.fromValue
-                    . Value.Object
-                    $ Object.fromList
-                          [ Member.fromTuple
-                              ( Name.fromString . String.fromText $ Text.pack
-                                  "type"
-                              , Value.String . String.fromText $ Text.pack
-                                  "integer"
-                              )
-                          , Member.fromTuple
-                              ( Name.fromString . String.fromText $ Text.pack
-                                  "minimum"
-                              , Value.Number
-                              . Number.fromDecimal
-                              . Decimal.fromInteger
-                              $ toInteger (minBound :: Int.Int16)
-                              )
-                          , Member.fromTuple
-                              ( Name.fromString . String.fromText $ Text.pack
-                                  "maximum"
-                              , Value.Number
-                              . Number.fromDecimal
-                              . Decimal.fromInteger
-                              $ toInteger (maxBound :: Int.Int16)
-                              )
-                          ]
-        in Codec.identified $ Codec.mapMaybe
-            from
-            (Just . into)
-            codec { Codec.schema = pure schema }
+    codec = integralCodec
 
 instance HasCodec Int.Int32 where
-    codec =
-        let
-            from = Bits.toIntegralSized :: Integer -> Maybe Int.Int32
-            into = fromIntegral :: Int.Int32 -> Integer
-            schema =
-                Schema.unidentified
-                    . Schema.fromValue
-                    . Value.Object
-                    $ Object.fromList
-                          [ Member.fromTuple
-                              ( Name.fromString . String.fromText $ Text.pack
-                                  "type"
-                              , Value.String . String.fromText $ Text.pack
-                                  "integer"
-                              )
-                          , Member.fromTuple
-                              ( Name.fromString . String.fromText $ Text.pack
-                                  "minimum"
-                              , Value.Number
-                              . Number.fromDecimal
-                              . Decimal.fromInteger
-                              $ toInteger (minBound :: Int.Int32)
-                              )
-                          , Member.fromTuple
-                              ( Name.fromString . String.fromText $ Text.pack
-                                  "maximum"
-                              , Value.Number
-                              . Number.fromDecimal
-                              . Decimal.fromInteger
-                              $ toInteger (maxBound :: Int.Int32)
-                              )
-                          ]
-        in Codec.identified $ Codec.mapMaybe
-            from
-            (Just . into)
-            codec { Codec.schema = pure schema }
+    codec = integralCodec
 
 instance HasCodec Int.Int64 where
-    codec =
-        let
-            from = Bits.toIntegralSized :: Integer -> Maybe Int.Int64
-            into = fromIntegral :: Int.Int64 -> Integer
-            schema =
-                Schema.unidentified
-                    . Schema.fromValue
-                    . Value.Object
-                    $ Object.fromList
-                          [ Member.fromTuple
-                              ( Name.fromString . String.fromText $ Text.pack
-                                  "type"
-                              , Value.String . String.fromText $ Text.pack
-                                  "integer"
-                              )
-                          , Member.fromTuple
-                              ( Name.fromString . String.fromText $ Text.pack
-                                  "minimum"
-                              , Value.Number
-                              . Number.fromDecimal
-                              . Decimal.fromInteger
-                              $ toInteger (minBound :: Int.Int64)
-                              )
-                          , Member.fromTuple
-                              ( Name.fromString . String.fromText $ Text.pack
-                                  "maximum"
-                              , Value.Number
-                              . Number.fromDecimal
-                              . Decimal.fromInteger
-                              $ toInteger (maxBound :: Int.Int64)
-                              )
-                          ]
-        in Codec.identified $ Codec.mapMaybe
-            from
-            (Just . into)
-            codec { Codec.schema = pure schema }
+    codec = integralCodec
 
 instance HasCodec Natural.Natural where
     codec =
@@ -752,194 +540,19 @@ instance HasCodec Natural.Natural where
             codec { Codec.schema = pure schema }
 
 instance HasCodec Word where
-    codec =
-        let
-            from = Bits.toIntegralSized :: Integer -> Maybe Word
-            into = fromIntegral :: Word -> Integer
-            schema =
-                Schema.unidentified
-                    . Schema.fromValue
-                    . Value.Object
-                    $ Object.fromList
-                          [ Member.fromTuple
-                              ( Name.fromString . String.fromText $ Text.pack
-                                  "type"
-                              , Value.String . String.fromText $ Text.pack
-                                  "integer"
-                              )
-                          , Member.fromTuple
-                              ( Name.fromString . String.fromText $ Text.pack
-                                  "minimum"
-                              , Value.Number
-                              . Number.fromDecimal
-                              . Decimal.fromInteger
-                              $ toInteger (minBound :: Word)
-                              )
-                          , Member.fromTuple
-                              ( Name.fromString . String.fromText $ Text.pack
-                                  "maximum"
-                              , Value.Number
-                              . Number.fromDecimal
-                              . Decimal.fromInteger
-                              $ toInteger (maxBound :: Word)
-                              )
-                          ]
-        in Codec.identified $ Codec.mapMaybe
-            from
-            (Just . into)
-            codec { Codec.schema = pure schema }
+    codec = integralCodec
 
 instance HasCodec Word.Word8 where
-    codec =
-        let
-            from = Bits.toIntegralSized :: Integer -> Maybe Word.Word8
-            into = fromIntegral :: Word.Word8 -> Integer
-            schema =
-                Schema.unidentified
-                    . Schema.fromValue
-                    . Value.Object
-                    $ Object.fromList
-                          [ Member.fromTuple
-                              ( Name.fromString . String.fromText $ Text.pack
-                                  "type"
-                              , Value.String . String.fromText $ Text.pack
-                                  "integer"
-                              )
-                          , Member.fromTuple
-                              ( Name.fromString . String.fromText $ Text.pack
-                                  "minimum"
-                              , Value.Number
-                              . Number.fromDecimal
-                              . Decimal.fromInteger
-                              $ toInteger (minBound :: Word.Word8)
-                              )
-                          , Member.fromTuple
-                              ( Name.fromString . String.fromText $ Text.pack
-                                  "maximum"
-                              , Value.Number
-                              . Number.fromDecimal
-                              . Decimal.fromInteger
-                              $ toInteger (maxBound :: Word.Word8)
-                              )
-                          ]
-        in Codec.identified $ Codec.mapMaybe
-            from
-            (Just . into)
-            codec { Codec.schema = pure schema }
+    codec = integralCodec
 
 instance HasCodec Word.Word16 where
-    codec =
-        let
-            from = Bits.toIntegralSized :: Integer -> Maybe Word.Word16
-            into = fromIntegral :: Word.Word16 -> Integer
-            schema =
-                Schema.unidentified
-                    . Schema.fromValue
-                    . Value.Object
-                    $ Object.fromList
-                          [ Member.fromTuple
-                              ( Name.fromString . String.fromText $ Text.pack
-                                  "type"
-                              , Value.String . String.fromText $ Text.pack
-                                  "integer"
-                              )
-                          , Member.fromTuple
-                              ( Name.fromString . String.fromText $ Text.pack
-                                  "minimum"
-                              , Value.Number
-                              . Number.fromDecimal
-                              . Decimal.fromInteger
-                              $ toInteger (minBound :: Word.Word16)
-                              )
-                          , Member.fromTuple
-                              ( Name.fromString . String.fromText $ Text.pack
-                                  "maximum"
-                              , Value.Number
-                              . Number.fromDecimal
-                              . Decimal.fromInteger
-                              $ toInteger (maxBound :: Word.Word16)
-                              )
-                          ]
-        in Codec.identified $ Codec.mapMaybe
-            from
-            (Just . into)
-            codec { Codec.schema = pure schema }
+    codec = integralCodec
 
 instance HasCodec Word.Word32 where
-    codec =
-        let
-            from = Bits.toIntegralSized :: Integer -> Maybe Word.Word32
-            into = fromIntegral :: Word.Word32 -> Integer
-            schema =
-                Schema.unidentified
-                    . Schema.fromValue
-                    . Value.Object
-                    $ Object.fromList
-                          [ Member.fromTuple
-                              ( Name.fromString . String.fromText $ Text.pack
-                                  "type"
-                              , Value.String . String.fromText $ Text.pack
-                                  "integer"
-                              )
-                          , Member.fromTuple
-                              ( Name.fromString . String.fromText $ Text.pack
-                                  "minimum"
-                              , Value.Number
-                              . Number.fromDecimal
-                              . Decimal.fromInteger
-                              $ toInteger (minBound :: Word.Word32)
-                              )
-                          , Member.fromTuple
-                              ( Name.fromString . String.fromText $ Text.pack
-                                  "maximum"
-                              , Value.Number
-                              . Number.fromDecimal
-                              . Decimal.fromInteger
-                              $ toInteger (maxBound :: Word.Word32)
-                              )
-                          ]
-        in Codec.identified $ Codec.mapMaybe
-            from
-            (Just . into)
-            codec { Codec.schema = pure schema }
+    codec = integralCodec
 
 instance HasCodec Word.Word64 where
-    codec =
-        let
-            from = Bits.toIntegralSized :: Integer -> Maybe Word.Word64
-            into = fromIntegral :: Word.Word64 -> Integer
-            schema =
-                Schema.unidentified
-                    . Schema.fromValue
-                    . Value.Object
-                    $ Object.fromList
-                          [ Member.fromTuple
-                              ( Name.fromString . String.fromText $ Text.pack
-                                  "type"
-                              , Value.String . String.fromText $ Text.pack
-                                  "integer"
-                              )
-                          , Member.fromTuple
-                              ( Name.fromString . String.fromText $ Text.pack
-                                  "minimum"
-                              , Value.Number
-                              . Number.fromDecimal
-                              . Decimal.fromInteger
-                              $ toInteger (minBound :: Word.Word64)
-                              )
-                          , Member.fromTuple
-                              ( Name.fromString . String.fromText $ Text.pack
-                                  "maximum"
-                              , Value.Number
-                              . Number.fromDecimal
-                              . Decimal.fromInteger
-                              $ toInteger (maxBound :: Word.Word64)
-                              )
-                          ]
-        in Codec.identified $ Codec.mapMaybe
-            from
-            (Just . into)
-            codec { Codec.schema = pure schema }
+    codec = integralCodec
 
 instance HasCodec Float where
     codec = Codec.identified $ Codec.mapMaybe
@@ -971,14 +584,14 @@ instance HasCodec Pointer.Pointer where
 instance HasCodec Schema.Schema where
     codec = Codec.identified $ Codec.map Schema.fromValue Schema.toValue codec
 
-basicCodec
+valueCodec
     :: forall a
      . Typeable.Typeable a
     => Schema.Schema
     -> (a -> Value.Value)
     -> (Value.Value -> Maybe a)
     -> Codec.Value a
-basicCodec schema toValue fromValue = Codec.identified Codec.Codec
+valueCodec schema toValue fromValue = Codec.identified Codec.Codec
     { Codec.decode = castValue
         (show $ Typeable.typeRep (Typeable.Proxy :: Typeable.Proxy a))
         fromValue
@@ -1010,3 +623,44 @@ typeMismatch expected value =
             Value.Array _ -> "Array"
             Value.Object _ -> "Object"
     in "expected " <> expected <> " but got " <> actual
+
+integralCodec
+    :: forall a
+     . (Bits.Bits a, Bounded a, Integral a, Typeable.Typeable a)
+    => Codec.Value a
+integralCodec =
+    let
+        from = Bits.toIntegralSized :: Integer -> Maybe a
+        into = fromIntegral :: a -> Integer
+        schema =
+            Schema.unidentified
+                . Schema.fromValue
+                . Value.Object
+                $ Object.fromList
+                      [ Member.fromTuple
+                          ( Name.fromString . String.fromText $ Text.pack
+                              "type"
+                          , Value.String . String.fromText $ Text.pack
+                              "integer"
+                          )
+                      , Member.fromTuple
+                          ( Name.fromString . String.fromText $ Text.pack
+                              "minimum"
+                          , Value.Number
+                          . Number.fromDecimal
+                          . Decimal.fromInteger
+                          $ toInteger (minBound :: a)
+                          )
+                      , Member.fromTuple
+                          ( Name.fromString . String.fromText $ Text.pack
+                              "maximum"
+                          , Value.Number
+                          . Number.fromDecimal
+                          . Decimal.fromInteger
+                          $ toInteger (maxBound :: a)
+                          )
+                      ]
+    in Codec.identified $ Codec.mapMaybe
+        from
+        (Just . into)
+        codec { Codec.schema = pure schema }

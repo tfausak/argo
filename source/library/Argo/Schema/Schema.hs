@@ -49,6 +49,6 @@ true = fromValue . Value.Boolean $ Boolean.fromBool True
 unidentified :: Schema -> (Maybe Identifier.Identifier, Schema)
 unidentified s = (Nothing, s)
 
-identified
+withIdentifier
     :: Identifier.Identifier -> Schema -> (Maybe Identifier.Identifier, Schema)
-identified i s = (Just i, s)
+withIdentifier i s = (Just i, s)
