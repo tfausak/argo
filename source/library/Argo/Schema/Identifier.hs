@@ -18,7 +18,7 @@ instance String.IsString Identifier where
     fromString = fromText . String.fromString
 
 instance Semigroup Identifier where
-    x <> y = fromText $ toText x <> toText y -- TODO: remove this
+    x <> y = fromText $ toText x <> toText y
 
 fromText :: Text.Text -> Identifier
 fromText = Identifier
