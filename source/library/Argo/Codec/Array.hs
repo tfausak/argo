@@ -4,19 +4,11 @@ import qualified Argo.Codec.Codec as Codec
 import qualified Argo.Codec.List as Codec
 import qualified Argo.Codec.Value as Codec
 import qualified Argo.Json.Array as Array
-import qualified Argo.Json.Boolean as Boolean
-import qualified Argo.Json.Member as Member
-import qualified Argo.Json.Name as Name
-import qualified Argo.Json.Number as Number
-import qualified Argo.Json.Object as Object
-import qualified Argo.Json.String as String
 import qualified Argo.Json.Value as Value
 import qualified Argo.Schema.Identifier as Identifier
 import qualified Argo.Schema.Schema as Schema
-import qualified Argo.Type.Decimal as Decimal
 import qualified Argo.Type.Permission as Permission
 import qualified Argo.Vendor.Map as Map
-import qualified Argo.Vendor.Text as Text
 import qualified Argo.Vendor.Transformers as Trans
 import qualified Data.Functor.Identity as Identity
 
@@ -35,45 +27,12 @@ fromArrayCodec =
     Codec.fromListCodec
             (\permission schemasM -> do
                 schemas <- schemasM
-                pure
-                    . Schema.unidentified
-                    . Schema.fromValue
-                    . Value.Object
-                    . Object.fromList
-                    $ member
-                          "type"
-                          (Value.String . String.fromText $ Text.pack "array")
-                    : member
-                          "minItems"
-                          (Value.Number
-                          . Number.fromDecimal
-                          . Decimal.fromInteger
-                          . toInteger
-                          $ length schemas
-                          )
-                    : if null schemas
-                          then
-                              [ member "maxItems"
-                                . Value.Number
-                                . Number.fromDecimal
-                                $ Decimal.fromInteger 0
-                              ]
-                          else
-                              [ member "items"
-                              . Value.Array
-                              . Array.fromList
-                              $ fmap (Schema.toValue . snd) schemas
-                              , member "additionalItems"
-                              . Value.Boolean
-                              . Boolean.fromBool
-                              $ Permission.toBool permission
-                              ]
+                pure . Schema.unidentified $ Schema.Array
+                    permission
+                    schemas
+                    Nothing
             )
         $ Codec.map Array.toList Array.fromList Codec.arrayCodec
-
-member :: String -> a -> Member.Member a
-member k v =
-    Member.fromTuple (Name.fromString . String.fromText $ Text.pack k, v)
 
 element :: Codec.Value a -> Array a
 element c = Codec.Codec
@@ -90,9 +49,5 @@ element c = Codec.Codec
         Trans.tell [Codec.encodeWith c x]
         pure x
     , Codec.schema =
-        pure
-        . Schema.unidentified
-        . Schema.fromValue
-        . Codec.ref
-        <$> Codec.getRef c
+        pure . Schema.unidentified . either id Schema.Ref <$> Codec.getRef c
     }
