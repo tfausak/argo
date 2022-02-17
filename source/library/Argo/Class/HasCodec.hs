@@ -46,8 +46,7 @@ instance HasCodec Value.Value where
 
 instance HasCodec Null.Null where
     codec =
-        let
-            schema = Schema.Null
+        let schema = Schema.Null
         in
             valueCodec schema Value.Null $ \value -> case value of
                 Value.Null null_ -> Just null_
@@ -55,8 +54,7 @@ instance HasCodec Null.Null where
 
 instance HasCodec Boolean.Boolean where
     codec =
-        let
-            schema = Schema.Boolean
+        let schema = Schema.Boolean
         in
             valueCodec schema Value.Boolean $ \value -> case value of
                 Value.Boolean boolean -> Just boolean
@@ -64,8 +62,7 @@ instance HasCodec Boolean.Boolean where
 
 instance HasCodec Number.Number where
     codec =
-        let
-            schema = Schema.Number
+        let schema = Schema.Number
         in
             valueCodec schema Value.Number $ \value -> case value of
                 Value.Number number -> Just number
@@ -73,8 +70,7 @@ instance HasCodec Number.Number where
 
 instance HasCodec String.String where
     codec =
-        let
-            schema = Schema.String Nothing Nothing
+        let schema = Schema.String Nothing Nothing
         in
             valueCodec schema Value.String $ \value -> case value of
                 Value.String string -> Just string
@@ -101,7 +97,8 @@ instance HasCodec a => HasCodec (Array.Array a) where
             ref <- Codec.getRef (codec :: Codec.Value a)
             pure
                 . Schema.unidentified
-                $ Schema.Array Permission.Allow [(Nothing, either id Schema.Ref ref)]
+                . Schema.Array Permission.Allow []
+                $ Just (Nothing, either id Schema.Ref ref)
         }
 
 instance HasCodec a => HasCodec (Object.Object a) where
@@ -355,10 +352,7 @@ instance HasCodec String where
 
 instance HasCodec Char where
     codec =
-        let
-            schema =
-                Schema.unidentified
-                    $ Schema.String (Just 1) (Just 1)
+        let schema = Schema.unidentified $ Schema.String (Just 1) (Just 1)
         in
             Codec.identified $ Codec.mapMaybe
                 (\x -> case Text.uncons x of
@@ -378,7 +372,8 @@ instance HasCodec a => HasCodec (NonEmpty.NonEmpty a) where
                 itemSchema <- Codec.schema (codec :: Codec.Value a)
                 pure
                     . Schema.unidentified
-                    $ Schema.Array Permission.Allow [itemSchema]
+                    . Schema.Array Permission.Allow [itemSchema]
+                    $ Just itemSchema
         in
             Codec.identified $ Codec.mapMaybe
                 NonEmpty.nonEmpty
@@ -387,10 +382,7 @@ instance HasCodec a => HasCodec (NonEmpty.NonEmpty a) where
 
 instance HasCodec Integer where
     codec =
-        let
-            schema =
-                Schema.unidentified
-                    $ Schema.Integer Nothing Nothing
+        let schema = Schema.unidentified $ Schema.Integer Nothing Nothing
         in
             Codec.identified $ Codec.mapMaybe
                 Decimal.toInteger
@@ -417,9 +409,7 @@ instance HasCodec Natural.Natural where
         let
             from = Bits.toIntegralSized :: Integer -> Maybe Natural.Natural
             into = fromIntegral :: Natural.Natural -> Integer
-            schema =
-                Schema.unidentified
-                    $ Schema.Integer (Just 0) Nothing
+            schema = Schema.unidentified $ Schema.Integer (Just 0) Nothing
         in Codec.identified $ Codec.mapMaybe
             from
             (Just . into)
@@ -466,9 +456,6 @@ instance HasCodec Pointer.Pointer where
         . Pointer.encode
         )
         codec
-
-instance HasCodec Schema.Schema where
-    codec = Codec.identified $ Codec.map (error "TODO") Schema.toValue codec
 
 valueCodec
     :: forall a
@@ -518,9 +505,9 @@ integralCodec =
     let
         from = Bits.toIntegralSized :: Integer -> Maybe a
         into = fromIntegral :: a -> Integer
-        schema =
-            Schema.unidentified
-                $ Schema.Integer (Just $ toInteger (minBound :: a)) (Just $ toInteger (maxBound :: a))
+        schema = Schema.unidentified $ Schema.Integer
+            (Just $ toInteger (minBound :: a))
+            (Just $ toInteger (maxBound :: a))
     in Codec.identified $ Codec.mapMaybe
         from
         (Just . into)

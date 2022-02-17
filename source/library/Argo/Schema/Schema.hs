@@ -4,18 +4,21 @@
 
 module Argo.Schema.Schema where
 
--- import qualified Argo.Json.Array as Array
--- import qualified Argo.Json.Boolean as Boolean
--- import qualified Argo.Json.Member as Member
+import qualified Argo.Json.Array as Array
+import qualified Argo.Json.Boolean as Boolean
+import qualified Argo.Json.Member as Member
 import qualified Argo.Json.Name as Name
--- import qualified Argo.Json.Object as Object
--- import qualified Argo.Json.String as String
+import qualified Argo.Json.Number as Number
+import qualified Argo.Json.Object as Object
+import qualified Argo.Json.String as String
 import qualified Argo.Json.Value as Value
 import qualified Argo.Schema.Identifier as Identifier
+import qualified Argo.Type.Decimal as Decimal
 import qualified Argo.Type.Permission as Permission
 import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.TemplateHaskell as TH
--- import qualified Argo.Vendor.Text as Text
+import qualified Argo.Vendor.Text as Text
+import qualified Data.Maybe as Maybe
 import qualified GHC.Generics as Generics
 
 -- | A JSON Schema.
@@ -24,8 +27,10 @@ data Schema
     = Array
         Permission.Permission
         [(Maybe Identifier.Identifier, Schema)]
+        (Maybe (Maybe Identifier.Identifier, Schema))
     | Boolean
     | Const Value.Value
+    | False
     | Integer (Maybe Integer) (Maybe Integer)
     | Null
     | Number
@@ -33,196 +38,160 @@ data Schema
         Permission.Permission
         [((Name.Name, Bool), (Maybe Identifier.Identifier, Schema))]
         (Maybe (Maybe Identifier.Identifier, Schema))
+    | OneOf [Schema]
     | Ref Identifier.Identifier
     | String (Maybe Integer) (Maybe Integer)
+    | True
     deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
 
 instance Semigroup Schema where
-    (<>) = error "TODO"
+    x <> y = case (x, y) of
+        (Argo.Schema.Schema.True, _) -> y
+        (_, Argo.Schema.Schema.True) -> x
+        (Argo.Schema.Schema.False, _) -> Argo.Schema.Schema.False
+        (_, Argo.Schema.Schema.False) -> Argo.Schema.Schema.False
+        (OneOf xs, OneOf ys) -> OneOf $ xs <> ys
+        (OneOf xs, _) -> OneOf $ y : xs
+        (_, OneOf ys) -> OneOf $ x : ys
+        (_, _) -> OneOf [x, y]
 
 instance Monoid Schema where
-    mempty = error "TODO"
+    mempty = Argo.Schema.Schema.True
 
 toValue :: Schema -> Value.Value
-toValue = error "TODO"
-
-false :: Schema
-false = error "TODO"
-
-true :: Schema
-true = error "TODO"
-
-{- const
-Value.Object $ Object.fromList
-    [ Member.fromTuple
-        ( Name.fromString . String.fromText $ Text.pack "const"
-        , expected
-        )
-    ]
--}
-
-{- ref
-Value.Object $ Object.fromList
-    [ Member.fromTuple
-            ( Name.fromString . String.fromText $ Text.pack "$ref"
-            , Value.String
-            . String.fromText
-            . mappend (Text.pack "#/definitions/")
-            $ Identifier.toText i
-            )
-    ]
--}
-
-{- object
-Value.Object $ Object.fromList
-    [ Member.fromTuple
-        ( Name.fromString . String.fromText $ Text.pack
-            "type"
-        , Value.String . String.fromText $ Text.pack
-            "object"
-        )
-    , Member.fromTuple
-        ( Name.fromString . String.fromText $ Text.pack
-            "properties"
-        , Value.Object . Object.fromList $ fmap
-            (\((k, _), (_, s)) ->
-                Member.fromTuple (k, Schema.toValue s)
-            )
-            schemas
-        )
-    , Member.fromTuple
-        ( Name.fromString . String.fromText $ Text.pack
-            "required"
-        , Value.Array . Array.fromList $ Maybe.mapMaybe
-            (\((k, r), _) -> if r
-                then Just . Value.String $ Name.toString
-                    k
-                else Nothing
-            )
-            schemas
-        )
-    , Member.fromTuple
-        ( Name.fromString . String.fromText $ Text.pack
-            "additionalProperties"
-        , Value.Boolean
-        . Boolean.fromBool
-        $ case permission of
-            Permission.Allow -> True
-            Permission.Forbid -> False
-        )
-    ]
--}
-
-{- array
-Value.Object . Object.fromList
-    $ member
-            "type"
-            (Value.String . String.fromText $ Text.pack "array")
-    : member
-            "minItems"
-            (Value.Number
-            . Number.fromDecimal
-            . Decimal.fromInteger
-            . toInteger
-            $ length schemas
-            )
-    : if null schemas
-            then
-                [ member "maxItems"
-                . Value.Number
-                . Number.fromDecimal
-                $ Decimal.fromInteger 0
+toValue schema = case schema of
+    Array p xs m -> Value.Object . Object.fromList $ mconcat
+        [ [member "type" . Value.String . String.fromText $ Text.pack "array"]
+        , if null xs
+            then case m of
+                Nothing ->
+                    [ member "maxItems"
+                          . Value.Number
+                          . Number.fromDecimal
+                          $ Decimal.fromInteger 0
+                    ]
+                Just s -> [member "items" . toValue $ ref s]
+            else mconcat
+                [ [ member "minItems"
+                    . Value.Number
+                    . Number.fromDecimal
+                    . Decimal.fromInteger
+                    . toInteger
+                    $ length xs
+                  ]
+                , if p == Permission.Forbid
+                    then
+                        [ member "maxItems"
+                          . Value.Number
+                          . Number.fromDecimal
+                          . Decimal.fromInteger
+                          . toInteger
+                          $ length xs
+                        ]
+                    else []
+                , [ member "items" . Value.Array . Array.fromList $ fmap
+                        (toValue . ref)
+                        xs
+                  ]
+                , [ member "additionalItems" . toValue $ case p of
+                        Permission.Allow ->
+                            maybe Argo.Schema.Schema.True ref m
+                        Permission.Forbid -> Argo.Schema.Schema.False
+                  ]
                 ]
+        ]
+
+    Boolean -> Value.Object $ Object.fromList
+        [member "type" . Value.String . String.fromText $ Text.pack "boolean"]
+
+    Const x -> Value.Object $ Object.fromList [member "const" x]
+
+    Argo.Schema.Schema.False -> Value.Boolean $ Boolean.fromBool Prelude.False
+
+    Integer lo hi -> Value.Object . Object.fromList $ Maybe.catMaybes
+        [ Just . member "type" . Value.String . String.fromText $ Text.pack
+            "integer"
+        , member "minimum"
+        . Value.Number
+        . Number.fromDecimal
+        . Decimal.fromInteger
+        <$> lo
+        , member "maximum"
+        . Value.Number
+        . Number.fromDecimal
+        . Decimal.fromInteger
+        <$> hi
+        ]
+
+    Null -> Value.Object $ Object.fromList
+        [member "type" . Value.String . String.fromText $ Text.pack "null"]
+
+    Number -> Value.Object $ Object.fromList
+        [member "type" . Value.String . String.fromText $ Text.pack "number"]
+
+    Object p xs m -> Value.Object . Object.fromList $ mconcat
+        [ [member "type" . Value.String . String.fromText $ Text.pack "object"]
+        , if null xs
+            then []
             else
-                [ member "items"
+                [ member "properties" . Value.Object . Object.fromList $ fmap
+                    (\((k, _), (_, s)) -> Member.fromTuple (k, toValue s))
+                    xs
+                , member "required"
                 . Value.Array
                 . Array.fromList
-                $ fmap (Schema.toValue . snd) schemas
-                , member "additionalItems"
-                . Value.Boolean
-                . Boolean.fromBool
-                $ Permission.toBool permission
+                $ Maybe.mapMaybe
+                      (\((k, r), _) -> if r
+                          then Just . Value.String $ Name.toString k
+                          else Nothing
+                      )
+                      xs
                 ]
--}
+        , [ member "additionalProperties" . toValue $ case p of
+                Permission.Allow -> maybe Argo.Schema.Schema.True ref m
+                Permission.Forbid -> Argo.Schema.Schema.False
+          ]
+        ]
+    OneOf xs -> Value.Object $ Object.fromList
+        [member "oneOf" . Value.Array . Array.fromList $ fmap toValue xs]
 
-{- null
-Value.Object $ Object.fromList
-    [ Member.fromTuple
-            ( Name.fromString . String.fromText $ Text.pack "type"
-            , Value.String . String.fromText $ Text.pack "null"
-            )
-    ]
--}
+    Ref x -> Value.Object $ Object.fromList
+        [ member "$ref"
+          . Value.String
+          . String.fromText
+          . mappend (Text.pack "#/definitions/")
+          $ Identifier.toText x
+        ]
 
-{- boolean
-Value.Object $ Object.fromList
-    [ Member.fromTuple
-            ( Name.fromString . String.fromText $ Text.pack "type"
-            , Value.String . String.fromText $ Text.pack "boolean"
-            )
-    ]
--}
-
-{- string
-Value.Object $ Object.fromList
-    [ Member.fromTuple
-        ( Name.fromString . String.fromText $ Text.pack
-            "type"
-        , Value.String . String.fromText $ Text.pack
+    String lo hi -> Value.Object . Object.fromList $ Maybe.catMaybes
+        [ Just . member "type" . Value.String . String.fromText $ Text.pack
             "string"
-        )
-    , Member.fromTuple
-        ( Name.fromString . String.fromText $ Text.pack
-            "minLength"
-        , Value.Number
-        . Number.fromDecimal
-        $ Decimal.fromInteger 1
-        )
-    , Member.fromTuple
-        ( Name.fromString . String.fromText $ Text.pack
-            "maxLength"
-        , Value.Number
-        . Number.fromDecimal
-        $ Decimal.fromInteger 1
-        )
-    ]
--}
-
-{- number
-Value.Object $ Object.fromList
-    [ Member.fromTuple
-            ( Name.fromString . String.fromText $ Text.pack "type"
-            , Value.String . String.fromText $ Text.pack "number"
-            )
-    ]
--}
-
-{- integer
-Value.Object $ Object.fromList
-    [ Member.fromTuple
-        ( Name.fromString . String.fromText $ Text.pack
-            "type"
-        , Value.String . String.fromText $ Text.pack
-            "integer"
-        )
-    , Member.fromTuple
-        ( Name.fromString . String.fromText $ Text.pack
-            "minimum"
-        , Value.Number
+        , member "minLength"
+        . Value.Number
         . Number.fromDecimal
         . Decimal.fromInteger
-        $ toInteger (minBound :: a)
-        )
-    , Member.fromTuple
-        ( Name.fromString . String.fromText $ Text.pack
-            "maximum"
-        , Value.Number
+        <$> lo
+        , member "maxLength"
+        . Value.Number
         . Number.fromDecimal
         . Decimal.fromInteger
-        $ toInteger (maxBound :: a)
-        )
-    ]
--}
+        <$> hi
+        ]
+
+    Argo.Schema.Schema.True -> Value.Boolean $ Boolean.fromBool Prelude.True
+
+member :: String -> a -> Member.Member a
+member k v =
+    Member.fromTuple (Name.fromString . String.fromText $ Text.pack k, v)
+
+ref :: (Maybe Identifier.Identifier, Schema) -> Schema
+ref (m, s) = maybe s Ref m
+
+false :: Schema
+false = Argo.Schema.Schema.False
+
+true :: Schema
+true = Argo.Schema.Schema.True
 
 unidentified :: Schema -> (Maybe Identifier.Identifier, Schema)
 unidentified s = (Nothing, s)
