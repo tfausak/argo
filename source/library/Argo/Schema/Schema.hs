@@ -46,10 +46,6 @@ data Schema
 
 instance Semigroup Schema where
     x <> y = case (x, y) of
-        (Argo.Schema.Schema.True, _) -> y
-        (_, Argo.Schema.Schema.True) -> x
-        (Argo.Schema.Schema.False, _) -> Argo.Schema.Schema.False
-        (_, Argo.Schema.Schema.False) -> Argo.Schema.Schema.False
         (OneOf xs, OneOf ys) -> OneOf $ xs <> ys
         (OneOf xs, _) -> OneOf $ y : xs
         (_, OneOf ys) -> OneOf $ x : ys
