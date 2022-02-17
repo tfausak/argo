@@ -1309,18 +1309,19 @@ main = Tasty.defaultMain $ Tasty.testGroup
                   encode (T1C1 4 Nothing Nothing (Just (Just 0)))
                       @?= "{\"t1c1f1\":4,\"t1c1f2\":null,\"t1c1f4\":0}"
               ]
-    -- TODO
-    -- , Tasty.testCase "T2" $ do
-    --     let schema = [Argo.value|
-    --             { "type": "object"
-    --             , "properties": { "t2c1f1": { "$ref": "#/definitions/T2" } }
-    --             , "required": []
-    --             , "additionalProperties": true
-    --             } |]
-    --         expected = schemafy (Just "T2") schema
-    --         actual = Codec.schema (Argo.codec :: Codec.Value T2)
-    --     Accum.runAccum actual mempty
-    --         @?= (Accum.evalAccum expected mempty, Map.singleton "T2" schema)
+    , Tasty.testCase "T2" $ do
+        let schema = [Argo.value| {
+                "type": "object",
+                "properties": { "t2c1f1": { "$ref": "#/definitions/T2" } },
+                "required": [],
+                "additionalProperties": false
+            } |]
+            ((i, s), m) = Accum.runAccum
+                (Codec.schema (Argo.codec :: Codec.Value T2))
+                Map.empty
+        i @?= Just "T2"
+        Schema.toValue s @?= schema
+        fmap Schema.toValue m @?= Map.singleton "T2" schema
     ]
 
 fromValue :: Argo.HasCodec a => Argo.Value -> Either String a
@@ -1339,7 +1340,7 @@ newtype T2 = T2C1
 instance Argo.HasCodec T2 where
     codec =
         Codec.identified
-            . Codec.fromObjectCodec Permission.Allow
+            . Codec.fromObjectCodec Permission.Forbid
             $ T2C1
             <$> Codec.project t2c1f1 (Codec.optional "t2c1f1" Argo.codec)
 
