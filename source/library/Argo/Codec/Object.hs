@@ -37,9 +37,10 @@ fromObjectCodec =
     Codec.fromListCodec
             (\permission schemasM -> do
                 schemas <- schemasM
-                pure
-                    . Schema.unidentified
-                    $ Schema.Object permission schemas Nothing
+                pure . Schema.unidentified $ Schema.Object
+                    permission
+                    schemas
+                    Nothing
             )
         $ Codec.map Object.toList Object.fromList Codec.objectCodec
 

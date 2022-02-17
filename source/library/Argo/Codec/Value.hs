@@ -86,10 +86,7 @@ literalCodec expected = Codec.Codec
             <> " but got "
             <> show actual
     , Codec.encode = const . Trans.lift $ Trans.put expected
-    , Codec.schema =
-        pure
-        . Schema.unidentified
-        $ Schema.Const expected
+    , Codec.schema = pure . Schema.unidentified $ Schema.Const expected
     }
 
 identified :: forall a . Typeable.Typeable a => Value a -> Value a

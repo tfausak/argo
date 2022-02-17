@@ -4,8 +4,8 @@
 
 module Argo.Type.Permission where
 
-import qualified Argo.Vendor.TemplateHaskell as TH
 import qualified Argo.Vendor.DeepSeq as DeepSeq
+import qualified Argo.Vendor.TemplateHaskell as TH
 import qualified GHC.Generics as Generics
 
 data Permission
