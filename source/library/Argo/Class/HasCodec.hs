@@ -24,6 +24,8 @@ import qualified Argo.Type.Config as Config
 import qualified Argo.Type.Decimal as Decimal
 import qualified Argo.Type.Decoder as Decoder
 import qualified Argo.Type.Encoder as Encoder
+import qualified Argo.Type.Nullable as Nullable
+import qualified Argo.Type.Optional as Optional
 import qualified Argo.Type.Permission as Permission
 import qualified Argo.Vendor.Builder as Builder
 import qualified Argo.Vendor.ByteString as ByteString
@@ -132,11 +134,27 @@ instance HasCodec a => HasCodec (Object.Object a) where
                 $ Just (Nothing, either id Schema.Ref ref)
         }
 
-instance HasCodec a => HasCodec (Maybe a) where
+instance HasCodec a => HasCodec (Optional.Optional a) where
+    codec = Codec.identified $ Codec.mapMaybe
+        (Just . Optional.fromMaybe . Just)
+        Optional.toMaybe
+        codec
+
+instance HasCodec a => HasCodec (Nullable.Nullable a) where
     codec =
         Codec.identified
-            $ Codec.mapMaybe (Just . Just) id codec
-            <|> Codec.map (const Nothing) (const $ Null.fromUnit ()) codec
+            $ Codec.mapMaybe
+                  (Just . Nullable.fromMaybe . Just)
+                  Nullable.toMaybe
+                  codec
+            <|> Codec.map
+                    (const $ Nullable.fromMaybe Nothing)
+                    (const $ Null.fromUnit ())
+                    codec
+
+instance HasCodec a => HasCodec (Maybe a) where
+    codec =
+        Codec.identified $ Codec.map Nullable.toMaybe Nullable.fromMaybe codec
 
 instance
     ( HasCodec a

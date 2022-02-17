@@ -5,12 +5,12 @@ import qualified Argo.Codec.List as Codec
 import qualified Argo.Codec.Value as Codec
 import qualified Argo.Json.Member as Member
 import qualified Argo.Json.Name as Name
-import qualified Argo.Json.Null as Null
 import qualified Argo.Json.Object as Object
 import qualified Argo.Json.String as String
 import qualified Argo.Json.Value as Value
 import qualified Argo.Schema.Identifier as Identifier
 import qualified Argo.Schema.Schema as Schema
+import qualified Argo.Type.Optional as Optional
 import qualified Argo.Type.Permission as Permission
 import qualified Argo.Vendor.Map as Map
 import qualified Argo.Vendor.Text as Text
@@ -48,7 +48,7 @@ required :: Name.Name -> Codec.Value a -> Object a
 required k c = Codec.Codec
     { Codec.decode = do
         m <- Codec.decode (optional k c)
-        case m of
+        case Optional.toMaybe m of
             Nothing ->
                 Trans.lift
                     . Trans.throwE
@@ -56,7 +56,7 @@ required k c = Codec.Codec
                     <> show k
             Just x -> pure x
     , Codec.encode = \x -> do
-        Monad.void . Codec.encode (optional k c) $ Just x
+        Monad.void . Codec.encode (optional k c) . Optional.fromMaybe $ Just x
         pure x
     , Codec.schema =
         pure
@@ -66,21 +66,19 @@ required k c = Codec.Codec
         <$> Codec.getRef c
     }
 
-optional :: Name.Name -> Codec.Value a -> Object (Maybe a)
+optional :: Name.Name -> Codec.Value a -> Object (Optional.Optional a)
 optional k c = Codec.Codec
     { Codec.decode = do
         xs <- Trans.get
         case List.partition (\(Member.Member j _) -> j == k) xs of
             (Member.Member _ x : _, ys) -> case Codec.decodeWith c x of
-                Left y -> if x == Value.Null (Null.fromUnit ())
-                    then pure Nothing
-                    else Trans.lift $ Trans.throwE y
+                Left y -> Trans.lift $ Trans.throwE y
                 Right y -> do
                     Trans.put ys
-                    pure $ Just y
-            _ -> pure Nothing
+                    pure . Optional.fromMaybe $ Just y
+            _ -> pure $ Optional.fromMaybe Nothing
     , Codec.encode = \x -> do
-        case x of
+        case Optional.toMaybe x of
             Nothing -> pure ()
             Just y -> Trans.tell [Member.Member k $ Codec.encodeWith c y]
         pure x

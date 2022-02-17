@@ -20,6 +20,8 @@ import qualified Argo.Json.String as String
 import qualified Argo.Schema.Identifier as Identifier
 import qualified Argo.Schema.Schema as Schema
 import qualified Argo.Type.Decimal as Decimal
+import qualified Argo.Type.Nullable as Nullable
+import qualified Argo.Type.Optional as Optional
 import qualified Argo.Type.Permission as Permission
 import qualified Control.Monad.Trans.Accum as Accum
 import qualified Data.ByteString as ByteString
@@ -628,10 +630,14 @@ main = Tasty.defaultMain $ Tasty.testGroup
                     (Argo.Array [Argo.String "", Argo.Boolean False])
                 @?= Right ("" :: Text.Text, False)
         , Tasty.testCase "encode record" $ do
-            Codec.encodeWith Argo.codec (Record False Nothing)
+            Codec.encodeWith
+                    Argo.codec
+                    (Record False $ Optional.fromMaybe Nothing)
                 @?= Argo.Object
                         [Argo.Member (Argo.Name "bool") $ Argo.Boolean False]
-            Codec.encodeWith Argo.codec (Record False $ Just "")
+            Codec.encodeWith
+                    Argo.codec
+                    (Record False . Optional.fromMaybe $ Just "")
                 @?= Argo.Object
                         [ Argo.Member (Argo.Name "bool") $ Argo.Boolean False
                         , Argo.Member (Argo.Name "text") $ Argo.String ""
@@ -642,7 +648,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
                     (Argo.Object
                         [Argo.Member (Argo.Name "bool") $ Argo.Boolean False]
                     )
-                @?= Right (Record False Nothing)
+                @?= Right (Record False $ Optional.fromMaybe Nothing)
             Codec.decodeWith
                     Argo.codec
                     (Argo.Object
@@ -650,7 +656,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
                         , Argo.Member (Argo.Name "text") $ Argo.String ""
                         ]
                     )
-                @?= Right (Record False $ Just "")
+                @?= Right (Record False . Optional.fromMaybe $ Just "")
         ]
     , Tasty.testGroup "Pointer"
         $ let pointer = Argo.Pointer . fmap Argo.Token
@@ -1253,9 +1259,9 @@ main = Tasty.defaultMain $ Tasty.testGroup
                             "type": "object",
                             "properties": {
                                 "t1c1f1": { "$ref": "#/definitions/Float" },
-                                "t1c1f2": { "$ref": "#/definitions/Maybe Float" },
+                                "t1c1f2": { "$ref": "#/definitions/Nullable Float" },
                                 "t1c1f3": { "$ref": "#/definitions/Float" },
-                                "t1c1f4": { "$ref": "#/definitions/Maybe Float" }
+                                "t1c1f4": { "$ref": "#/definitions/Nullable Float" }
                             },
                             "required": [ "t1c1f1", "t1c1f2" ],
                             "additionalProperties": true
@@ -1265,22 +1271,59 @@ main = Tasty.defaultMain $ Tasty.testGroup
               , Tasty.testCase "decode" $ do
                   hush (Argo.decode "{ \"t1c1f1\": 0 }")
                       @?= (Nothing :: Maybe T1)
-                  Argo.decode "{ \"t1c1f1\": 0, \"t1c1f2\": null }"
-                      @?= Right (T1C1 0 Nothing Nothing Nothing)
-                  Argo.decode "{ \"t1c1f1\": 1, \"t1c1f2\": 0 }"
-                      @?= Right (T1C1 1 (Just 0) Nothing Nothing)
-                  Argo.decode
-                          "{ \"t1c1f1\": 2, \"t1c1f2\": null, \"t1c1f3\": null }"
-                      @?= Right (T1C1 2 Nothing Nothing Nothing)
+                  Argo.decode "{ \"t1c1f1\": 0, \"t1c1f2\": null }" @?= Right
+                      (T1C1
+                          0
+                          (Nullable.fromMaybe Nothing)
+                          (Optional.fromMaybe Nothing)
+                          (Optional.fromMaybe Nothing)
+                      )
+                  Argo.decode "{ \"t1c1f1\": 1, \"t1c1f2\": 0 }" @?= Right
+                      (T1C1
+                          1
+                          (Nullable.fromMaybe $ Just 0)
+                          (Optional.fromMaybe Nothing)
+                          (Optional.fromMaybe Nothing)
+                      )
+                  hush
+                          (Argo.decode
+                              "{ \"t1c1f1\": 2, \"t1c1f2\": null, \"t1c1f3\": null }"
+                          )
+                      @?= (Nothing :: Maybe T1)
                   Argo.decode
                           "{ \"t1c1f1\": 3, \"t1c1f2\": null, \"t1c1f3\": 0 }"
-                      @?= Right (T1C1 3 Nothing (Just 0) Nothing)
+                      @?= Right
+                              (T1C1
+                                  3
+                                  (Nullable.fromMaybe Nothing)
+                                  (Optional.fromMaybe $ Just 0)
+                                  (Optional.fromMaybe Nothing)
+                              )
                   Argo.decode
                           "{ \"t1c1f1\": 4, \"t1c1f2\": null, \"t1c1f4\": null }"
-                      @?= Right (T1C1 4 Nothing Nothing (Just Nothing))
+                      @?= Right
+                              (T1C1
+                                  4
+                                  (Nullable.fromMaybe Nothing)
+                                  (Optional.fromMaybe Nothing)
+                                  (Optional.fromMaybe
+                                  . Just
+                                  $ Nullable.fromMaybe Nothing
+                                  )
+                              )
                   Argo.decode
                           "{ \"t1c1f1\": 5, \"t1c1f2\": null, \"t1c1f4\": 0 }"
-                      @?= Right (T1C1 5 Nothing Nothing (Just (Just 0)))
+                      @?= Right
+                              (T1C1
+                                  5
+                                  (Nullable.fromMaybe Nothing)
+                                  (Optional.fromMaybe Nothing)
+                                  (Optional.fromMaybe
+                                  . Just
+                                  . Nullable.fromMaybe
+                                  $ Just 0
+                                  )
+                              )
                   hush (Argo.decode "{ \"t1c1f1\": 6, \"t1c1f2\": [] }")
                       @?= (Nothing :: Maybe T1)
                   hush
@@ -1298,15 +1341,51 @@ main = Tasty.defaultMain $ Tasty.testGroup
                       encode =
                           Builder.toLazyByteString . Argo.encode :: T1
                               -> LazyByteString.ByteString
-                  encode (T1C1 0 Nothing Nothing Nothing)
+                  encode
+                          (T1C1
+                              0
+                              (Nullable.fromMaybe Nothing)
+                              (Optional.fromMaybe Nothing)
+                              (Optional.fromMaybe Nothing)
+                          )
                       @?= "{\"t1c1f1\":0,\"t1c1f2\":null}"
-                  encode (T1C1 1 (Just 0) Nothing Nothing)
+                  encode
+                          (T1C1
+                              1
+                              (Nullable.fromMaybe $ Just 0)
+                              (Optional.fromMaybe Nothing)
+                              (Optional.fromMaybe Nothing)
+                          )
                       @?= "{\"t1c1f1\":1,\"t1c1f2\":0}"
-                  encode (T1C1 2 Nothing (Just 0) Nothing)
+                  encode
+                          (T1C1
+                              2
+                              (Nullable.fromMaybe Nothing)
+                              (Optional.fromMaybe $ Just 0)
+                              (Optional.fromMaybe Nothing)
+                          )
                       @?= "{\"t1c1f1\":2,\"t1c1f2\":null,\"t1c1f3\":0}"
-                  encode (T1C1 3 Nothing Nothing (Just Nothing))
+                  encode
+                          (T1C1
+                              3
+                              (Nullable.fromMaybe Nothing)
+                              (Optional.fromMaybe Nothing)
+                              (Optional.fromMaybe . Just $ Nullable.fromMaybe
+                                  Nothing
+                              )
+                          )
                       @?= "{\"t1c1f1\":3,\"t1c1f2\":null,\"t1c1f4\":null}"
-                  encode (T1C1 4 Nothing Nothing (Just (Just 0)))
+                  encode
+                          (T1C1
+                              4
+                              (Nullable.fromMaybe Nothing)
+                              (Optional.fromMaybe Nothing)
+                              (Optional.fromMaybe
+                              . Just
+                              . Nullable.fromMaybe
+                              $ Just 0
+                              )
+                          )
                       @?= "{\"t1c1f1\":4,\"t1c1f2\":null,\"t1c1f4\":0}"
               ]
     , Tasty.testCase "T2" $ do
@@ -1334,7 +1413,7 @@ number :: Integer -> Integer -> Argo.Value
 number s = Argo.Number . Argo.Decimal s
 
 newtype T2 = T2C1
-    { t2c1f1 :: Maybe T2
+    { t2c1f1 :: Optional.Optional T2
     } deriving (Eq, Show)
 
 instance Argo.HasCodec T2 where
@@ -1346,9 +1425,9 @@ instance Argo.HasCodec T2 where
 
 data T1 = T1C1
     { t1c1f1 :: Float
-    , t1c1f2 :: Maybe Float
-    , t1c1f3 :: Maybe Float
-    , t1c1f4 :: Maybe (Maybe Float)
+    , t1c1f2 :: Nullable.Nullable Float
+    , t1c1f3 :: Optional.Optional Float
+    , t1c1f4 :: Optional.Optional (Nullable.Nullable Float)
     }
     deriving (Eq, Show)
 
@@ -1363,7 +1442,7 @@ instance Argo.HasCodec T1 where
 
 data Record = Record
     { recordBool :: Bool
-    , recordText :: Maybe Text.Text
+    , recordText :: Optional.Optional Text.Text
     }
     deriving (Eq, Show)
 
