@@ -134,23 +134,8 @@ instance HasCodec a => HasCodec (Object.Object a) where
                 $ Just (Nothing, either id Schema.Ref ref)
         }
 
-instance HasCodec a => HasCodec (Optional.Optional a) where
-    codec = Codec.identified $ Codec.mapMaybe
-        (Just . Optional.fromMaybe . Just)
-        Optional.toMaybe
-        codec
-
 instance HasCodec a => HasCodec (Nullable.Nullable a) where
-    codec =
-        Codec.identified
-            $ Codec.mapMaybe
-                  (Just . Nullable.fromMaybe . Just)
-                  Nullable.toMaybe
-                  codec
-            <|> Codec.map
-                    (const $ Nullable.fromMaybe Nothing)
-                    (const $ Null.fromUnit ())
-                    codec
+    codec = nullable codec
 
 instance HasCodec a => HasCodec (Maybe a) where
     codec =
@@ -530,3 +515,30 @@ integralCodec =
         from
         (Just . into)
         codec { Codec.schema = pure schema }
+
+optionalNullable
+    :: Typeable.Typeable a
+    => Name.Name
+    -> Codec.Value a
+    -> Codec.Object (Maybe a)
+optionalNullable k =
+    let
+        f :: Optional.Optional (Nullable.Nullable b) -> Maybe b
+        f = maybe Nothing Nullable.toMaybe . Optional.toMaybe
+        g :: Maybe b -> Optional.Optional (Nullable.Nullable b)
+        g x = Optional.fromMaybe $ case x of
+            Nothing -> Nothing
+            Just y -> Just . Nullable.fromMaybe $ Just y
+    in Codec.map f g . Codec.optional k . nullable
+
+nullable
+    :: Typeable.Typeable a
+    => Codec.Value a
+    -> Codec.Value (Nullable.Nullable a)
+nullable c =
+    Codec.identified
+        $ Codec.mapMaybe (Just . Nullable.fromMaybe . Just) Nullable.toMaybe c
+        <|> Codec.map
+                (const $ Nullable.fromMaybe Nothing)
+                (const $ Null.fromUnit ())
+                codec

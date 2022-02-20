@@ -7,6 +7,7 @@ import Test.Tasty.HUnit ((@?=))
 import Test.Tasty.QuickCheck ((===))
 
 import qualified Argo
+import qualified Argo.Class.HasCodec as HasCodec
 import qualified Argo.Codec.Codec as Codec
 import qualified Argo.Codec.Object as Codec
 import qualified Argo.Codec.Value as Codec
@@ -1401,6 +1402,32 @@ main = Tasty.defaultMain $ Tasty.testGroup
         i @?= Just "T2"
         Schema.toValue s @?= schema
         fmap Schema.toValue m @?= Map.singleton "T2" schema
+    , Tasty.testGroup
+        "T3"
+        [ Tasty.testCase "schema" $ do
+            schemaTest
+                Nothing
+                [Argo.value| {
+                    "type": "object",
+                    "properties": {
+                        "t3c1f1": { "$ref": "#/definitions/Nullable Float" }
+                    },
+                    "required": [],
+                    "additionalProperties": false
+                } |]
+                (Codec.schema (Argo.codec :: Codec.Value T3))
+        , Tasty.testCase "decode" $ do
+            Argo.decode "{}" @?= Right (T3C1 Nothing)
+            Argo.decode "{ \"t3c1f1\": null }" @?= Right (T3C1 Nothing)
+            Argo.decode "{ \"t3c1f1\": 0 }" @?= Right (T3C1 $ Just 0)
+        , Tasty.testCase "encode" $ do
+            let
+                encode =
+                    Builder.toLazyByteString . Argo.encode :: T3
+                        -> LazyByteString.ByteString
+            encode (T3C1 Nothing) @?= "{}"
+            encode (T3C1 $ Just 0) @?= "{\"t3c1f1\":0}"
+        ]
     ]
 
 fromValue :: Argo.HasCodec a => Argo.Value -> Either String a
@@ -1439,6 +1466,16 @@ instance Argo.HasCodec T1 where
             <*> Codec.project t1c1f2 (Codec.required "t1c1f2" Argo.codec)
             <*> Codec.project t1c1f3 (Codec.optional "t1c1f3" Argo.codec)
             <*> Codec.project t1c1f4 (Codec.optional "t1c1f4" Argo.codec)
+
+newtype T3 = T3C1
+    { t3c1f1 :: Maybe Float
+    }
+    deriving (Eq, Show)
+
+instance Argo.HasCodec T3 where
+    codec = Codec.fromObjectCodec Permission.Forbid $ T3C1 <$> Codec.project
+        t3c1f1
+        (HasCodec.optionalNullable "t3c1f1" Argo.codec)
 
 data Record = Record
     { recordBool :: Bool
