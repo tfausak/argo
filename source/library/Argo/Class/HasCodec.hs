@@ -524,7 +524,7 @@ optionalNullable
 optionalNullable k =
     Codec.map
             (maybe Nothing Nullable.toMaybe . Optional.toMaybe)
-            (Optional.fromMaybe . fmap (Nullable.fromMaybe . Just))
+            (Optional.fromMaybe . fmap Nullable.just)
         . Codec.optional k
         . nullable
 
@@ -534,8 +534,5 @@ nullable
     -> Codec.Value (Nullable.Nullable a)
 nullable c =
     Codec.identified
-        $ Codec.mapMaybe (Just . Nullable.fromMaybe . Just) Nullable.toMaybe c
-        <|> Codec.map
-                (const $ Nullable.fromMaybe Nothing)
-                (const $ Null.fromUnit ())
-                codec
+        $ Codec.mapMaybe (Just . Nullable.just) Nullable.toMaybe c
+        <|> Codec.map (const Nullable.nothing) (const $ Null.fromUnit ()) codec

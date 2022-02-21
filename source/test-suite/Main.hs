@@ -1275,14 +1275,14 @@ main = Tasty.defaultMain $ Tasty.testGroup
                   Argo.decode "{ \"t1c1f1\": 0, \"t1c1f2\": null }" @?= Right
                       (T1C1
                           0
-                          (Nullable.fromMaybe Nothing)
+                          Nullable.nothing
                           (Optional.fromMaybe Nothing)
                           (Optional.fromMaybe Nothing)
                       )
                   Argo.decode "{ \"t1c1f1\": 1, \"t1c1f2\": 0 }" @?= Right
                       (T1C1
                           1
-                          (Nullable.fromMaybe $ Just 0)
+                          (Nullable.just 0)
                           (Optional.fromMaybe Nothing)
                           (Optional.fromMaybe Nothing)
                       )
@@ -1296,7 +1296,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
                       @?= Right
                               (T1C1
                                   3
-                                  (Nullable.fromMaybe Nothing)
+                                  Nullable.nothing
                                   (Optional.fromMaybe $ Just 0)
                                   (Optional.fromMaybe Nothing)
                               )
@@ -1305,11 +1305,9 @@ main = Tasty.defaultMain $ Tasty.testGroup
                       @?= Right
                               (T1C1
                                   4
-                                  (Nullable.fromMaybe Nothing)
+                                  Nullable.nothing
                                   (Optional.fromMaybe Nothing)
-                                  (Optional.fromMaybe
-                                  . Just
-                                  $ Nullable.fromMaybe Nothing
+                                  (Optional.fromMaybe . Just $ Nullable.nothing
                                   )
                               )
                   Argo.decode
@@ -1317,7 +1315,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
                       @?= Right
                               (T1C1
                                   5
-                                  (Nullable.fromMaybe Nothing)
+                                  Nullable.nothing
                                   (Optional.fromMaybe Nothing)
                                   (Optional.fromMaybe
                                   . Just
@@ -1345,7 +1343,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
                   encode
                           (T1C1
                               0
-                              (Nullable.fromMaybe Nothing)
+                              Nullable.nothing
                               (Optional.fromMaybe Nothing)
                               (Optional.fromMaybe Nothing)
                           )
@@ -1353,7 +1351,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
                   encode
                           (T1C1
                               1
-                              (Nullable.fromMaybe $ Just 0)
+                              (Nullable.just 0)
                               (Optional.fromMaybe Nothing)
                               (Optional.fromMaybe Nothing)
                           )
@@ -1361,7 +1359,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
                   encode
                           (T1C1
                               2
-                              (Nullable.fromMaybe Nothing)
+                              Nullable.nothing
                               (Optional.fromMaybe $ Just 0)
                               (Optional.fromMaybe Nothing)
                           )
@@ -1369,23 +1367,17 @@ main = Tasty.defaultMain $ Tasty.testGroup
                   encode
                           (T1C1
                               3
-                              (Nullable.fromMaybe Nothing)
+                              Nullable.nothing
                               (Optional.fromMaybe Nothing)
-                              (Optional.fromMaybe . Just $ Nullable.fromMaybe
-                                  Nothing
-                              )
+                              (Optional.fromMaybe $ Just Nullable.nothing)
                           )
                       @?= "{\"t1c1f1\":3,\"t1c1f2\":null,\"t1c1f4\":null}"
                   encode
                           (T1C1
                               4
-                              (Nullable.fromMaybe Nothing)
+                              Nullable.nothing
                               (Optional.fromMaybe Nothing)
-                              (Optional.fromMaybe
-                              . Just
-                              . Nullable.fromMaybe
-                              $ Just 0
-                              )
+                              (Optional.fromMaybe . Just $ Nullable.just 0)
                           )
                       @?= "{\"t1c1f1\":4,\"t1c1f2\":null,\"t1c1f4\":0}"
               ]
