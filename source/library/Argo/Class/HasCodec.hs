@@ -522,14 +522,11 @@ optionalNullable
     -> Codec.Value a
     -> Codec.Object (Maybe a)
 optionalNullable k =
-    let
-        f :: Optional.Optional (Nullable.Nullable b) -> Maybe b
-        f = maybe Nothing Nullable.toMaybe . Optional.toMaybe
-        g :: Maybe b -> Optional.Optional (Nullable.Nullable b)
-        g x = Optional.fromMaybe $ case x of
-            Nothing -> Nothing
-            Just y -> Just . Nullable.fromMaybe $ Just y
-    in Codec.map f g . Codec.optional k . nullable
+    Codec.map
+            (maybe Nothing Nullable.toMaybe . Optional.toMaybe)
+            (Optional.fromMaybe . fmap (Nullable.fromMaybe . Just))
+        . Codec.optional k
+        . nullable
 
 nullable
     :: Typeable.Typeable a
