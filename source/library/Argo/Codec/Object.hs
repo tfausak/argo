@@ -56,7 +56,7 @@ required k c = Codec.Codec
                     <> show k
             Just x -> pure x
     , Codec.encode = \x -> do
-        Monad.void . Codec.encode (optional k c) . Optional.fromMaybe $ Just x
+        Monad.void . Codec.encode (optional k c) $ Optional.just x
         pure x
     , Codec.schema =
         pure
@@ -75,8 +75,8 @@ optional k c = Codec.Codec
                 Left y -> Trans.lift $ Trans.throwE y
                 Right y -> do
                     Trans.put ys
-                    pure . Optional.fromMaybe $ Just y
-            _ -> pure $ Optional.fromMaybe Nothing
+                    pure $ Optional.just y
+            _ -> pure Optional.nothing
     , Codec.encode = \x -> do
         case Optional.toMaybe x of
             Nothing -> pure ()

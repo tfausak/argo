@@ -9,3 +9,9 @@ fromMaybe = Optional
 
 toMaybe :: Optional a -> Maybe a
 toMaybe (Optional x) = x
+
+nothing :: Optional a
+nothing = fromMaybe Nothing
+
+just :: a -> Optional a
+just = fromMaybe . Just

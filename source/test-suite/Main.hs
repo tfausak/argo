@@ -631,14 +631,10 @@ main = Tasty.defaultMain $ Tasty.testGroup
                     (Argo.Array [Argo.String "", Argo.Boolean False])
                 @?= Right ("" :: Text.Text, False)
         , Tasty.testCase "encode record" $ do
-            Codec.encodeWith
-                    Argo.codec
-                    (Record False $ Optional.fromMaybe Nothing)
+            Codec.encodeWith Argo.codec (Record False Optional.nothing)
                 @?= Argo.Object
                         [Argo.Member (Argo.Name "bool") $ Argo.Boolean False]
-            Codec.encodeWith
-                    Argo.codec
-                    (Record False . Optional.fromMaybe $ Just "")
+            Codec.encodeWith Argo.codec (Record False $ Optional.just "")
                 @?= Argo.Object
                         [ Argo.Member (Argo.Name "bool") $ Argo.Boolean False
                         , Argo.Member (Argo.Name "text") $ Argo.String ""
@@ -649,7 +645,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
                     (Argo.Object
                         [Argo.Member (Argo.Name "bool") $ Argo.Boolean False]
                     )
-                @?= Right (Record False $ Optional.fromMaybe Nothing)
+                @?= Right (Record False Optional.nothing)
             Codec.decodeWith
                     Argo.codec
                     (Argo.Object
@@ -657,7 +653,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
                         , Argo.Member (Argo.Name "text") $ Argo.String ""
                         ]
                     )
-                @?= Right (Record False . Optional.fromMaybe $ Just "")
+                @?= Right (Record False $ Optional.just "")
         ]
     , Tasty.testGroup "Pointer"
         $ let pointer = Argo.Pointer . fmap Argo.Token
@@ -1272,20 +1268,22 @@ main = Tasty.defaultMain $ Tasty.testGroup
               , Tasty.testCase "decode" $ do
                   hush (Argo.decode "{ \"t1c1f1\": 0 }")
                       @?= (Nothing :: Maybe T1)
-                  Argo.decode "{ \"t1c1f1\": 0, \"t1c1f2\": null }" @?= Right
-                      (T1C1
-                          0
-                          Nullable.nothing
-                          (Optional.fromMaybe Nothing)
-                          (Optional.fromMaybe Nothing)
-                      )
-                  Argo.decode "{ \"t1c1f1\": 1, \"t1c1f2\": 0 }" @?= Right
-                      (T1C1
-                          1
-                          (Nullable.just 0)
-                          (Optional.fromMaybe Nothing)
-                          (Optional.fromMaybe Nothing)
-                      )
+                  Argo.decode "{ \"t1c1f1\": 0, \"t1c1f2\": null }"
+                      @?= Right
+                              (T1C1
+                                  0
+                                  Nullable.nothing
+                                  Optional.nothing
+                                  Optional.nothing
+                              )
+                  Argo.decode "{ \"t1c1f1\": 1, \"t1c1f2\": 0 }"
+                      @?= Right
+                              (T1C1
+                                  1
+                                  (Nullable.just 0)
+                                  Optional.nothing
+                                  Optional.nothing
+                              )
                   hush
                           (Argo.decode
                               "{ \"t1c1f1\": 2, \"t1c1f2\": null, \"t1c1f3\": null }"
@@ -1297,8 +1295,8 @@ main = Tasty.defaultMain $ Tasty.testGroup
                               (T1C1
                                   3
                                   Nullable.nothing
-                                  (Optional.fromMaybe $ Just 0)
-                                  (Optional.fromMaybe Nothing)
+                                  (Optional.just 0)
+                                  Optional.nothing
                               )
                   Argo.decode
                           "{ \"t1c1f1\": 4, \"t1c1f2\": null, \"t1c1f4\": null }"
@@ -1306,9 +1304,8 @@ main = Tasty.defaultMain $ Tasty.testGroup
                               (T1C1
                                   4
                                   Nullable.nothing
-                                  (Optional.fromMaybe Nothing)
-                                  (Optional.fromMaybe . Just $ Nullable.nothing
-                                  )
+                                  Optional.nothing
+                                  (Optional.just Nullable.nothing)
                               )
                   Argo.decode
                           "{ \"t1c1f1\": 5, \"t1c1f2\": null, \"t1c1f4\": 0 }"
@@ -1316,12 +1313,8 @@ main = Tasty.defaultMain $ Tasty.testGroup
                               (T1C1
                                   5
                                   Nullable.nothing
-                                  (Optional.fromMaybe Nothing)
-                                  (Optional.fromMaybe
-                                  . Just
-                                  . Nullable.fromMaybe
-                                  $ Just 0
-                                  )
+                                  Optional.nothing
+                                  (Optional.just . Nullable.fromMaybe $ Just 0)
                               )
                   hush (Argo.decode "{ \"t1c1f1\": 6, \"t1c1f2\": [] }")
                       @?= (Nothing :: Maybe T1)
@@ -1344,40 +1337,40 @@ main = Tasty.defaultMain $ Tasty.testGroup
                           (T1C1
                               0
                               Nullable.nothing
-                              (Optional.fromMaybe Nothing)
-                              (Optional.fromMaybe Nothing)
+                              Optional.nothing
+                              Optional.nothing
                           )
                       @?= "{\"t1c1f1\":0,\"t1c1f2\":null}"
                   encode
                           (T1C1
                               1
                               (Nullable.just 0)
-                              (Optional.fromMaybe Nothing)
-                              (Optional.fromMaybe Nothing)
+                              Optional.nothing
+                              Optional.nothing
                           )
                       @?= "{\"t1c1f1\":1,\"t1c1f2\":0}"
                   encode
                           (T1C1
                               2
                               Nullable.nothing
-                              (Optional.fromMaybe $ Just 0)
-                              (Optional.fromMaybe Nothing)
+                              (Optional.just 0)
+                              Optional.nothing
                           )
                       @?= "{\"t1c1f1\":2,\"t1c1f2\":null,\"t1c1f3\":0}"
                   encode
                           (T1C1
                               3
                               Nullable.nothing
-                              (Optional.fromMaybe Nothing)
-                              (Optional.fromMaybe $ Just Nullable.nothing)
+                              Optional.nothing
+                              (Optional.just Nullable.nothing)
                           )
                       @?= "{\"t1c1f1\":3,\"t1c1f2\":null,\"t1c1f4\":null}"
                   encode
                           (T1C1
                               4
                               Nullable.nothing
-                              (Optional.fromMaybe Nothing)
-                              (Optional.fromMaybe . Just $ Nullable.just 0)
+                              Optional.nothing
+                              (Optional.just $ Nullable.just 0)
                           )
                       @?= "{\"t1c1f1\":4,\"t1c1f2\":null,\"t1c1f4\":0}"
               ]
