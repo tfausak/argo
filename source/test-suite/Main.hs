@@ -1314,7 +1314,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
                                   5
                                   Nullable.nothing
                                   Optional.nothing
-                                  (Optional.just . Nullable.fromMaybe $ Just 0)
+                                  (Optional.just $ Nullable.just 0)
                               )
                   hush (Argo.decode "{ \"t1c1f1\": 6, \"t1c1f2\": [] }")
                       @?= (Nothing :: Maybe T1)
