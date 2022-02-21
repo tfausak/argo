@@ -103,7 +103,13 @@ identified c =
             }
 
 typeName :: Typeable.Typeable a => Typeable.Proxy a -> String
-typeName = show . Typeable.typeRep
+typeName proxy =
+    let
+        typeRep = Typeable.typeRep proxy
+        tyCon = Typeable.typeRepTyCon typeRep
+        m = Typeable.tyConModule tyCon
+        t = show typeRep
+    in m <> "." <> t
 
 getRef
     :: Value a
