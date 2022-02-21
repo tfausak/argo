@@ -24,6 +24,8 @@ import qualified Argo.Type.Config as Config
 import qualified Argo.Type.Decimal as Decimal
 import qualified Argo.Type.Decoder as Decoder
 import qualified Argo.Type.Encoder as Encoder
+import qualified Argo.Type.Nullable as Nullable
+import qualified Argo.Type.Optional as Optional
 import qualified Argo.Type.Permission as Permission
 import qualified Argo.Vendor.Builder as Builder
 import qualified Argo.Vendor.ByteString as ByteString
@@ -132,11 +134,12 @@ instance HasCodec a => HasCodec (Object.Object a) where
                 $ Just (Nothing, either id Schema.Ref ref)
         }
 
+instance HasCodec a => HasCodec (Nullable.Nullable a) where
+    codec = nullable codec
+
 instance HasCodec a => HasCodec (Maybe a) where
     codec =
-        Codec.identified
-            $ Codec.mapMaybe (Just . Just) id codec
-            <|> Codec.map (const Nothing) (const $ Null.fromUnit ()) codec
+        Codec.identified $ Codec.map Nullable.toMaybe Nullable.fromMaybe codec
 
 instance
     ( HasCodec a
@@ -512,3 +515,24 @@ integralCodec =
         from
         (Just . into)
         codec { Codec.schema = pure schema }
+
+optionalNullable
+    :: Typeable.Typeable a
+    => Name.Name
+    -> Codec.Value a
+    -> Codec.Object (Maybe a)
+optionalNullable k =
+    Codec.map
+            (maybe Nothing Nullable.toMaybe . Optional.toMaybe)
+            (Optional.fromMaybe . fmap Nullable.just)
+        . Codec.optional k
+        . nullable
+
+nullable
+    :: Typeable.Typeable a
+    => Codec.Value a
+    -> Codec.Value (Nullable.Nullable a)
+nullable c =
+    Codec.identified
+        $ Codec.mapMaybe (Just . Nullable.just) Nullable.toMaybe c
+        <|> Codec.map (const Nullable.nothing) (const $ Null.fromUnit ()) codec
