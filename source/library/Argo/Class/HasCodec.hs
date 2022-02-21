@@ -469,7 +469,7 @@ valueCodec
     -> Codec.Value a
 valueCodec schema toValue fromValue = Codec.identified Codec.Codec
     { Codec.decode = castValue
-        (show $ Typeable.typeRep (Typeable.Proxy :: Typeable.Proxy a))
+        (Codec.typeName (Typeable.Proxy :: Typeable.Proxy a))
         fromValue
     , Codec.encode = Codec.tap $ Trans.lift . Trans.put . toValue
     , Codec.schema = pure $ Schema.unidentified schema

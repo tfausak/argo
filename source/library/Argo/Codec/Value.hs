@@ -92,7 +92,7 @@ literalCodec expected = Codec.Codec
 identified :: forall a . Typeable.Typeable a => Value a -> Value a
 identified c =
     let
-        i = Identifier.fromText . Text.pack . show $ Typeable.typeRep
+        i = Identifier.fromText . Text.pack $ typeName
             (Typeable.Proxy :: Typeable.Proxy a)
     in
         c
@@ -101,6 +101,9 @@ identified c =
                 Trans.add $ Map.singleton i s
                 pure $ Schema.withIdentifier i s
             }
+
+typeName :: Typeable.Typeable a => Typeable.Proxy a -> String
+typeName = show . Typeable.typeRep
 
 getRef
     :: Value a
