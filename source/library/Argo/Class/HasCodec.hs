@@ -465,7 +465,7 @@ instance HasCodec Identifier.Identifier where
     codec = Codec.identified
         $ Codec.map Identifier.fromText Identifier.toText codec
 
--- TODO: array, object, oneOf
+-- TODO: array, object
 instance HasCodec Schema.Schema where
     codec =
         let
@@ -616,6 +616,16 @@ instance HasCodec Schema.Schema where
                               _ -> Nothing
                           )
                           codec
+            oneOfCodec =
+                Codec.fromObjectCodec Permission.Forbid
+                    . Codec.required (name "oneOf")
+                    $ Codec.mapMaybe
+                          (Just . Schema.OneOf)
+                          (\x -> case x of
+                              Schema.OneOf y -> Just y
+                              _ -> Nothing
+                          )
+                          codec
         in
             Codec.identified
             $ trueCodec
@@ -627,6 +637,7 @@ instance HasCodec Schema.Schema where
             <|> integerCodec
             <|> stringCodec
             <|> refCodec
+            <|> oneOfCodec
 
 name :: String -> Name.Name
 name = Name.fromString . String.fromText . Text.pack

@@ -1233,6 +1233,12 @@ main = Tasty.defaultMain $ Tasty.testGroup
                 [Argo.value| { "oneOf": [
                     {
                         "type": "object",
+                        "properties": { "oneOf": { "$ref": "#/definitions/[Schema]" } },
+                        "required": [ "oneOf" ],
+                        "additionalProperties": false
+                    },
+                    {
+                        "type": "object",
                         "properties": { "$ref": { "$ref": "#/definitions/Identifier" } },
                         "required": [ "$ref" ],
                         "additionalProperties": false
