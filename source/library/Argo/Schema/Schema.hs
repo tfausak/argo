@@ -43,6 +43,7 @@ data Schema
     | Ref Identifier.Identifier
     | String (Maybe Natural.Natural) (Maybe Natural.Natural)
     | True
+    | Unit
     deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
 
 instance Semigroup Schema where
@@ -179,6 +180,14 @@ toValue schema = case schema of
         ]
 
     Argo.Schema.Schema.True -> Value.Boolean $ Boolean.fromBool Prelude.True
+
+    Unit -> Value.Object $ Object.fromList
+        [ member "type" . Value.String . String.fromText $ Text.pack "array"
+        , member "maxItems"
+        . Value.Number
+        . Number.fromDecimal
+        $ Decimal.fromInteger 0
+        ]
 
 member :: String -> a -> Member.Member a
 member k v =
