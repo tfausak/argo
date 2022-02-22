@@ -463,7 +463,7 @@ instance HasCodec Identifier.Identifier where
     codec = Codec.identified
         $ Codec.map Identifier.fromText Identifier.toText codec
 
--- TODO: array (tuple, unit), object
+-- TODO: array (tuple), object
 instance HasCodec Schema.Schema where
     codec =
         let
@@ -604,6 +604,31 @@ instance HasCodec Schema.Schema where
                     <*> Codec.project
                             (snd . snd)
                             (Codec.optional (name "maxLength") codec)
+            unitCodec =
+                Codec.mapMaybe
+                        (const $ Just Schema.Unit)
+                        (\x -> case x of
+                            Schema.Unit -> Just ((), ())
+                            _ -> Nothing
+                        )
+                    . Codec.fromObjectCodec Permission.Forbid
+                    $ (,)
+                    <$> Codec.project
+                            fst
+                            (Codec.required (name "type")
+                            . Codec.literalCodec
+                            . Value.String
+                            . String.fromText
+                            $ Text.pack "array"
+                            )
+                    <*> Codec.project
+                            snd
+                            (Codec.required (name "maxItems")
+                            . Codec.literalCodec
+                            . Value.Number
+                            . Number.fromDecimal
+                            $ Decimal.fromInteger 0
+                            )
             refCodec =
                 Codec.fromObjectCodec Permission.Forbid
                     . Codec.required (name "$ref")
@@ -634,6 +659,7 @@ instance HasCodec Schema.Schema where
             <|> numberCodec
             <|> integerCodec
             <|> stringCodec
+            <|> unitCodec
             <|> refCodec
             <|> oneOfCodec
 
