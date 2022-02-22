@@ -101,7 +101,8 @@ instance HasCodec a => HasCodec (Array.Array a) where
             pure
                 . Schema.unidentified
                 . Schema.Array Permission.Allow []
-                $ Just (Nothing, either id Schema.Ref ref)
+                . Just
+                $ either id Schema.Ref ref
         }
 
 instance HasCodec a => HasCodec (Object.Object a) where
@@ -377,7 +378,8 @@ instance HasCodec a => HasCodec (NonEmpty.NonEmpty a) where
                 pure
                     . Schema.unidentified
                     . Schema.Array Permission.Allow [itemSchema]
-                    $ Just itemSchema
+                    . Just
+                    $ Schema.ref itemSchema
         in
             Codec.identified $ Codec.mapMaybe
                 NonEmpty.nonEmpty

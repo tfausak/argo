@@ -28,7 +28,7 @@ data Schema
     = Array
         Permission.Permission
         [(Maybe Identifier.Identifier, Schema)]
-        (Maybe (Maybe Identifier.Identifier, Schema))
+        (Maybe Schema)
     | Boolean
     | Const Value.Value
     | False
@@ -67,7 +67,7 @@ toValue schema = case schema of
                           . Number.fromDecimal
                           $ Decimal.fromInteger 0
                     ]
-                Just s -> [member "items" . toValue $ ref s]
+                Just s -> [member "items" $ toValue s]
             else mconcat
                 [ [ member "minItems"
                     . Value.Number
@@ -92,7 +92,7 @@ toValue schema = case schema of
                   ]
                 , [ member "additionalItems" . toValue $ case p of
                         Permission.Allow ->
-                            maybe Argo.Schema.Schema.True ref m
+                            Maybe.fromMaybe Argo.Schema.Schema.True m
                         Permission.Forbid -> Argo.Schema.Schema.False
                   ]
                 ]
