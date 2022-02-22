@@ -1234,6 +1234,16 @@ main = Tasty.defaultMain $ Tasty.testGroup
                         "type": "object",
                         "properties": {
                             "type": { "const": "array" },
+                            "items": { "$ref": "#/definitions/NonEmpty Schema" },
+                            "additionalItems": { "const": false }
+                        },
+                        "required": [ "type", "items", "additionalItems" ],
+                        "additionalProperties": false
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "type": { "const": "array" },
                             "maxItems": { "const": 0 }
                         },
                         "required": [ "type", "maxItems" ],

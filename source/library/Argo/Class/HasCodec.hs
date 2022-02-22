@@ -463,7 +463,7 @@ instance HasCodec Identifier.Identifier where
     codec = Codec.identified
         $ Codec.map Identifier.fromText Identifier.toText codec
 
--- TODO: array (tuple), object
+-- TODO: array, object
 instance HasCodec Schema.Schema where
     codec =
         let
@@ -629,6 +629,33 @@ instance HasCodec Schema.Schema where
                             . Number.fromDecimal
                             $ Decimal.fromInteger 0
                             )
+            tupleCodec =
+                Codec.mapMaybe
+                        (Just . Schema.Tuple . fst . snd)
+                        (\x -> case x of
+                            Schema.Tuple y -> Just ((), (y, ()))
+                            _ -> Nothing
+                        )
+                    . Codec.fromObjectCodec Permission.Forbid
+                    $ (\x y z -> (x, (y, z)))
+                    <$> Codec.project
+                            fst
+                            (Codec.required (name "type")
+                            . Codec.literalCodec
+                            . Value.String
+                            . String.fromText
+                            $ Text.pack "array"
+                            )
+                    <*> Codec.project
+                            (fst . snd)
+                            (Codec.required (name "items") codec)
+                    <*> Codec.project
+                            (snd . snd)
+                            (Codec.required (name "additionalItems")
+                            . Codec.literalCodec
+                            . Value.Boolean
+                            $ Boolean.fromBool False
+                            )
             refCodec =
                 Codec.fromObjectCodec Permission.Forbid
                     . Codec.required (name "$ref")
@@ -660,6 +687,7 @@ instance HasCodec Schema.Schema where
             <|> integerCodec
             <|> stringCodec
             <|> unitCodec
+            <|> tupleCodec
             <|> refCodec
             <|> oneOfCodec
 
