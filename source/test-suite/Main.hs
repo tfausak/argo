@@ -1227,10 +1227,62 @@ main = Tasty.defaultMain $ Tasty.testGroup
                 (Just "Pointer")
                 [Argo.value| { "type": "string" } |]
                 (Codec.schema (Argo.codec :: Codec.Value Argo.Pointer))
-        -- TODO
-        -- , Tasty.testCase "schema" $ do
-        --     schemaTest (Just "Schema") [Argo.value| true |]
-        --         (Codec.schema (Argo.codec :: Codec.Value Schema.Schema))
+        , Tasty.testCase "schema" $ do
+            schemaTest
+                (Just "Schema")
+                [Argo.value| { "oneOf": [
+                    {
+                        "type": "object",
+                        "properties": {
+                            "type": { "const": "string" },
+                            "minLength": { "$ref": "#/definitions/Integer" },
+                            "maxLength": { "$ref": "#/definitions/Integer" }
+                        },
+                        "required": [ "type" ],
+                        "additionalProperties": false
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "type": { "const": "integer" },
+                            "minimum": { "$ref": "#/definitions/Integer" },
+                            "maximum": { "$ref": "#/definitions/Integer" }
+                        },
+                        "required": [ "type" ],
+                        "additionalProperties": false
+                    },
+                    {
+                        "type": "object",
+                        "properties": { "type": { "const": "number" } },
+                        "required": [ "type" ],
+                        "additionalProperties": false
+                    },
+                    {
+                        "type": "object",
+                        "properties": { "type": { "const": "boolean" } },
+                        "required": [ "type" ],
+                        "additionalProperties": false
+                    },
+                    {
+                        "type": "object",
+                        "properties": { "type": { "const": "null" } },
+                        "required": [ "type" ],
+                        "additionalProperties": false
+                    },
+                    {
+                        "type": "object",
+                        "properties": { "const": { "$ref": "#/definitions/Value" } },
+                        "required": [ "const" ],
+                        "additionalProperties": false
+                    },
+                    {
+                        "const": true
+                    },
+                    {
+                        "const": false
+                    }
+                ] } |]
+                (Codec.schema (Argo.codec :: Codec.Value Schema.Schema))
         , Tasty.testCase "record" $ do
             schemaTest
                 Nothing

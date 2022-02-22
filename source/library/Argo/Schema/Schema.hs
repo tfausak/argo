@@ -148,6 +148,7 @@ toValue schema = case schema of
                 Permission.Forbid -> Argo.Schema.Schema.False
           ]
         ]
+
     OneOf xs -> Value.Object $ Object.fromList
         [member "oneOf" . Value.Array . Array.fromList $ fmap toValue xs]
 
