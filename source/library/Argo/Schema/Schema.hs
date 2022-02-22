@@ -26,7 +26,9 @@ import qualified Numeric.Natural as Natural
 -- | A JSON Schema.
 -- <https://datatracker.ietf.org/doc/html/draft-handrews-json-schema-01>
 data Schema
-    = Array [Schema] Schema
+    = Array
+        [(Maybe Identifier.Identifier, Schema)]
+        (Maybe Identifier.Identifier, Schema)
     | Boolean
     | Const Value.Value
     | False
@@ -41,7 +43,7 @@ data Schema
     | Ref Identifier.Identifier
     | String (Maybe Natural.Natural) (Maybe Natural.Natural)
     | True
-    | Tuple (NonEmpty.NonEmpty Schema)
+    | Tuple (NonEmpty.NonEmpty (Maybe Identifier.Identifier, Schema))
     | Unit
     deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
 
@@ -59,8 +61,10 @@ toValue :: Schema -> Value.Value
 toValue schema = case schema of
     Array xs s -> Value.Object $ Object.fromList
         [ member "type" . Value.String . String.fromText $ Text.pack "array"
-        , member "items" . Value.Array . Array.fromList $ fmap toValue xs
-        , member "additionalItems" $ toValue s
+        , member "items" . Value.Array . Array.fromList $ fmap
+            (toValue . ref)
+            xs
+        , member "additionalItems" . toValue $ ref s
         ]
 
     Boolean -> Value.Object $ Object.fromList
@@ -150,7 +154,7 @@ toValue schema = case schema of
         , member "items"
         . Value.Array
         . Array.fromList
-        . fmap toValue
+        . fmap (toValue . ref)
         $ NonEmpty.toList xs
         , member "additionalItems" $ toValue Argo.Schema.Schema.False
         ]

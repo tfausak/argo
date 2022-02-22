@@ -98,10 +98,9 @@ instance HasCodec a => HasCodec (Array.Array a) where
             . Array.toList
         , Codec.schema = do
             ref <- Codec.getRef (codec :: Codec.Value a)
-            pure . Schema.unidentified . Schema.Array [] $ either
-                id
-                Schema.Ref
-                ref
+            pure . Schema.unidentified $ Schema.Array
+                []
+                (Nothing, either id Schema.Ref ref)
         }
 
 instance HasCodec a => HasCodec (Object.Object a) where
@@ -374,8 +373,9 @@ instance HasCodec a => HasCodec (NonEmpty.NonEmpty a) where
         let
             schema = do
                 itemSchema <- Codec.schema (codec :: Codec.Value a)
-                let ref = Schema.ref itemSchema
-                pure . Schema.unidentified $ Schema.Array [ref] ref
+                pure . Schema.unidentified $ Schema.Array
+                    [itemSchema]
+                    itemSchema
         in
             Codec.identified $ Codec.mapMaybe
                 NonEmpty.nonEmpty
