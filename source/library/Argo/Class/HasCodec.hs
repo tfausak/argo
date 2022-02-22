@@ -467,7 +467,7 @@ instance HasCodec Identifier.Identifier where
     codec = Codec.identified
         $ Codec.map Identifier.fromText Identifier.toText codec
 
--- TODO: array, object
+-- TODO: object
 instance HasCodec Schema.Schema where
     codec =
         let
@@ -608,6 +608,59 @@ instance HasCodec Schema.Schema where
                     <*> Codec.project
                             (snd . snd)
                             (Codec.optional (name "maxLength") codec)
+            arrayCodec =
+                Codec.mapMaybe
+                        (\(_, lo, hi, e, m) -> Just $ Schema.Array
+                            (Optional.toMaybe lo)
+                            (Optional.toMaybe hi)
+                            e
+                            (Optional.toMaybe m)
+                        )
+                        (\x -> case x of
+                            Schema.Array lo hi e m -> Just
+                                ( ()
+                                , Optional.fromMaybe lo
+                                , Optional.fromMaybe hi
+                                , e
+                                , Optional.fromMaybe m
+                                )
+                            _ -> Nothing
+                        )
+                    . Codec.fromObjectCodec Permission.Forbid
+                    $ (,,,,)
+                    <$> Codec.project
+                            (\(a, _, _, _, _) -> a)
+                            (Codec.required (name "type")
+                            . Codec.literalCodec
+                            . Value.String
+                            . String.fromText
+                            $ Text.pack "array"
+                            )
+                    <*> Codec.project
+                            (\(_, b, _, _, _) -> b)
+                            (Codec.optional (name "minItems") codec)
+                    <*> Codec.project
+                            (\(_, _, c, _, _) -> c)
+                            (Codec.optional (name "maxItems") codec)
+                    <*> Codec.project
+                            (\(_, _, _, d, _) -> d)
+                            (Codec.required (name "items")
+                            . Codec.withIdentifier
+                                  (Identifier.fromText
+                                  $ Text.pack "OneOf Schema [Schema]"
+                                  )
+                            $ Codec.mapMaybe
+                                  (Just . Left)
+                                  (either Just $ const Nothing)
+                                  codec
+                            <|> Codec.mapMaybe
+                                    (Just . Right)
+                                    (either (const Nothing) Just)
+                                    codec
+                            )
+                    <*> Codec.project
+                            (\(_, _, _, _, e) -> e)
+                            (Codec.optional (name "additionalItems") codec)
             refCodec =
                 Codec.fromObjectCodec Permission.Forbid
                     . Codec.required (name "$ref")
@@ -638,6 +691,7 @@ instance HasCodec Schema.Schema where
             <|> numberCodec
             <|> integerCodec
             <|> stringCodec
+            <|> arrayCodec
             <|> refCodec
             <|> oneOfCodec
 
