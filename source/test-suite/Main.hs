@@ -770,8 +770,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
                 (Just "Array Boolean")
                 [Argo.value| {
                     "type": "array",
-                    "items": [],
-                    "additionalItems": { "$ref": "#/definitions/Boolean" }
+                    "items": { "$ref": "#/definitions/Boolean" }
                 } |]
                 (Codec.schema
                     (Argo.codec :: Codec.Value (Array.Array Boolean.Boolean))
@@ -1003,8 +1002,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
                 (Just "[Boolean]")
                 [Argo.value| {
                     "type": "array",
-                    "items": [],
-                    "additionalItems": { "$ref": "#/definitions/Boolean" }
+                    "items": { "$ref": "#/definitions/Boolean" }
                 } |]
                 (Codec.schema (Argo.codec :: Codec.Value [Boolean.Boolean]))
         , Tasty.testCase "map name boolean" $ do
@@ -1090,6 +1088,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
                 (Just "NonEmpty Boolean")
                 [Argo.value| {
                     "type": "array",
+                    "minItems": 1,
                     "items": [ { "$ref": "#/definitions/Boolean" } ],
                     "additionalItems": { "$ref": "#/definitions/Boolean" }
                 } |]
