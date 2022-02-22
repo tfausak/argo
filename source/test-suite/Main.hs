@@ -832,8 +832,6 @@ main = Tasty.defaultMain $ Tasty.testGroup
                 (Just "(Value,Null)")
                 [Argo.value| {
                     "type": "array",
-                    "minItems": 2,
-                    "maxItems": 2,
                     "items": [
                         { "$ref": "#/definitions/Value" },
                         { "$ref": "#/definitions/Null" }
@@ -847,8 +845,6 @@ main = Tasty.defaultMain $ Tasty.testGroup
                 (Just "(Value,Null,Boolean)")
                 [Argo.value| {
                     "type": "array",
-                    "minItems": 3,
-                    "maxItems": 3,
                     "items": [
                         { "$ref": "#/definitions/Value" },
                         { "$ref": "#/definitions/Null" },
@@ -866,8 +862,6 @@ main = Tasty.defaultMain $ Tasty.testGroup
                 (Just "(Value,Null,Boolean,Number)")
                 [Argo.value| {
                     "type": "array",
-                    "minItems": 4,
-                    "maxItems": 4,
                     "items": [
                         { "$ref": "#/definitions/Value" },
                         { "$ref": "#/definitions/Null" },
@@ -889,8 +883,6 @@ main = Tasty.defaultMain $ Tasty.testGroup
                 (Just "(Value,Null,Boolean,Number,Integer)")
                 [Argo.value| {
                     "type": "array",
-                    "minItems": 5,
-                    "maxItems": 5,
                     "items": [
                         { "$ref": "#/definitions/Value" },
                         { "$ref": "#/definitions/Null" },
@@ -914,8 +906,6 @@ main = Tasty.defaultMain $ Tasty.testGroup
                 (Just "(Value,Null,Boolean,Number,Integer,String)")
                 [Argo.value| {
                     "type": "array",
-                    "minItems": 6,
-                    "maxItems": 6,
                     "items": [
                         { "$ref": "#/definitions/Value" },
                         { "$ref": "#/definitions/Null" },
@@ -941,8 +931,6 @@ main = Tasty.defaultMain $ Tasty.testGroup
                 (Just "(Value,Null,Boolean,Number,Integer,String,())")
                 [Argo.value| {
                     "type": "array",
-                    "minItems": 7,
-                    "maxItems": 7,
                     "items": [
                         { "$ref": "#/definitions/Value" },
                         { "$ref": "#/definitions/Null" },
@@ -970,8 +958,6 @@ main = Tasty.defaultMain $ Tasty.testGroup
                 (Just "(Value,Null,Boolean,Number,Integer,String,(),Char)")
                 [Argo.value| {
                     "type": "array",
-                    "minItems": 8,
-                    "maxItems": 8,
                     "items": [
                         { "$ref": "#/definitions/Value" },
                         { "$ref": "#/definitions/Null" },
