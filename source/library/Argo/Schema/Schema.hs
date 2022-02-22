@@ -27,9 +27,8 @@ import qualified Numeric.Natural as Natural
 -- <https://datatracker.ietf.org/doc/html/draft-handrews-json-schema-01>
 data Schema
     = Array
-        Permission.Permission
         [(Maybe Identifier.Identifier, Schema)]
-        (Maybe (Maybe Identifier.Identifier, Schema))
+        (Maybe Identifier.Identifier, Schema)
     | Boolean
     | Const Value.Value
     | False
@@ -60,45 +59,12 @@ instance Monoid Schema where
 
 toValue :: Schema -> Value.Value
 toValue schema = case schema of
-    Array p xs m -> Value.Object . Object.fromList $ mconcat
-        [ [member "type" . Value.String . String.fromText $ Text.pack "array"]
-        , if null xs
-            then case m of
-                Nothing ->
-                    [ member "maxItems"
-                          . Value.Number
-                          . Number.fromDecimal
-                          $ Decimal.fromInteger 0
-                    ]
-                Just s -> [member "items" . toValue $ ref s]
-            else mconcat
-                [ [ member "minItems"
-                    . Value.Number
-                    . Number.fromDecimal
-                    . Decimal.fromInteger
-                    . toInteger
-                    $ length xs
-                  ]
-                , if p == Permission.Forbid
-                    then
-                        [ member "maxItems"
-                          . Value.Number
-                          . Number.fromDecimal
-                          . Decimal.fromInteger
-                          . toInteger
-                          $ length xs
-                        ]
-                    else []
-                , [ member "items" . Value.Array . Array.fromList $ fmap
-                        (toValue . ref)
-                        xs
-                  ]
-                , [ member "additionalItems" . toValue $ case p of
-                        Permission.Allow ->
-                            maybe Argo.Schema.Schema.True ref m
-                        Permission.Forbid -> Argo.Schema.Schema.False
-                  ]
-                ]
+    Array xs s -> Value.Object $ Object.fromList
+        [ member "type" . Value.String . String.fromText $ Text.pack "array"
+        , member "items" . Value.Array . Array.fromList $ fmap
+            (toValue . ref)
+            xs
+        , member "additionalItems" . toValue $ ref s
         ]
 
     Boolean -> Value.Object $ Object.fromList

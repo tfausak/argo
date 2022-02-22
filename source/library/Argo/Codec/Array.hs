@@ -32,7 +32,7 @@ fromArrayCodec =
                     Nothing -> Schema.Unit
                     Just xs -> case permission of
                         Permission.Allow ->
-                            Schema.Array permission schemas Nothing
+                            Schema.Array schemas (Nothing, Schema.True)
                         Permission.Forbid -> Schema.Tuple xs
             )
         $ Codec.map Array.toList Array.fromList Codec.arrayCodec
