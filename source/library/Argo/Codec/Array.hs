@@ -28,12 +28,15 @@ fromArrayCodec =
     Codec.fromListCodec
             (\permission schemasM -> do
                 schemas <- schemasM
-                pure . Schema.unidentified $ case NonEmpty.nonEmpty schemas of
-                    Nothing -> Schema.Unit
-                    Just xs -> case permission of
-                        Permission.Allow ->
-                            Schema.Array schemas (Nothing, Schema.True)
-                        Permission.Forbid -> Schema.Tuple xs
+                pure
+                    . Schema.unidentified
+                    $ case NonEmpty.nonEmpty $ fmap Schema.ref schemas of
+                          Nothing -> Schema.Unit
+                          Just refs -> case permission of
+                              Permission.Allow -> Schema.Array
+                                  (NonEmpty.toList refs)
+                                  Schema.True
+                              Permission.Forbid -> Schema.Tuple refs
             )
         $ Codec.map Array.toList Array.fromList Codec.arrayCodec
 
