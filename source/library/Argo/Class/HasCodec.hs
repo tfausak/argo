@@ -19,6 +19,7 @@ import qualified Argo.Json.Object as Object
 import qualified Argo.Json.String as String
 import qualified Argo.Json.Value as Value
 import qualified Argo.Pointer.Pointer as Pointer
+import qualified Argo.Schema.Identifier as Identifier
 import qualified Argo.Schema.Schema as Schema
 import qualified Argo.Type.Config as Config
 import qualified Argo.Type.Decimal as Decimal
@@ -460,7 +461,11 @@ instance HasCodec Pointer.Pointer where
         )
         codec
 
--- TODO: array, object, oneOf, ref
+instance HasCodec Identifier.Identifier where
+    codec = Codec.identified
+        $ Codec.map Identifier.fromText Identifier.toText codec
+
+-- TODO: array, object, oneOf
 instance HasCodec Schema.Schema where
     codec =
         let
@@ -601,6 +606,16 @@ instance HasCodec Schema.Schema where
                     <*> Codec.project
                             (snd . snd)
                             (Codec.optional (name "maxLength") codec)
+            refCodec =
+                Codec.fromObjectCodec Permission.Forbid
+                    . Codec.required (name "$ref")
+                    $ Codec.mapMaybe
+                          (Just . Schema.Ref)
+                          (\x -> case x of
+                              Schema.Ref y -> Just y
+                              _ -> Nothing
+                          )
+                          codec
         in
             Codec.identified
             $ trueCodec
@@ -611,6 +626,7 @@ instance HasCodec Schema.Schema where
             <|> numberCodec
             <|> integerCodec
             <|> stringCodec
+            <|> refCodec
 
 name :: String -> Name.Name
 name = Name.fromString . String.fromText . Text.pack
