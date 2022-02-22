@@ -90,17 +90,20 @@ literalCodec expected = Codec.Codec
     }
 
 identified :: forall a . Typeable.Typeable a => Value a -> Value a
-identified c =
+identified = withIdentifier . Identifier.fromText . Text.pack $ typeName
+    (Typeable.Proxy :: Typeable.Proxy a)
+
+withIdentifier :: Identifier.Identifier -> Value a -> Value a
+withIdentifier identifier codec =
     let
-        i = Identifier.fromText . Text.pack . show $ Typeable.typeRep
-            (Typeable.Proxy :: Typeable.Proxy a)
-    in
-        c
-            { Codec.schema = do
-                (_, s) <- Codec.schema c
-                Trans.add $ Map.singleton i s
-                pure $ Schema.withIdentifier i s
-            }
+        newSchema = do
+            (_, schema) <- Codec.schema codec
+            Trans.add $ Map.singleton identifier schema
+            pure $ Schema.withIdentifier identifier schema
+    in codec { Codec.schema = newSchema }
+
+typeName :: Typeable.Typeable a => Typeable.Proxy a -> String
+typeName = show . Typeable.typeRep
 
 getRef
     :: Value a
