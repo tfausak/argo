@@ -1247,8 +1247,8 @@ main = Tasty.defaultMain $ Tasty.testGroup
                         "type": "object",
                         "properties": {
                             "type": { "const": "string" },
-                            "minLength": { "$ref": "#/definitions/Integer" },
-                            "maxLength": { "$ref": "#/definitions/Integer" }
+                            "minLength": { "$ref": "#/definitions/Natural" },
+                            "maxLength": { "$ref": "#/definitions/Natural" }
                         },
                         "required": [ "type" ],
                         "additionalProperties": false

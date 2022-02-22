@@ -20,6 +20,7 @@ import qualified Argo.Vendor.TemplateHaskell as TH
 import qualified Argo.Vendor.Text as Text
 import qualified Data.Maybe as Maybe
 import qualified GHC.Generics as Generics
+import qualified Numeric.Natural as Natural
 
 -- | A JSON Schema.
 -- <https://datatracker.ietf.org/doc/html/draft-handrews-json-schema-01>
@@ -40,7 +41,7 @@ data Schema
         (Maybe (Maybe Identifier.Identifier, Schema))
     | OneOf [Schema]
     | Ref Identifier.Identifier
-    | String (Maybe Integer) (Maybe Integer)
+    | String (Maybe Natural.Natural) (Maybe Natural.Natural)
     | True
     deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
 
@@ -167,11 +168,13 @@ toValue schema = case schema of
         . Value.Number
         . Number.fromDecimal
         . Decimal.fromInteger
+        . toInteger
         <$> lo
         , member "maxLength"
         . Value.Number
         . Number.fromDecimal
         . Decimal.fromInteger
+        . toInteger
         <$> hi
         ]
 
