@@ -11,7 +11,6 @@ import qualified Argo.Type.Permission as Permission
 import qualified Argo.Vendor.Map as Map
 import qualified Argo.Vendor.Transformers as Trans
 import qualified Data.Functor.Identity as Identity
-import qualified Data.List.NonEmpty as NonEmpty
 
 type Array a
     = Codec.List
@@ -28,12 +27,9 @@ fromArrayCodec =
     Codec.fromListCodec
             (\permission schemasM -> do
                 schemas <- schemasM
-                pure . Schema.unidentified $ case NonEmpty.nonEmpty schemas of
-                    Nothing -> Schema.Unit
-                    Just xs -> case permission of
-                        Permission.Allow ->
-                            Schema.Array permission schemas Nothing
-                        Permission.Forbid -> Schema.Tuple xs
+                pure . Schema.unidentified $ if null schemas
+                    then Schema.Unit
+                    else Schema.Array permission schemas Nothing
             )
         $ Codec.map Array.toList Array.fromList Codec.arrayCodec
 

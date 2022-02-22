@@ -18,7 +18,6 @@ import qualified Argo.Type.Permission as Permission
 import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.TemplateHaskell as TH
 import qualified Argo.Vendor.Text as Text
-import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Maybe as Maybe
 import qualified GHC.Generics as Generics
 import qualified Numeric.Natural as Natural
@@ -44,7 +43,6 @@ data Schema
     | Ref Identifier.Identifier
     | String (Maybe Natural.Natural) (Maybe Natural.Natural)
     | True
-    | Tuple (NonEmpty.NonEmpty (Maybe Identifier.Identifier, Schema))
     | Unit
     deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
 
@@ -182,16 +180,6 @@ toValue schema = case schema of
         ]
 
     Argo.Schema.Schema.True -> Value.Boolean $ Boolean.fromBool Prelude.True
-
-    Tuple xs -> Value.Object $ Object.fromList
-        [ member "type" . Value.String . String.fromText $ Text.pack "array"
-        , member "items"
-        . Value.Array
-        . Array.fromList
-        . fmap (toValue . ref)
-        $ NonEmpty.toList xs
-        , member "additionalItems" $ toValue Argo.Schema.Schema.False
-        ]
 
     Unit -> Value.Object $ Object.fromList
         [ member "type" . Value.String . String.fromText $ Text.pack "array"
