@@ -825,7 +825,12 @@ main = Tasty.defaultMain $ Tasty.testGroup
         , Tasty.testCase "()" $ do
             schemaTest
                 (Just "()")
-                [Argo.value| { "type": "array", "maxItems": 0 } |]
+                [Argo.value| {
+                    "type": "array",
+                    "minItems": 0,
+                    "maxItems": 0,
+                    "items": false
+                } |]
                 (Codec.schema (Argo.codec :: Codec.Value ()))
         , Tasty.testCase "2-tuple" $ do
             schemaTest
@@ -837,8 +842,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
                     "items": [
                         { "$ref": "#/definitions/Value" },
                         { "$ref": "#/definitions/Null" }
-                    ],
-                    "additionalItems": false } |]
+                    ] } |]
                 (Codec.schema
                     (Argo.codec :: Codec.Value (Argo.Value, Null.Null))
                 )
@@ -853,9 +857,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
                         { "$ref": "#/definitions/Value" },
                         { "$ref": "#/definitions/Null" },
                         { "$ref": "#/definitions/Boolean" }
-                    ],
-                    "additionalItems": false
-                    } |]
+                    ] } |]
                 (Codec.schema
                     (Argo.codec :: Codec.Value
                           (Argo.Value, Null.Null, Boolean.Boolean)
@@ -873,8 +875,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
                         { "$ref": "#/definitions/Null" },
                         { "$ref": "#/definitions/Boolean" },
                         { "$ref": "#/definitions/Number" }
-                    ],
-                    "additionalItems": false } |]
+                    ] } |]
                 (Codec.schema
                     (Argo.codec :: Codec.Value
                           ( Argo.Value
@@ -897,8 +898,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
                         { "$ref": "#/definitions/Boolean" },
                         { "$ref": "#/definitions/Number" },
                         { "$ref": "#/definitions/Integer" }
-                    ],
-                    "additionalItems": false } |]
+                    ] } |]
                 (Codec.schema
                     (Argo.codec :: Codec.Value
                           ( Argo.Value
@@ -923,8 +923,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
                         { "$ref": "#/definitions/Number" },
                         { "$ref": "#/definitions/Integer" },
                         { "$ref": "#/definitions/String" }
-                    ],
-                    "additionalItems": false } |]
+                    ] } |]
                 (Codec.schema
                     (Argo.codec :: Codec.Value
                           ( Argo.Value
@@ -951,8 +950,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
                         { "$ref": "#/definitions/Integer" },
                         { "$ref": "#/definitions/String" },
                         { "$ref": "#/definitions/()" }
-                    ],
-                    "additionalItems": false } |]
+                    ] } |]
                 (Codec.schema
                     (Argo.codec :: Codec.Value
                           ( Argo.Value
@@ -981,8 +979,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
                         { "$ref": "#/definitions/String" },
                         { "$ref": "#/definitions/()" },
                         { "$ref": "#/definitions/Char" }
-                    ],
-                    "additionalItems": false } |]
+                    ] } |]
                 (Codec.schema
                     (Argo.codec :: Codec.Value
                           ( Argo.Value
@@ -1103,8 +1100,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
                 [Argo.value| {
                     "type": "array",
                     "minItems": 1,
-                    "items": [ { "$ref": "#/definitions/Boolean" } ],
-                    "additionalItems": { "$ref": "#/definitions/Boolean" }
+                    "items": { "$ref": "#/definitions/Boolean" }
                 } |]
                 (Codec.schema
                     (Argo.codec :: Codec.Value (NonEmpty Boolean.Boolean))

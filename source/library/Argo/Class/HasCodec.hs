@@ -98,11 +98,11 @@ instance HasCodec a => HasCodec (Array.Array a) where
             . Array.toList
         , Codec.schema = do
             ref <- Codec.getRef (codec :: Codec.Value a)
-            pure
-                . Schema.unidentified
-                . Schema.Array Permission.Allow []
-                . Just
-                $ either id Schema.Ref ref
+            pure . Schema.unidentified $ Schema.Array
+                Nothing
+                Nothing
+                (Left $ either id Schema.Ref ref)
+                Nothing
         }
 
 instance HasCodec a => HasCodec (Object.Object a) where
@@ -375,11 +375,11 @@ instance HasCodec a => HasCodec (NonEmpty.NonEmpty a) where
         let
             schema = do
                 itemSchema <- Codec.schema (codec :: Codec.Value a)
-                pure
-                    . Schema.unidentified
-                    . Schema.Array Permission.Allow [itemSchema]
-                    . Just
-                    $ Schema.ref itemSchema
+                pure . Schema.unidentified $ Schema.Array
+                    (Just 1)
+                    Nothing
+                    (Left $ Schema.ref itemSchema)
+                    Nothing
         in
             Codec.identified $ Codec.mapMaybe
                 NonEmpty.nonEmpty

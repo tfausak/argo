@@ -18,6 +18,7 @@ import qualified Argo.Type.Permission as Permission
 import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.TemplateHaskell as TH
 import qualified Argo.Vendor.Text as Text
+import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Maybe as Maybe
 import qualified GHC.Generics as Generics
 import qualified Numeric.Natural as Natural
@@ -26,8 +27,9 @@ import qualified Numeric.Natural as Natural
 -- <https://datatracker.ietf.org/doc/html/draft-handrews-json-schema-01>
 data Schema
     = Array
-        Permission.Permission
-        [(Maybe Identifier.Identifier, Schema)]
+        (Maybe Natural.Natural)
+        (Maybe Natural.Natural)
+        (Either Schema (NonEmpty.NonEmpty Schema))
         (Maybe Schema)
     | Boolean
     | Const Value.Value
@@ -57,45 +59,31 @@ instance Monoid Schema where
 
 toValue :: Schema -> Value.Value
 toValue schema = case schema of
-    Array p xs m -> Value.Object . Object.fromList $ mconcat
-        [ [member "type" . Value.String . String.fromText $ Text.pack "array"]
-        , if null xs
-            then case m of
-                Nothing ->
-                    [ member "maxItems"
-                          . Value.Number
-                          . Number.fromDecimal
-                          $ Decimal.fromInteger 0
-                    ]
-                Just s -> [member "items" $ toValue s]
-            else mconcat
-                [ [ member "minItems"
-                    . Value.Number
-                    . Number.fromDecimal
-                    . Decimal.fromInteger
-                    . toInteger
-                    $ length xs
-                  ]
-                , if p == Permission.Forbid
-                    then
-                        [ member "maxItems"
-                          . Value.Number
-                          . Number.fromDecimal
-                          . Decimal.fromInteger
-                          . toInteger
-                          $ length xs
-                        ]
-                    else []
-                , [ member "items" . Value.Array . Array.fromList $ fmap
-                        (toValue . ref)
-                        xs
-                  ]
-                , [ member "additionalItems" . toValue $ case p of
-                        Permission.Allow ->
-                            Maybe.fromMaybe Argo.Schema.Schema.True m
-                        Permission.Forbid -> Argo.Schema.Schema.False
-                  ]
-                ]
+    Array lo hi e m -> Value.Object . Object.fromList $ Maybe.catMaybes
+        [ Just . member "type" . Value.String . String.fromText $ Text.pack
+            "array"
+        , fmap
+            (member "minItems"
+            . Value.Number
+            . Number.fromDecimal
+            . Decimal.fromInteger
+            . toInteger
+            )
+            lo
+        , fmap
+            (member "maxItems"
+            . Value.Number
+            . Number.fromDecimal
+            . Decimal.fromInteger
+            . toInteger
+            )
+            hi
+        , Just . member "items" $ case e of
+            Left s -> toValue s
+            Right xs ->
+                Value.Array . Array.fromList . fmap toValue $ NonEmpty.toList
+                    xs
+        , fmap (member "additionalItems" . toValue) m
         ]
 
     Boolean -> Value.Object $ Object.fromList
