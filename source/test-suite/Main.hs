@@ -742,52 +742,52 @@ main = Tasty.defaultMain $ Tasty.testGroup
         "Schema"
         [ Tasty.testCase "value" $ do
             schemaTest
-                (Just "Argo.Json.Value.Value")
+                (Just "Value")
                 [Argo.value| true |]
                 (Codec.schema (Argo.codec :: Codec.Value Argo.Value))
         , Tasty.testCase "null" $ do
             schemaTest
-                (Just "Argo.Json.Null.Null")
+                (Just "Null")
                 [Argo.value| { "type": "null" } |]
                 (Codec.schema (Argo.codec :: Codec.Value Null.Null))
         , Tasty.testCase "boolean" $ do
             schemaTest
-                (Just "Argo.Json.Boolean.Boolean")
+                (Just "Boolean")
                 [Argo.value| { "type": "boolean" } |]
                 (Codec.schema (Argo.codec :: Codec.Value Boolean.Boolean))
         , Tasty.testCase "number" $ do
             schemaTest
-                (Just "Argo.Json.Number.Number")
+                (Just "Number")
                 [Argo.value| { "type": "number" } |]
                 (Codec.schema (Argo.codec :: Codec.Value Number.Number))
         , Tasty.testCase "string" $ do
             schemaTest
-                (Just "Argo.Json.String.String")
+                (Just "String")
                 [Argo.value| { "type": "string" } |]
                 (Codec.schema (Argo.codec :: Codec.Value String.String))
         , Tasty.testCase "array boolean" $ do
             schemaTest
-                (Just "Argo.Json.Array.Array Boolean")
+                (Just "Array Boolean")
                 [Argo.value| {
                     "type": "array",
-                    "items": { "$ref": "#/definitions/Argo.Json.Boolean.Boolean" }
+                    "items": { "$ref": "#/definitions/Boolean" }
                 } |]
                 (Codec.schema
                     (Argo.codec :: Codec.Value (Array.Array Boolean.Boolean))
                 )
         , Tasty.testCase "object boolean" $ do
             schemaTest
-                (Just "Argo.Json.Object.Object Boolean")
+                (Just "Object Boolean")
                 [Argo.value| {
                     "type": "object",
-                    "additionalProperties": { "$ref": "#/definitions/Argo.Json.Boolean.Boolean" }
+                    "additionalProperties": { "$ref": "#/definitions/Boolean" }
                 } |]
                 (Codec.schema
                     (Argo.codec :: Codec.Value (Object.Object Boolean.Boolean))
                 )
         , Tasty.testCase "maybe boolean" $ do
             schemaTest
-                (Just "GHC.Maybe.Maybe Boolean")
+                (Just "Maybe Boolean")
                 [Argo.value| { "oneOf": [
                     { "type": "boolean" },
                     { "type": "null" }
@@ -797,13 +797,13 @@ main = Tasty.defaultMain $ Tasty.testGroup
                 )
         , Tasty.testCase "either boolean number" $ do
             schemaTest
-                (Just "Data.Either.Either Boolean Number")
+                (Just "Either Boolean Number")
                 [Argo.value| { "oneOf": [
                     {
                         "type": "object",
                         "properties": {
                             "type": { "const": "Left" },
-                            "value": { "$ref": "#/definitions/Argo.Json.Boolean.Boolean" }
+                            "value": { "$ref": "#/definitions/Boolean" }
                         },
                         "required": [ "type", "value" ],
                         "additionalProperties": false },
@@ -811,7 +811,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
                         "type": "object",
                         "properties": {
                             "type": { "const": "Right" },
-                            "value": { "$ref": "#/definitions/Argo.Json.Number.Number" }
+                            "value": { "$ref": "#/definitions/Number" }
                         },
                         "required": [ "type", "value" ],
                         "additionalProperties": false
@@ -824,19 +824,19 @@ main = Tasty.defaultMain $ Tasty.testGroup
                 )
         , Tasty.testCase "()" $ do
             schemaTest
-                (Just "GHC.Tuple.()")
+                (Just "()")
                 [Argo.value| { "type": "array", "maxItems": 0 } |]
                 (Codec.schema (Argo.codec :: Codec.Value ()))
         , Tasty.testCase "2-tuple" $ do
             schemaTest
-                (Just "GHC.Tuple.(Value,Null)")
+                (Just "(Value,Null)")
                 [Argo.value| {
                     "type": "array",
                     "minItems": 2,
                     "maxItems": 2,
                     "items": [
-                        { "$ref": "#/definitions/Argo.Json.Value.Value" },
-                        { "$ref": "#/definitions/Argo.Json.Null.Null" }
+                        { "$ref": "#/definitions/Value" },
+                        { "$ref": "#/definitions/Null" }
                     ],
                     "additionalItems": false } |]
                 (Codec.schema
@@ -844,15 +844,15 @@ main = Tasty.defaultMain $ Tasty.testGroup
                 )
         , Tasty.testCase "3-tuple" $ do
             schemaTest
-                (Just "GHC.Tuple.(Value,Null,Boolean)")
+                (Just "(Value,Null,Boolean)")
                 [Argo.value| {
                     "type": "array",
                     "minItems": 3,
                     "maxItems": 3,
                     "items": [
-                        { "$ref": "#/definitions/Argo.Json.Value.Value" },
-                        { "$ref": "#/definitions/Argo.Json.Null.Null" },
-                        { "$ref": "#/definitions/Argo.Json.Boolean.Boolean" }
+                        { "$ref": "#/definitions/Value" },
+                        { "$ref": "#/definitions/Null" },
+                        { "$ref": "#/definitions/Boolean" }
                     ],
                     "additionalItems": false
                     } |]
@@ -863,16 +863,16 @@ main = Tasty.defaultMain $ Tasty.testGroup
                 )
         , Tasty.testCase "4-tuple" $ do
             schemaTest
-                (Just "GHC.Tuple.(Value,Null,Boolean,Number)")
+                (Just "(Value,Null,Boolean,Number)")
                 [Argo.value| {
                     "type": "array",
                     "minItems": 4,
                     "maxItems": 4,
                     "items": [
-                        { "$ref": "#/definitions/Argo.Json.Value.Value" },
-                        { "$ref": "#/definitions/Argo.Json.Null.Null" },
-                        { "$ref": "#/definitions/Argo.Json.Boolean.Boolean" },
-                        { "$ref": "#/definitions/Argo.Json.Number.Number" }
+                        { "$ref": "#/definitions/Value" },
+                        { "$ref": "#/definitions/Null" },
+                        { "$ref": "#/definitions/Boolean" },
+                        { "$ref": "#/definitions/Number" }
                     ],
                     "additionalItems": false } |]
                 (Codec.schema
@@ -886,17 +886,17 @@ main = Tasty.defaultMain $ Tasty.testGroup
                 )
         , Tasty.testCase "5-tuple" $ do
             schemaTest
-                (Just "GHC.Tuple.(Value,Null,Boolean,Number,Integer)")
+                (Just "(Value,Null,Boolean,Number,Integer)")
                 [Argo.value| {
                     "type": "array",
                     "minItems": 5,
                     "maxItems": 5,
                     "items": [
-                        { "$ref": "#/definitions/Argo.Json.Value.Value" },
-                        { "$ref": "#/definitions/Argo.Json.Null.Null" },
-                        { "$ref": "#/definitions/Argo.Json.Boolean.Boolean" },
-                        { "$ref": "#/definitions/Argo.Json.Number.Number" },
-                        { "$ref": "#/definitions/GHC.Num.Integer.Integer" }
+                        { "$ref": "#/definitions/Value" },
+                        { "$ref": "#/definitions/Null" },
+                        { "$ref": "#/definitions/Boolean" },
+                        { "$ref": "#/definitions/Number" },
+                        { "$ref": "#/definitions/Integer" }
                     ],
                     "additionalItems": false } |]
                 (Codec.schema
@@ -911,18 +911,18 @@ main = Tasty.defaultMain $ Tasty.testGroup
                 )
         , Tasty.testCase "6-tuple" $ do
             schemaTest
-                (Just "GHC.Tuple.(Value,Null,Boolean,Number,Integer,String)")
+                (Just "(Value,Null,Boolean,Number,Integer,String)")
                 [Argo.value| {
                     "type": "array",
                     "minItems": 6,
                     "maxItems": 6,
                     "items": [
-                        { "$ref": "#/definitions/Argo.Json.Value.Value" },
-                        { "$ref": "#/definitions/Argo.Json.Null.Null" },
-                        { "$ref": "#/definitions/Argo.Json.Boolean.Boolean" },
-                        { "$ref": "#/definitions/Argo.Json.Number.Number" },
-                        { "$ref": "#/definitions/GHC.Num.Integer.Integer" },
-                        { "$ref": "#/definitions/Argo.Json.String.String" }
+                        { "$ref": "#/definitions/Value" },
+                        { "$ref": "#/definitions/Null" },
+                        { "$ref": "#/definitions/Boolean" },
+                        { "$ref": "#/definitions/Number" },
+                        { "$ref": "#/definitions/Integer" },
+                        { "$ref": "#/definitions/String" }
                     ],
                     "additionalItems": false } |]
                 (Codec.schema
@@ -938,20 +938,19 @@ main = Tasty.defaultMain $ Tasty.testGroup
                 )
         , Tasty.testCase "7-tuple" $ do
             schemaTest
-                (Just "GHC.Tuple.(Value,Null,Boolean,Number,Integer,String,())"
-                )
+                (Just "(Value,Null,Boolean,Number,Integer,String,())")
                 [Argo.value| {
                     "type": "array",
                     "minItems": 7,
                     "maxItems": 7,
                     "items": [
-                        { "$ref": "#/definitions/Argo.Json.Value.Value" },
-                        { "$ref": "#/definitions/Argo.Json.Null.Null" },
-                        { "$ref": "#/definitions/Argo.Json.Boolean.Boolean" },
-                        { "$ref": "#/definitions/Argo.Json.Number.Number" },
-                        { "$ref": "#/definitions/GHC.Num.Integer.Integer" },
-                        { "$ref": "#/definitions/Argo.Json.String.String" },
-                        { "$ref": "#/definitions/GHC.Tuple.()" }
+                        { "$ref": "#/definitions/Value" },
+                        { "$ref": "#/definitions/Null" },
+                        { "$ref": "#/definitions/Boolean" },
+                        { "$ref": "#/definitions/Number" },
+                        { "$ref": "#/definitions/Integer" },
+                        { "$ref": "#/definitions/String" },
+                        { "$ref": "#/definitions/()" }
                     ],
                     "additionalItems": false } |]
                 (Codec.schema
@@ -968,22 +967,20 @@ main = Tasty.defaultMain $ Tasty.testGroup
                 )
         , Tasty.testCase "8-tuple" $ do
             schemaTest
-                (Just
-                    "GHC.Tuple.(Value,Null,Boolean,Number,Integer,String,(),Char)"
-                )
+                (Just "(Value,Null,Boolean,Number,Integer,String,(),Char)")
                 [Argo.value| {
                     "type": "array",
                     "minItems": 8,
                     "maxItems": 8,
                     "items": [
-                        { "$ref": "#/definitions/Argo.Json.Value.Value" },
-                        { "$ref": "#/definitions/Argo.Json.Null.Null" },
-                        { "$ref": "#/definitions/Argo.Json.Boolean.Boolean" },
-                        { "$ref": "#/definitions/Argo.Json.Number.Number" },
-                        { "$ref": "#/definitions/GHC.Num.Integer.Integer" },
-                        { "$ref": "#/definitions/Argo.Json.String.String" },
-                        { "$ref": "#/definitions/GHC.Tuple.()" },
-                        { "$ref": "#/definitions/GHC.Types.Char" }
+                        { "$ref": "#/definitions/Value" },
+                        { "$ref": "#/definitions/Null" },
+                        { "$ref": "#/definitions/Boolean" },
+                        { "$ref": "#/definitions/Number" },
+                        { "$ref": "#/definitions/Integer" },
+                        { "$ref": "#/definitions/String" },
+                        { "$ref": "#/definitions/()" },
+                        { "$ref": "#/definitions/Char" }
                     ],
                     "additionalItems": false } |]
                 (Codec.schema
@@ -1001,33 +998,33 @@ main = Tasty.defaultMain $ Tasty.testGroup
                 )
         , Tasty.testCase "bool" $ do
             schemaTest
-                (Just "GHC.Types.Bool")
+                (Just "Bool")
                 [Argo.value| { "type": "boolean" } |]
                 (Codec.schema (Argo.codec :: Codec.Value Bool))
         , Tasty.testCase "decimal" $ do
             schemaTest
-                (Just "Argo.Type.Decimal.Decimal")
+                (Just "Decimal")
                 [Argo.value| { "type": "number" } |]
                 (Codec.schema (Argo.codec :: Codec.Value Decimal.Decimal))
         , Tasty.testCase "text" $ do
             schemaTest
-                (Just "Data.Text.Internal.Text")
+                (Just "Text")
                 [Argo.value| { "type": "string" } |]
                 (Codec.schema (Argo.codec :: Codec.Value Text.Text))
         , Tasty.testCase "list boolean" $ do
             schemaTest
-                (Just "GHC.Types.[Boolean]")
+                (Just "[Boolean]")
                 [Argo.value| {
                     "type": "array",
-                    "items": { "$ref": "#/definitions/Argo.Json.Boolean.Boolean" }
+                    "items": { "$ref": "#/definitions/Boolean" }
                 } |]
                 (Codec.schema (Argo.codec :: Codec.Value [Boolean.Boolean]))
         , Tasty.testCase "map name boolean" $ do
             schemaTest
-                (Just "Data.Map.Internal.Map Name Boolean")
+                (Just "Map Name Boolean")
                 [Argo.value| {
                     "type": "object",
-                    "additionalProperties": { "$ref": "#/definitions/Argo.Json.Boolean.Boolean" }
+                    "additionalProperties": { "$ref": "#/definitions/Boolean" }
                 } |]
                 (Codec.schema
                     (Argo.codec :: Codec.Value
@@ -1036,10 +1033,10 @@ main = Tasty.defaultMain $ Tasty.testGroup
                 )
         , Tasty.testCase "map (argo) string boolean" $ do
             schemaTest
-                (Just "Data.Map.Internal.Map String Boolean")
+                (Just "Map String Boolean")
                 [Argo.value| {
                     "type": "object",
-                    "additionalProperties": { "$ref": "#/definitions/Argo.Json.Boolean.Boolean" }
+                    "additionalProperties": { "$ref": "#/definitions/Boolean" }
                 } |]
                 (Codec.schema
                     (Argo.codec :: Codec.Value
@@ -1048,10 +1045,10 @@ main = Tasty.defaultMain $ Tasty.testGroup
                 )
         , Tasty.testCase "map (strict) text boolean" $ do
             schemaTest
-                (Just "Data.Map.Internal.Map Text Boolean")
+                (Just "Map Text Boolean")
                 [Argo.value| {
                     "type": "object",
-                    "additionalProperties": { "$ref": "#/definitions/Argo.Json.Boolean.Boolean" }
+                    "additionalProperties": { "$ref": "#/definitions/Boolean" }
                 } |]
                 (Codec.schema
                     (Argo.codec :: Codec.Value
@@ -1060,10 +1057,10 @@ main = Tasty.defaultMain $ Tasty.testGroup
                 )
         , Tasty.testCase "map (lazy) text boolean" $ do
             schemaTest
-                (Just "Data.Map.Internal.Map Text Boolean")
+                (Just "Map Text Boolean")
                 [Argo.value| {
                     "type": "object",
-                    "additionalProperties": { "$ref": "#/definitions/Argo.Json.Boolean.Boolean" }
+                    "additionalProperties": { "$ref": "#/definitions/Boolean" }
                 } |]
                 (Codec.schema
                     (Argo.codec :: Codec.Value
@@ -1072,10 +1069,10 @@ main = Tasty.defaultMain $ Tasty.testGroup
                 )
         , Tasty.testCase "map (base) string boolean" $ do
             schemaTest
-                (Just "Data.Map.Internal.Map [Char] Boolean")
+                (Just "Map [Char] Boolean")
                 [Argo.value| {
                     "type": "object",
-                    "additionalProperties": { "$ref": "#/definitions/Argo.Json.Boolean.Boolean" }
+                    "additionalProperties": { "$ref": "#/definitions/Boolean" }
                 } |]
                 (Codec.schema
                     (Argo.codec :: Codec.Value (Map.Map String Boolean.Boolean)
@@ -1083,12 +1080,12 @@ main = Tasty.defaultMain $ Tasty.testGroup
                 )
         , Tasty.testCase "string" $ do
             schemaTest
-                (Just "GHC.Types.[Char]")
+                (Just "[Char]")
                 [Argo.value| { "type": "string" } |]
                 (Codec.schema (Argo.codec :: Codec.Value String))
         , Tasty.testCase "char" $ do
             schemaTest
-                (Just "GHC.Types.Char")
+                (Just "Char")
                 [Argo.value| {
                     "type": "string",
                     "minLength": 1,
@@ -1097,29 +1094,29 @@ main = Tasty.defaultMain $ Tasty.testGroup
                 (Codec.schema (Argo.codec :: Codec.Value Char))
         , Tasty.testCase "lazy text" $ do
             schemaTest
-                (Just "Data.Text.Internal.Lazy.Text")
+                (Just "Text")
                 [Argo.value| { "type": "string" } |]
                 (Codec.schema (Argo.codec :: Codec.Value LazyText.Text))
         , Tasty.testCase "non-empty boolean" $ do
             schemaTest
-                (Just "GHC.Base.NonEmpty Boolean")
+                (Just "NonEmpty Boolean")
                 [Argo.value| {
                     "type": "array",
                     "minItems": 1,
-                    "items": [ { "$ref": "#/definitions/Argo.Json.Boolean.Boolean" } ],
-                    "additionalItems": { "$ref": "#/definitions/Argo.Json.Boolean.Boolean" }
+                    "items": [ { "$ref": "#/definitions/Boolean" } ],
+                    "additionalItems": { "$ref": "#/definitions/Boolean" }
                 } |]
                 (Codec.schema
                     (Argo.codec :: Codec.Value (NonEmpty Boolean.Boolean))
                 )
         , Tasty.testCase "integer" $ do
             schemaTest
-                (Just "GHC.Num.Integer.Integer")
+                (Just "Integer")
                 [Argo.value| { "type": "integer" } |]
                 (Codec.schema (Argo.codec :: Codec.Value Integer))
         , Tasty.testCase "int" $ do
             schemaTest
-                (Just "GHC.Types.Int")
+                (Just "Int")
                 [Argo.value| {
                     "type": "integer",
                     "minimum": -9223372036854775808,
@@ -1128,7 +1125,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
                 (Codec.schema (Argo.codec :: Codec.Value Int))
         , Tasty.testCase "int8" $ do
             schemaTest
-                (Just "GHC.Int.Int8")
+                (Just "Int8")
                 [Argo.value| {
                     "type": "integer",
                     "minimum": -128,
@@ -1137,7 +1134,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
                 (Codec.schema (Argo.codec :: Codec.Value Int.Int8))
         , Tasty.testCase "int16" $ do
             schemaTest
-                (Just "GHC.Int.Int16")
+                (Just "Int16")
                 [Argo.value| {
                     "type": "integer",
                     "minimum": -32768,
@@ -1146,7 +1143,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
                 (Codec.schema (Argo.codec :: Codec.Value Int.Int16))
         , Tasty.testCase "int32" $ do
             schemaTest
-                (Just "GHC.Int.Int32")
+                (Just "Int32")
                 [Argo.value| {
                     "type": "integer",
                     "minimum": -2147483648,
@@ -1155,7 +1152,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
                 (Codec.schema (Argo.codec :: Codec.Value Int.Int32))
         , Tasty.testCase "int64" $ do
             schemaTest
-                (Just "GHC.Int.Int64")
+                (Just "Int64")
                 [Argo.value| {
                     "type": "integer",
                     "minimum": -9223372036854775808,
@@ -1164,7 +1161,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
                 (Codec.schema (Argo.codec :: Codec.Value Int.Int64))
         , Tasty.testCase "natural" $ do
             schemaTest
-                (Just "GHC.Num.Natural.Natural")
+                (Just "Natural")
                 [Argo.value| {
                     "type": "integer",
                     "minimum": 0
@@ -1172,7 +1169,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
                 (Codec.schema (Argo.codec :: Codec.Value Natural.Natural))
         , Tasty.testCase "word" $ do
             schemaTest
-                (Just "GHC.Types.Word")
+                (Just "Word")
                 [Argo.value| {
                     "type": "integer",
                     "minimum": 0,
@@ -1181,7 +1178,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
                 (Codec.schema (Argo.codec :: Codec.Value Word))
         , Tasty.testCase "word8" $ do
             schemaTest
-                (Just "GHC.Word.Word8")
+                (Just "Word8")
                 [Argo.value| {
                     "type": "integer",
                     "minimum": 0,
@@ -1190,7 +1187,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
                 (Codec.schema (Argo.codec :: Codec.Value Word.Word8))
         , Tasty.testCase "word16" $ do
             schemaTest
-                (Just "GHC.Word.Word16")
+                (Just "Word16")
                 [Argo.value| {
                     "type": "integer",
                     "minimum": 0,
@@ -1199,7 +1196,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
                 (Codec.schema (Argo.codec :: Codec.Value Word.Word16))
         , Tasty.testCase "word32" $ do
             schemaTest
-                (Just "GHC.Word.Word32")
+                (Just "Word32")
                 [Argo.value| {
                     "type": "integer",
                     "minimum": 0,
@@ -1208,7 +1205,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
                 (Codec.schema (Argo.codec :: Codec.Value Word.Word32))
         , Tasty.testCase "word64" $ do
             schemaTest
-                (Just "GHC.Word.Word64")
+                (Just "Word64")
                 [Argo.value| {
                     "type": "integer",
                     "minimum": 0,
@@ -1217,17 +1214,17 @@ main = Tasty.defaultMain $ Tasty.testGroup
                 (Codec.schema (Argo.codec :: Codec.Value Word.Word64))
         , Tasty.testCase "float" $ do
             schemaTest
-                (Just "GHC.Types.Float")
+                (Just "Float")
                 [Argo.value| { "type": "number" } |]
                 (Codec.schema (Argo.codec :: Codec.Value Float))
         , Tasty.testCase "double" $ do
             schemaTest
-                (Just "GHC.Types.Double")
+                (Just "Double")
                 [Argo.value| { "type": "number" } |]
                 (Codec.schema (Argo.codec :: Codec.Value Double))
         , Tasty.testCase "pointer" $ do
             schemaTest
-                (Just "Argo.Pointer.Pointer.Pointer")
+                (Just "Pointer")
                 [Argo.value| { "type": "string" } |]
                 (Codec.schema (Argo.codec :: Codec.Value Argo.Pointer))
         -- TODO
@@ -1240,8 +1237,8 @@ main = Tasty.defaultMain $ Tasty.testGroup
                 [Argo.value| {
                     "type": "object",
                     "properties": {
-                        "bool": { "$ref": "#/definitions/GHC.Types.Bool" },
-                        "text": { "$ref": "#/definitions/Data.Text.Internal.Text" }
+                        "bool": { "$ref": "#/definitions/Bool" },
+                        "text": { "$ref": "#/definitions/Text" }
                     },
                     "required": [ "bool" ],
                     "additionalProperties": true
@@ -1258,10 +1255,10 @@ main = Tasty.defaultMain $ Tasty.testGroup
                         {
                             "type": "object",
                             "properties": {
-                                "t1c1f1": { "$ref": "#/definitions/GHC.Types.Float" },
-                                "t1c1f2": { "$ref": "#/definitions/Argo.Type.Nullable.Nullable Float" },
-                                "t1c1f3": { "$ref": "#/definitions/GHC.Types.Float" },
-                                "t1c1f4": { "$ref": "#/definitions/Argo.Type.Nullable.Nullable Float" }
+                                "t1c1f1": { "$ref": "#/definitions/Float" },
+                                "t1c1f2": { "$ref": "#/definitions/Nullable Float" },
+                                "t1c1f3": { "$ref": "#/definitions/Float" },
+                                "t1c1f4": { "$ref": "#/definitions/Nullable Float" }
                             },
                             "required": [ "t1c1f1", "t1c1f2" ],
                             "additionalProperties": true
@@ -1380,16 +1377,16 @@ main = Tasty.defaultMain $ Tasty.testGroup
     , Tasty.testCase "T2" $ do
         let schema = [Argo.value| {
                 "type": "object",
-                "properties": { "t2c1f1": { "$ref": "#/definitions/Main.T2" } },
+                "properties": { "t2c1f1": { "$ref": "#/definitions/T2" } },
                 "required": [],
                 "additionalProperties": false
             } |]
             ((i, s), m) = Accum.runAccum
                 (Codec.schema (Argo.codec :: Codec.Value T2))
                 Map.empty
-        i @?= Just "Main.T2"
+        i @?= Just "T2"
         Schema.toValue s @?= schema
-        fmap Schema.toValue m @?= Map.singleton "Main.T2" schema
+        fmap Schema.toValue m @?= Map.singleton "T2" schema
     , Tasty.testGroup
         "T3"
         [ Tasty.testCase "schema" $ do
@@ -1398,7 +1395,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
                 [Argo.value| {
                     "type": "object",
                     "properties": {
-                        "t3c1f1": { "$ref": "#/definitions/Argo.Type.Nullable.Nullable Float" }
+                        "t3c1f1": { "$ref": "#/definitions/Nullable Float" }
                     },
                     "required": [],
                     "additionalProperties": false
