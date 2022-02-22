@@ -27,9 +27,10 @@ fromArrayCodec =
     Codec.fromListCodec
             (\permission schemasM -> do
                 schemas <- schemasM
-                pure . Schema.unidentified $ if null schemas
-                    then Schema.Unit
-                    else Schema.Array permission schemas Nothing
+                pure . Schema.unidentified $ Schema.Array
+                    permission
+                    schemas
+                    Nothing
             )
         $ Codec.map Array.toList Array.fromList Codec.arrayCodec
 
