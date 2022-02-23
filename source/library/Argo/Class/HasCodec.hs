@@ -37,6 +37,7 @@ import qualified Data.Bits as Bits
 import qualified Data.Functor.Identity as Identity
 import qualified Data.Int as Int
 import qualified Data.List.NonEmpty as NonEmpty
+import qualified Data.Maybe as Maybe
 import qualified Data.Typeable as Typeable
 import qualified Data.Word as Word
 import qualified Numeric.Natural as Natural
@@ -467,7 +468,9 @@ instance HasCodec Identifier.Identifier where
     codec = Codec.identified
         $ Codec.map Identifier.fromText Identifier.toText codec
 
--- TODO: object
+instance HasCodec Name.Name where
+    codec = Codec.identified $ Codec.map Name.fromString Name.toString codec
+
 instance HasCodec Schema.Schema where
     codec =
         let
@@ -661,6 +664,47 @@ instance HasCodec Schema.Schema where
                     <*> Codec.project
                             (\(_, _, _, _, e) -> e)
                             (Codec.optional (name "additionalItems") codec)
+            objectCodec =
+                Codec.mapMaybe
+                        (\(_, ps, rs, m) -> Just $ Schema.Object
+                            (fmap Member.toTuple
+                            . foldMap Object.toList
+                            $ Optional.toMaybe ps
+                            )
+                            (Maybe.fromMaybe [] $ Optional.toMaybe rs)
+                            (Optional.toMaybe m)
+                        )
+                        (\x -> case x of
+                            Schema.Object ps rs m -> Just
+                                ( ()
+                                , Optional.just . Object.fromList $ fmap
+                                    Member.fromTuple
+                                    ps
+                                , Optional.just rs
+                                , Optional.fromMaybe m
+                                )
+                            _ -> Nothing
+                        )
+                    . Codec.fromObjectCodec Permission.Forbid
+                    $ (,,,)
+                    <$> Codec.project
+                            (\(a, _, _, _) -> a)
+                            (Codec.required (name "type")
+                            . Codec.literalCodec
+                            . Value.String
+                            . String.fromText
+                            $ Text.pack "object"
+                            )
+                    <*> Codec.project
+                            (\(_, b, _, _) -> b)
+                            (Codec.optional (name "properties") codec)
+                    <*> Codec.project
+                            (\(_, _, c, _) -> c)
+                            (Codec.optional (name "required") codec)
+                    <*> Codec.project
+                            (\(_, _, _, d) -> d)
+                            (Codec.optional (name "additionalProperties") codec
+                            )
             refCodec =
                 Codec.fromObjectCodec Permission.Forbid
                     . Codec.required (name "$ref")
@@ -692,6 +736,7 @@ instance HasCodec Schema.Schema where
             <|> integerCodec
             <|> stringCodec
             <|> arrayCodec
+            <|> objectCodec
             <|> refCodec
             <|> oneOfCodec
 

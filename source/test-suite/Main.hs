@@ -1242,6 +1242,17 @@ main = Tasty.defaultMain $ Tasty.testGroup
                     {
                         "type": "object",
                         "properties": {
+                            "type": { "const": "object" },
+                            "properties": { "$ref": "#/definitions/Object Schema" },
+                            "required": { "$ref": "#/definitions/[Name]" },
+                            "additionalProperties": { "$ref": "#/definitions/Schema" }
+                        },
+                        "required": [ "type" ],
+                        "additionalProperties": false
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
                             "type": { "const": "array" },
                             "minItems": { "$ref": "#/definitions/Natural" },
                             "maxItems": { "$ref": "#/definitions/Natural" },
