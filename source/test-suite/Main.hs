@@ -1312,8 +1312,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
                         "bool": { "$ref": "#/definitions/Bool" },
                         "text": { "$ref": "#/definitions/Text" }
                     },
-                    "required": [ "bool" ],
-                    "additionalProperties": true
+                    "required": [ "bool" ]
                 } |]
                 (Codec.schema (Argo.codec :: Codec.Value Record))
         ]
@@ -1332,8 +1331,7 @@ main = Tasty.defaultMain $ Tasty.testGroup
                                 "t1c1f3": { "$ref": "#/definitions/Float" },
                                 "t1c1f4": { "$ref": "#/definitions/Nullable Float" }
                             },
-                            "required": [ "t1c1f1", "t1c1f2" ],
-                            "additionalProperties": true
+                            "required": [ "t1c1f1", "t1c1f2" ]
                         }
                     |]
                       (Codec.schema codec)
@@ -1450,7 +1448,6 @@ main = Tasty.defaultMain $ Tasty.testGroup
         let schema = [Argo.value| {
                 "type": "object",
                 "properties": { "t2c1f1": { "$ref": "#/definitions/T2" } },
-                "required": [],
                 "additionalProperties": false
             } |]
             ((i, s), m) = Accum.runAccum
@@ -1469,7 +1466,6 @@ main = Tasty.defaultMain $ Tasty.testGroup
                     "properties": {
                         "t3c1f1": { "$ref": "#/definitions/Nullable Float" }
                     },
-                    "required": [],
                     "additionalProperties": false
                 } |]
                 (Codec.schema (Argo.codec :: Codec.Value T3))

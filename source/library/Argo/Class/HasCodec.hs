@@ -130,10 +130,10 @@ instance HasCodec a => HasCodec (Object.Object a) where
             . Object.toList
         , Codec.schema = do
             ref <- Codec.getRef (codec :: Codec.Value a)
-            pure
-                . Schema.unidentified
-                . Schema.Object Permission.Allow []
-                $ Just (Nothing, either id Schema.Ref ref)
+            pure . Schema.unidentified . Schema.Object [] [] . Just $ either
+                id
+                Schema.Ref
+                ref
         }
 
 instance HasCodec a => HasCodec (Nullable.Nullable a) where

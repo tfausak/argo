@@ -14,7 +14,6 @@ import qualified Argo.Json.String as String
 import qualified Argo.Json.Value as Value
 import qualified Argo.Schema.Identifier as Identifier
 import qualified Argo.Type.Decimal as Decimal
-import qualified Argo.Type.Permission as Permission
 import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.TemplateHaskell as TH
 import qualified Argo.Vendor.Text as Text
@@ -38,9 +37,9 @@ data Schema
     | Null
     | Number
     | Object
-        Permission.Permission
-        [((Name.Name, Bool), (Maybe Identifier.Identifier, Schema))]
-        (Maybe (Maybe Identifier.Identifier, Schema))
+        [(Name.Name, Schema)]
+        [Name.Name]
+        (Maybe Schema)
     | OneOf [Schema]
     | Ref Identifier.Identifier
     | String (Maybe Natural.Natural) (Maybe Natural.Natural)
@@ -114,28 +113,23 @@ toValue schema = case schema of
     Number -> Value.Object $ Object.fromList
         [member "type" . Value.String . String.fromText $ Text.pack "number"]
 
-    Object p xs m -> Value.Object . Object.fromList $ mconcat
-        [ [member "type" . Value.String . String.fromText $ Text.pack "object"]
-        , if null xs
-            then []
+    Object ps rs m -> Value.Object . Object.fromList $ Maybe.catMaybes
+        [ Just . member "type" . Value.String . String.fromText $ Text.pack
+            "object"
+        , if null ps
+            then Nothing
             else
-                [ member "properties" . Value.Object . Object.fromList $ fmap
-                    (\((k, _), (_, s)) -> Member.fromTuple (k, toValue s))
-                    xs
-                , member "required"
-                . Value.Array
-                . Array.fromList
-                $ Maybe.mapMaybe
-                      (\((k, r), _) -> if r
-                          then Just . Value.String $ Name.toString k
-                          else Nothing
-                      )
-                      xs
-                ]
-        , [ member "additionalProperties" . toValue $ case p of
-                Permission.Allow -> maybe Argo.Schema.Schema.True ref m
-                Permission.Forbid -> Argo.Schema.Schema.False
-          ]
+                Just
+                . member "properties"
+                . Value.Object
+                . Object.fromList
+                $ fmap (Member.fromTuple . fmap toValue) ps
+        , if null rs
+            then Nothing
+            else Just . member "required" . Value.Array . Array.fromList $ fmap
+                (Value.String . Name.toString)
+                rs
+        , fmap (member "additionalProperties" . toValue) m
         ]
 
     OneOf xs -> Value.Object $ Object.fromList
