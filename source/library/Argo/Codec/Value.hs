@@ -4,11 +4,8 @@ module Argo.Codec.Value where
 
 import qualified Argo.Codec.Codec as Codec
 import qualified Argo.Json.Array as Array
-import qualified Argo.Json.Member as Member
-import qualified Argo.Json.Name as Name
 import qualified Argo.Json.Null as Null
 import qualified Argo.Json.Object as Object
-import qualified Argo.Json.String as String
 import qualified Argo.Json.Value as Value
 import qualified Argo.Schema.Identifier as Identifier
 import qualified Argo.Schema.Schema as Schema
@@ -110,7 +107,7 @@ getRef
     -> Trans.AccumT
            (Map.Map Identifier.Identifier Schema.Schema)
            Identity.Identity
-           (Either Schema.Schema Identifier.Identifier)
+           Schema.Schema
 getRef codec = do
     let
         (maybeIdentifier, schema) =
@@ -118,23 +115,10 @@ getRef codec = do
                 (Codec.schema codec)
                 Map.empty
     case maybeIdentifier of
-        Nothing -> pure $ Left schema
+        Nothing -> pure schema
         Just identifier -> do
             schemas <- Trans.look
             Monad.unless (Map.member identifier schemas) $ do
                 Trans.add $ Map.singleton identifier schema
                 Monad.void $ Codec.schema codec
-            pure $ Right identifier
-
-ref :: Either Schema.Schema Identifier.Identifier -> Value.Value
-ref e = case e of
-    Left s -> Schema.toValue s
-    Right i -> Value.Object $ Object.fromList
-        [ Member.fromTuple
-              ( Name.fromString . String.fromText $ Text.pack "$ref"
-              , Value.String
-              . String.fromText
-              . mappend (Text.pack "#/definitions/")
-              $ Identifier.toText i
-              )
-        ]
+            pure $ Schema.Ref identifier

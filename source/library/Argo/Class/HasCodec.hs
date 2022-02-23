@@ -19,6 +19,7 @@ import qualified Argo.Json.Object as Object
 import qualified Argo.Json.String as String
 import qualified Argo.Json.Value as Value
 import qualified Argo.Pointer.Pointer as Pointer
+import qualified Argo.Schema.Identifier as Identifier
 import qualified Argo.Schema.Schema as Schema
 import qualified Argo.Type.Config as Config
 import qualified Argo.Type.Decimal as Decimal
@@ -36,6 +37,7 @@ import qualified Data.Bits as Bits
 import qualified Data.Functor.Identity as Identity
 import qualified Data.Int as Int
 import qualified Data.List.NonEmpty as NonEmpty
+import qualified Data.Maybe as Maybe
 import qualified Data.Typeable as Typeable
 import qualified Data.Word as Word
 import qualified Numeric.Natural as Natural
@@ -97,10 +99,11 @@ instance HasCodec a => HasCodec (Array.Array a) where
             . Array.toList
         , Codec.schema = do
             ref <- Codec.getRef (codec :: Codec.Value a)
-            pure
-                . Schema.unidentified
-                . Schema.Array Permission.Allow []
-                $ Just (Nothing, either id Schema.Ref ref)
+            pure . Schema.unidentified $ Schema.Array
+                Nothing
+                Nothing
+                (Left ref)
+                Nothing
         }
 
 instance HasCodec a => HasCodec (Object.Object a) where
@@ -128,10 +131,7 @@ instance HasCodec a => HasCodec (Object.Object a) where
             . Object.toList
         , Codec.schema = do
             ref <- Codec.getRef (codec :: Codec.Value a)
-            pure
-                . Schema.unidentified
-                . Schema.Object Permission.Allow []
-                $ Just (Nothing, either id Schema.Ref ref)
+            pure . Schema.unidentified . Schema.Object [] [] $ Just ref
         }
 
 instance HasCodec a => HasCodec (Nullable.Nullable a) where
@@ -373,10 +373,11 @@ instance HasCodec a => HasCodec (NonEmpty.NonEmpty a) where
         let
             schema = do
                 itemSchema <- Codec.schema (codec :: Codec.Value a)
-                pure
-                    . Schema.unidentified
-                    . Schema.Array Permission.Allow [itemSchema]
-                    $ Just itemSchema
+                pure . Schema.unidentified $ Schema.Array
+                    (Just 1)
+                    Nothing
+                    (Left $ Schema.maybeRef itemSchema)
+                    Nothing
         in
             Codec.identified $ Codec.mapMaybe
                 NonEmpty.nonEmpty
@@ -459,6 +460,285 @@ instance HasCodec Pointer.Pointer where
         . Pointer.encode
         )
         codec
+
+instance HasCodec Identifier.Identifier where
+    codec =
+        let prefix = Text.pack "#/definitions/"
+        in
+            Codec.identified $ Codec.mapMaybe
+                (fmap Identifier.fromText . Text.stripPrefix prefix)
+                (Just . mappend prefix . Identifier.toText)
+                codec
+
+instance HasCodec Name.Name where
+    codec = Codec.identified $ Codec.map Name.fromString Name.toString codec
+
+instance HasCodec Schema.Schema where
+    codec =
+        let
+            trueCodec =
+                Codec.mapMaybe
+                        (const $ Just Schema.True)
+                        (\x -> case x of
+                            Schema.True -> Just ()
+                            _ -> Nothing
+                        )
+                    . Codec.literalCodec
+                    . Value.Boolean
+                    $ Boolean.fromBool True
+            falseCodec =
+                Codec.mapMaybe
+                        (const $ Just Schema.False)
+                        (\x -> case x of
+                            Schema.False -> Just ()
+                            _ -> Nothing
+                        )
+                    . Codec.literalCodec
+                    . Value.Boolean
+                    $ Boolean.fromBool False
+            constCodec =
+                Codec.mapMaybe
+                        (Just . Schema.Const)
+                        (\x -> case x of
+                            Schema.Const y -> Just y
+                            _ -> Nothing
+                        )
+                    . Codec.fromObjectCodec Permission.Forbid
+                    $ Codec.required (name "const") codec
+            nullCodec =
+                Codec.mapMaybe
+                        (const $ Just Schema.Null)
+                        (\x -> case x of
+                            Schema.Null -> Just ()
+                            _ -> Nothing
+                        )
+                    . Codec.fromObjectCodec Permission.Forbid
+                    . Codec.required (name "type")
+                    . Codec.literalCodec
+                    . Value.String
+                    . String.fromText
+                    $ Text.pack "null"
+            booleanCodec =
+                Codec.mapMaybe
+                        (const $ Just Schema.Boolean)
+                        (\x -> case x of
+                            Schema.Boolean -> Just ()
+                            _ -> Nothing
+                        )
+                    . Codec.fromObjectCodec Permission.Forbid
+                    . Codec.required (name "type")
+                    . Codec.literalCodec
+                    . Value.String
+                    . String.fromText
+                    $ Text.pack "boolean"
+            numberCodec =
+                Codec.mapMaybe
+                        (const $ Just Schema.Number)
+                        (\x -> case x of
+                            Schema.Number -> Just ()
+                            _ -> Nothing
+                        )
+                    . Codec.fromObjectCodec Permission.Forbid
+                    . Codec.required (name "type")
+                    . Codec.literalCodec
+                    . Value.String
+                    . String.fromText
+                    $ Text.pack "number"
+            integerCodec =
+                Codec.mapMaybe
+                        (\(_, y, z) -> Just $ Schema.Integer
+                            (Optional.toMaybe y)
+                            (Optional.toMaybe z)
+                        )
+                        (\x -> case x of
+                            Schema.Integer y z ->
+                                Just
+                                    ( ()
+                                    , Optional.fromMaybe y
+                                    , Optional.fromMaybe z
+                                    )
+                            _ -> Nothing
+                        )
+                    . Codec.fromObjectCodec Permission.Forbid
+                    $ (,,)
+                    <$> Codec.project
+                            (\(a, _, _) -> a)
+                            (Codec.required (name "type")
+                            . Codec.literalCodec
+                            . Value.String
+                            . String.fromText
+                            $ Text.pack "integer"
+                            )
+                    <*> Codec.project
+                            (\(_, b, _) -> b)
+                            (Codec.optional (name "minimum") codec)
+                    <*> Codec.project
+                            (\(_, _, c) -> c)
+                            (Codec.optional (name "maximum") codec)
+            stringCodec =
+                Codec.mapMaybe
+                        (\(_, y, z) -> Just $ Schema.String
+                            (Optional.toMaybe y)
+                            (Optional.toMaybe z)
+                        )
+                        (\x -> case x of
+                            Schema.String y z ->
+                                Just
+                                    ( ()
+                                    , Optional.fromMaybe y
+                                    , Optional.fromMaybe z
+                                    )
+                            _ -> Nothing
+                        )
+                    . Codec.fromObjectCodec Permission.Forbid
+                    $ (,,)
+                    <$> Codec.project
+                            (\(a, _, _) -> a)
+                            (Codec.required (name "type")
+                            . Codec.literalCodec
+                            . Value.String
+                            . String.fromText
+                            $ Text.pack "string"
+                            )
+                    <*> Codec.project
+                            (\(_, b, _) -> b)
+                            (Codec.optional (name "minLength") codec)
+                    <*> Codec.project
+                            (\(_, _, c) -> c)
+                            (Codec.optional (name "maxLength") codec)
+            arrayCodec =
+                Codec.mapMaybe
+                        (\(_, lo, hi, e, m) -> Just $ Schema.Array
+                            (Optional.toMaybe lo)
+                            (Optional.toMaybe hi)
+                            e
+                            (Optional.toMaybe m)
+                        )
+                        (\x -> case x of
+                            Schema.Array lo hi e m -> Just
+                                ( ()
+                                , Optional.fromMaybe lo
+                                , Optional.fromMaybe hi
+                                , e
+                                , Optional.fromMaybe m
+                                )
+                            _ -> Nothing
+                        )
+                    . Codec.fromObjectCodec Permission.Forbid
+                    $ (,,,,)
+                    <$> Codec.project
+                            (\(a, _, _, _, _) -> a)
+                            (Codec.required (name "type")
+                            . Codec.literalCodec
+                            . Value.String
+                            . String.fromText
+                            $ Text.pack "array"
+                            )
+                    <*> Codec.project
+                            (\(_, b, _, _, _) -> b)
+                            (Codec.optional (name "minItems") codec)
+                    <*> Codec.project
+                            (\(_, _, c, _, _) -> c)
+                            (Codec.optional (name "maxItems") codec)
+                    <*> Codec.project
+                            (\(_, _, _, d, _) -> d)
+                            (Codec.required (name "items")
+                            . Codec.withIdentifier
+                                  (Identifier.fromText
+                                  $ Text.pack "OneOf Schema [Schema]"
+                                  )
+                            $ Codec.mapMaybe
+                                  (Just . Left)
+                                  (either Just $ const Nothing)
+                                  codec
+                            <|> Codec.mapMaybe
+                                    (Just . Right)
+                                    (either (const Nothing) Just)
+                                    codec
+                            )
+                    <*> Codec.project
+                            (\(_, _, _, _, e) -> e)
+                            (Codec.optional (name "additionalItems") codec)
+            objectCodec =
+                Codec.mapMaybe
+                        (\(_, ps, rs, m) -> Just $ Schema.Object
+                            (fmap Member.toTuple
+                            . foldMap Object.toList
+                            $ Optional.toMaybe ps
+                            )
+                            (Maybe.fromMaybe [] $ Optional.toMaybe rs)
+                            (Optional.toMaybe m)
+                        )
+                        (\x -> case x of
+                            Schema.Object ps rs m -> Just
+                                ( ()
+                                , if null ps
+                                    then Optional.nothing
+                                    else Optional.just . Object.fromList $ fmap
+                                        Member.fromTuple
+                                        ps
+                                , if null rs
+                                    then Optional.nothing
+                                    else Optional.just rs
+                                , Optional.fromMaybe m
+                                )
+                            _ -> Nothing
+                        )
+                    . Codec.fromObjectCodec Permission.Forbid
+                    $ (,,,)
+                    <$> Codec.project
+                            (\(a, _, _, _) -> a)
+                            (Codec.required (name "type")
+                            . Codec.literalCodec
+                            . Value.String
+                            . String.fromText
+                            $ Text.pack "object"
+                            )
+                    <*> Codec.project
+                            (\(_, b, _, _) -> b)
+                            (Codec.optional (name "properties") codec)
+                    <*> Codec.project
+                            (\(_, _, c, _) -> c)
+                            (Codec.optional (name "required") codec)
+                    <*> Codec.project
+                            (\(_, _, _, d) -> d)
+                            (Codec.optional (name "additionalProperties") codec
+                            )
+            refCodec =
+                Codec.mapMaybe
+                        (Just . Schema.Ref)
+                        (\x -> case x of
+                            Schema.Ref y -> Just y
+                            _ -> Nothing
+                        )
+                    . Codec.fromObjectCodec Permission.Forbid
+                    $ Codec.required (name "$ref") codec
+            oneOfCodec =
+                Codec.mapMaybe
+                        (Just . Schema.OneOf)
+                        (\x -> case x of
+                            Schema.OneOf y -> Just y
+                            _ -> Nothing
+                        )
+                    . Codec.fromObjectCodec Permission.Forbid
+                    $ Codec.required (name "oneOf") codec
+        in
+            Codec.identified
+            $ trueCodec
+            <|> falseCodec
+            <|> constCodec
+            <|> nullCodec
+            <|> booleanCodec
+            <|> numberCodec
+            <|> integerCodec
+            <|> stringCodec
+            <|> arrayCodec
+            <|> objectCodec
+            <|> refCodec
+            <|> oneOfCodec
+
+name :: String -> Name.Name
+name = Name.fromString . String.fromText . Text.pack
 
 valueCodec
     :: forall a

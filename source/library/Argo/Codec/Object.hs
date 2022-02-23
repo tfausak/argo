@@ -18,6 +18,7 @@ import qualified Argo.Vendor.Transformers as Trans
 import qualified Control.Monad as Monad
 import qualified Data.Functor.Identity as Identity
 import qualified Data.List as List
+import qualified Data.Maybe as Maybe
 
 type Object a
     = Codec.List
@@ -37,10 +38,20 @@ fromObjectCodec =
     Codec.fromListCodec
             (\permission schemasM -> do
                 schemas <- schemasM
-                pure . Schema.unidentified $ Schema.Object
-                    permission
-                    schemas
-                    Nothing
+                pure
+                    . Schema.unidentified
+                    . Schema.Object
+                          (fmap
+                              (\((k, _), s) -> (k, Schema.maybeRef s))
+                              schemas
+                          )
+                          (Maybe.mapMaybe
+                              (\((k, r), _) -> if r then Just k else Nothing)
+                              schemas
+                          )
+                    $ case permission of
+                          Permission.Allow -> Nothing
+                          Permission.Forbid -> Just Schema.False
             )
         $ Codec.map Object.toList Object.fromList Codec.objectCodec
 
@@ -59,11 +70,7 @@ required k c = Codec.Codec
         Monad.void . Codec.encode (optional k c) $ Optional.just x
         pure x
     , Codec.schema =
-        pure
-        . (,) (k, True)
-        . Schema.unidentified
-        . either id Schema.Ref
-        <$> Codec.getRef c
+        pure . (,) (k, True) . Schema.unidentified <$> Codec.getRef c
     }
 
 optional :: Name.Name -> Codec.Value a -> Object (Optional.Optional a)
@@ -83,11 +90,7 @@ optional k c = Codec.Codec
             Just y -> Trans.tell [Member.Member k $ Codec.encodeWith c y]
         pure x
     , Codec.schema =
-        pure
-        . (,) (k, False)
-        . Schema.unidentified
-        . either id Schema.Ref
-        <$> Codec.getRef c
+        pure . (,) (k, False) . Schema.unidentified <$> Codec.getRef c
     }
 
 tagged :: String -> Codec.Value a -> Codec.Value a

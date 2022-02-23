@@ -11,6 +11,7 @@ import qualified Argo.Type.Permission as Permission
 import qualified Argo.Vendor.Map as Map
 import qualified Argo.Vendor.Transformers as Trans
 import qualified Data.Functor.Identity as Identity
+import qualified Data.List.NonEmpty as NonEmpty
 
 type Array a
     = Codec.List
@@ -28,8 +29,16 @@ fromArrayCodec =
             (\permission schemasM -> do
                 schemas <- schemasM
                 pure . Schema.unidentified $ Schema.Array
-                    permission
-                    schemas
+                    (Just . fromIntegral $ length schemas)
+                    (case permission of
+                        Permission.Allow -> Nothing
+                        Permission.Forbid ->
+                            Just . fromIntegral $ length schemas
+                    )
+                    (case NonEmpty.nonEmpty $ fmap Schema.maybeRef schemas of
+                        Nothing -> Left Schema.False
+                        Just xs -> Right xs
+                    )
                     Nothing
             )
         $ Codec.map Array.toList Array.fromList Codec.arrayCodec
@@ -48,6 +57,5 @@ element c = Codec.Codec
     , Codec.encode = \x -> do
         Trans.tell [Codec.encodeWith c x]
         pure x
-    , Codec.schema =
-        pure . Schema.unidentified . either id Schema.Ref <$> Codec.getRef c
+    , Codec.schema = pure . Schema.unidentified <$> Codec.getRef c
     }
