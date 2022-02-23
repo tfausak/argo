@@ -41,7 +41,10 @@ fromObjectCodec =
                 pure
                     . Schema.unidentified
                     . Schema.Object
-                          (fmap (\((k, _), s) -> (k, Schema.ref s)) schemas)
+                          (fmap
+                              (\((k, _), s) -> (k, Schema.maybeRef s))
+                              schemas
+                          )
                           (Maybe.mapMaybe
                               (\((k, r), _) -> if r then Just k else Nothing)
                               schemas
@@ -67,11 +70,7 @@ required k c = Codec.Codec
         Monad.void . Codec.encode (optional k c) $ Optional.just x
         pure x
     , Codec.schema =
-        pure
-        . (,) (k, True)
-        . Schema.unidentified
-        . either id Schema.Ref
-        <$> Codec.getRef c
+        pure . (,) (k, True) . Schema.unidentified <$> Codec.getRef c
     }
 
 optional :: Name.Name -> Codec.Value a -> Object (Optional.Optional a)
@@ -91,11 +90,7 @@ optional k c = Codec.Codec
             Just y -> Trans.tell [Member.Member k $ Codec.encodeWith c y]
         pure x
     , Codec.schema =
-        pure
-        . (,) (k, False)
-        . Schema.unidentified
-        . either id Schema.Ref
-        <$> Codec.getRef c
+        pure . (,) (k, False) . Schema.unidentified <$> Codec.getRef c
     }
 
 tagged :: String -> Codec.Value a -> Codec.Value a

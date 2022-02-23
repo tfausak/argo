@@ -8,6 +8,7 @@ module Argo.Vendor.Text
     , Text.null
     , Text.pack
     , Text.singleton
+    , Text.stripPrefix
     , LazyText.toStrict
     , Text.uncons
     , Text.unpack

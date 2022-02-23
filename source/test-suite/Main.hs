@@ -1465,8 +1465,8 @@ main = Tasty.defaultMain $ Tasty.testGroup
                 (Codec.schema (Argo.codec :: Codec.Value T2))
                 Map.empty
         i @?= Just "T2"
-        Schema.toValue s @?= schema
-        fmap Schema.toValue m @?= Map.singleton "T2" schema
+        toValue s @?= schema
+        fmap toValue m @?= Map.singleton "T2" schema
     , Tasty.testGroup
         "T3"
         [ Tasty.testCase "schema" $ do
@@ -1588,5 +1588,5 @@ schemaTest
            (Maybe Identifier.Identifier, Schema.Schema)
     -> Tasty.Assertion
 schemaTest maybeIdentifier value schema =
-    fmap Schema.toValue (Accum.evalAccum schema Map.empty)
+    fmap toValue (Accum.evalAccum schema Map.empty)
         @?= (maybeIdentifier, value)

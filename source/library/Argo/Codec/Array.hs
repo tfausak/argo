@@ -35,7 +35,7 @@ fromArrayCodec =
                         Permission.Forbid ->
                             Just . fromIntegral $ length schemas
                     )
-                    (case NonEmpty.nonEmpty $ fmap Schema.ref schemas of
+                    (case NonEmpty.nonEmpty $ fmap Schema.maybeRef schemas of
                         Nothing -> Left Schema.False
                         Just xs -> Right xs
                     )
@@ -57,6 +57,5 @@ element c = Codec.Codec
     , Codec.encode = \x -> do
         Trans.tell [Codec.encodeWith c x]
         pure x
-    , Codec.schema =
-        pure . Schema.unidentified . either id Schema.Ref <$> Codec.getRef c
+    , Codec.schema = pure . Schema.unidentified <$> Codec.getRef c
     }
