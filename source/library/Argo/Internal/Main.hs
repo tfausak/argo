@@ -1,6 +1,8 @@
 module Argo.Internal.Main where
 
-import qualified Argo
+import qualified Argo.Internal.Decode as Decode
+import qualified Argo.Internal.Encode as Encode
+import qualified Argo.Internal.Json.Value as Value
 import qualified Argo.Internal.Type.Flag as Flag
 import qualified Argo.Internal.Type.Settings as Settings
 import qualified Argo.Vendor.Builder as Builder
@@ -28,11 +30,11 @@ mainWith name arguments = do
 
     withSettings name flags $ \settings -> do
         contents <- ByteString.getContents
-        value <- case Argo.decode contents of
+        value <- case Decode.decode contents of
             Left e -> fail e
-            Right x -> pure (x :: Argo.Value)
+            Right x -> pure (x :: Value.Value)
         Builder.hPutBuilder IO.stdout
-            $ Argo.encodeWith (Settings.indent settings) value
+            $ Encode.encodeWith (Settings.indent settings) value
 
 getFlags :: [String] -> (([String], [String]), [Flag.Flag])
 getFlags arguments =
