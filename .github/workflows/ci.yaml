@@ -48,7 +48,7 @@ jobs:
 
       - run: cabal build
 
-      - run: ghc -e 'do { let { process = System.Process.proc "cabal" ["exec", "which", "argo"] }; output <- System.Process.readCreateProcess process ""; print output; let { source = Data.List.dropWhileEnd Data.Char.isSpace output }; print source; let { target = "${{ steps.artifact.outputs.directory }}/argo${{ matrix.extension }}" }; print target; System.Directory.copyFile source target }'
+      - run: cabal exec runghc source/tools/copy-executable.sh argo${{ matrix.extension }} ${{ steps.artifact.outputs.directory }}
 
       - run: cabal test --test-show-details direct
 
