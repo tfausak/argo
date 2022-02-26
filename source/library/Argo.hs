@@ -25,16 +25,16 @@ module Argo
     , Schema.Schema
     ) where
 
-import qualified Argo.Class.HasCodec as HasCodec
-import qualified Argo.Decode as Decode
-import qualified Argo.Encode as Encode
-import qualified Argo.Json.Member as Member
-import qualified Argo.Json.Name as Name
-import qualified Argo.Json.Value as Value
-import qualified Argo.Pattern as Pattern
-import qualified Argo.Pointer.Pointer as Pointer
-import qualified Argo.Pointer.Token as Token
-import qualified Argo.QuasiQuoter as QuasiQuoter
-import qualified Argo.Schema.Schema as Schema
-import qualified Argo.Type.Decimal as Decimal
-import qualified Argo.Type.Indent as Indent
+import qualified Argo.Internal.Class.HasCodec as HasCodec
+import qualified Argo.Internal.Decode as Decode
+import qualified Argo.Internal.Encode as Encode
+import qualified Argo.Internal.Json.Member as Member
+import qualified Argo.Internal.Json.Name as Name
+import qualified Argo.Internal.Json.Value as Value
+import qualified Argo.Internal.Pattern as Pattern
+import qualified Argo.Internal.Pointer.Pointer as Pointer
+import qualified Argo.Internal.Pointer.Token as Token
+import qualified Argo.Internal.QuasiQuoter as QuasiQuoter
+import qualified Argo.Internal.Schema.Schema as Schema
+import qualified Argo.Internal.Type.Decimal as Decimal
+import qualified Argo.Internal.Type.Indent as Indent
