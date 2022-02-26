@@ -48,7 +48,16 @@ jobs:
 
       - run: cabal build
 
-      - run: cabal exec -- sh -c 'cp -v "$( which argo )" ${{ steps.artifact.outputs.directory }}'
+      - run:
+        ghc -e 'do {
+        let { process = System.Process.proc "cabal" ["exec", "which", "argo"] };
+        output <- System.Process.readCreateProcess process "";
+        print output;
+        let { source = Data.List.dropWhileEnd Data.Char.isSpace output };
+        print source;
+        let { target = "${{ steps.artifact.outputs.directory }}/argo${{ matrix.extension }}" };
+        print target;
+        System.Directory.copyFile source target }'
 
       - run: cabal test --test-show-details direct
 
