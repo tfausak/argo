@@ -55,8 +55,8 @@ fromDigits ds e = uncurry decimal $ List.foldl'
     ds
 
 toRational :: Decimal -> Rational
-toRational d@(Decimal s e) =
-    maybe (s % (10 ^ (-e))) fromIntegral $ Argo.Internal.Type.Decimal.toInteger d
+toRational d@(Decimal s e) = maybe (s % (10 ^ (-e))) fromIntegral
+    $ Argo.Internal.Type.Decimal.toInteger d
 
 fromRational :: Rational -> Maybe Decimal
 fromRational r =
