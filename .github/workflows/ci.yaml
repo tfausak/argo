@@ -48,7 +48,7 @@ jobs:
 
       - run: cabal build
 
-      - run: cabal install --install-method copy --installdir ${{ steps.artifact.outputs.directory }} .
+      - run: cabal exec -- sh -c 'cp -v "$( which argo )" ${{ steps.artifact.outputs.directory }}'
 
       - run: cabal test --test-show-details direct
 
