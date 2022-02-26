@@ -50,7 +50,7 @@ jobs:
 
       - run: cp "$( cabal list-bin argo )" ${{ steps.artifact.outputs.directory }}
 
-      - run: cabal test --test-show-details direct
+      - run: $( cabal list-bin argo-test-suite )
 
       - run: cabal bench --benchmark-options '--csv ${{ steps.artifact.outputs.directory }}/benchmark.csv +RTS -T -RTS'
 
