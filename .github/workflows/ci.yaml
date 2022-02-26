@@ -53,7 +53,8 @@ jobs:
       - run: $( cabal list-bin argo-test-suite )
         shell: bash
 
-      - run: cabal bench --benchmark-options '--csv ${{ steps.artifact.outputs.directory }}/benchmark.csv +RTS -T -RTS'
+      - run: $( cabal list-bin argo-benchmark ) --csv ${{ steps.artifact.outputs.directory }}/benchmark.csv +RTS -T -RTS
+        shell: bash
 
       - run: cabal check
 
