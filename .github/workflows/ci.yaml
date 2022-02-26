@@ -48,7 +48,7 @@ jobs:
 
       - run: cabal build
 
-      - run: cabal exec runghc source/tools/copy-executable.hs argo${{ matrix.extension }} ${{ steps.artifact.outputs.directory }}
+      - run: cp "$( cabal list-bin argo )" ${{ steps.artifact.outputs.directory }}
 
       - run: cabal test --test-show-details direct
 
