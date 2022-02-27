@@ -1,4 +1,4 @@
-import qualified Argo.Main as Argo
+import qualified Argo.Internal.Main as Argo
 
 main :: IO ()
 main = Argo.main

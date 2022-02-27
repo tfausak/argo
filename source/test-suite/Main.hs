@@ -7,23 +7,23 @@ import Test.Tasty.HUnit ((@?=))
 import Test.Tasty.QuickCheck ((===))
 
 import qualified Argo
-import qualified Argo.Class.HasCodec as HasCodec
-import qualified Argo.Codec.Codec as Codec
-import qualified Argo.Codec.Object as Codec
-import qualified Argo.Codec.Value as Codec
-import qualified Argo.Json.Array as Array
-import qualified Argo.Json.Boolean as Boolean
-import qualified Argo.Json.Name as Name
-import qualified Argo.Json.Null as Null
-import qualified Argo.Json.Number as Number
-import qualified Argo.Json.Object as Object
-import qualified Argo.Json.String as String
-import qualified Argo.Schema.Identifier as Identifier
-import qualified Argo.Schema.Schema as Schema
-import qualified Argo.Type.Decimal as Decimal
-import qualified Argo.Type.Nullable as Nullable
-import qualified Argo.Type.Optional as Optional
-import qualified Argo.Type.Permission as Permission
+import qualified Argo.Internal.Class.HasCodec as HasCodec
+import qualified Argo.Internal.Codec.Codec as Codec
+import qualified Argo.Internal.Codec.Object as Codec
+import qualified Argo.Internal.Codec.Value as Codec
+import qualified Argo.Internal.Json.Array as Array
+import qualified Argo.Internal.Json.Boolean as Boolean
+import qualified Argo.Internal.Json.Name as Name
+import qualified Argo.Internal.Json.Null as Null
+import qualified Argo.Internal.Json.Number as Number
+import qualified Argo.Internal.Json.Object as Object
+import qualified Argo.Internal.Json.String as String
+import qualified Argo.Internal.Schema.Identifier as Identifier
+import qualified Argo.Internal.Schema.Schema as Schema
+import qualified Argo.Internal.Type.Decimal as Decimal
+import qualified Argo.Internal.Type.Nullable as Nullable
+import qualified Argo.Internal.Type.Optional as Optional
+import qualified Argo.Internal.Type.Permission as Permission
 import qualified Control.Monad.Trans.Accum as Accum
 import qualified Data.ByteString as ByteString
 import qualified Data.ByteString.Builder as Builder

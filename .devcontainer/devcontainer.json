@@ -1,0 +1,12 @@
+{
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
+    "extensions": [
+        "haskell.haskell"
+    ],
+    "postCreateCommand": "cabal update",
+    "settings": {
+        "haskell.formattingProvider": "brittany"
+    }
+}

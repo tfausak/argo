@@ -1,11 +1,6 @@
 name: CI
 on:
-  pull_request:
-    branches:
-      - main
-  push:
-    branches:
-      - main
+  push: null
   release:
     types:
       - created
@@ -53,11 +48,13 @@ jobs:
 
       - run: cabal build
 
-      - run: cabal install --install-method copy --installdir ${{ steps.artifact.outputs.directory }} .
+      - run: cp "$( cabal list-bin argo )" ${{ steps.artifact.outputs.directory }}
 
-      - run: cabal test --test-show-details direct
+      - run: $( cabal list-bin argo-test-suite )
+        shell: bash
 
-      - run: cabal bench --benchmark-options '--csv ${{ steps.artifact.outputs.directory }}/benchmark.csv +RTS -T -RTS'
+      - run: $( cabal list-bin argo-benchmark ) --csv ${{ steps.artifact.outputs.directory }}/benchmark.csv +RTS -T -RTS
+        shell: bash
 
       - run: cabal check
 
@@ -66,7 +63,6 @@ jobs:
       - uses: svenstaro/upx-action@v2
         with:
           file: ${{ steps.artifact.outputs.directory }}/argo${{ matrix.extension }}
-          args: --best
 
       - uses: actions/upload-artifact@v2
         with:
