@@ -7,6 +7,7 @@
     ],
     "postCreateCommand": "cabal update",
     "settings": {
-        "haskell.formattingProvider": "brittany"
+        "haskell.formattingProvider": "brittany",
+        "editor.formatOnSave": true
     }
 }
