@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveLift #-}
 
 module Argo.Internal.Json.Array where
@@ -11,11 +9,13 @@ import qualified Argo.Vendor.Builder as Builder
 import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.TemplateHaskell as TH
 import qualified Argo.Vendor.Transformers as Trans
-import qualified GHC.Generics as Generics
 
 newtype Array value
     = Array [value]
-    deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
+    deriving (Eq, TH.Lift, Show)
+
+instance DeepSeq.NFData value => DeepSeq.NFData (Array value) where
+    rnf = DeepSeq.rnf . toList
 
 fromList :: [value] -> Array value
 fromList = Array

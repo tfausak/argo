@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveLift #-}
 
 module Argo.Internal.Json.Value where
@@ -17,7 +15,6 @@ import qualified Argo.Internal.Type.Encoder as Encoder
 import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.TemplateHaskell as TH
 import qualified Data.String
-import qualified GHC.Generics as Generics
 
 -- | A JSON (JavaScript Object Notation) value, as described by RFC 8259.
 -- <https://datatracker.ietf.org/doc/html/rfc8259>
@@ -28,7 +25,16 @@ data Value
     | String String.String
     | Array (Array.Array Value)
     | Object (Object.Object Value)
-    deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
+    deriving (Eq, TH.Lift, Show)
+
+instance DeepSeq.NFData Value where
+    rnf x = case x of
+        Null y -> DeepSeq.rnf y
+        Boolean y -> DeepSeq.rnf y
+        Number y -> DeepSeq.rnf y
+        String y -> DeepSeq.rnf y
+        Array y -> DeepSeq.rnf y
+        Object y -> DeepSeq.rnf y
 
 instance Data.String.IsString Value where
     fromString = String . Data.String.fromString

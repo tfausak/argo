@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveLift #-}
 
 module Argo.Internal.Json.Member where
@@ -14,10 +12,12 @@ import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.TemplateHaskell as TH
 import qualified Argo.Vendor.Transformers as Trans
 import qualified Control.Monad as Monad
-import qualified GHC.Generics as Generics
 
 data Member value = Member Name.Name value
-    deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
+    deriving (Eq, TH.Lift, Show)
+
+instance DeepSeq.NFData value => DeepSeq.NFData (Member value) where
+    rnf = DeepSeq.rnf . toTuple
 
 fromTuple :: (Name.Name, value) -> Member value
 fromTuple = uncurry Member

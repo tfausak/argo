@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveLift #-}
 
 module Argo.Internal.Json.Boolean where
@@ -13,11 +11,13 @@ import qualified Argo.Vendor.Builder as Builder
 import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.TemplateHaskell as TH
 import qualified Argo.Vendor.Transformers as Trans
-import qualified GHC.Generics as Generics
 
 newtype Boolean
     = Boolean Bool
-    deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
+    deriving (Eq, TH.Lift, Show)
+
+instance DeepSeq.NFData Boolean where
+    rnf = DeepSeq.rnf . toBool
 
 fromBool :: Bool -> Boolean
 fromBool = Boolean

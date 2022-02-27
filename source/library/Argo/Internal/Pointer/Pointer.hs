@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveLift #-}
 
 module Argo.Internal.Pointer.Pointer where
@@ -21,14 +19,16 @@ import qualified Argo.Vendor.Text as Text
 import qualified Argo.Vendor.Transformers as Trans
 import qualified Control.Applicative as Applicative
 import qualified Data.List as List
-import qualified GHC.Generics as Generics
 import qualified Text.Read as Read
 
 -- | A JSON pointer, as described by RFC 6901.
 -- <https://datatracker.ietf.org/doc/html/rfc6901>
 newtype Pointer
     = Pointer [Token.Token]
-    deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
+    deriving (Eq, TH.Lift, Show)
+
+instance DeepSeq.NFData Pointer where
+    rnf = DeepSeq.rnf . toList
 
 fromList :: [Token.Token] -> Pointer
 fromList = Pointer
