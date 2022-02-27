@@ -20,8 +20,10 @@ import qualified Data.Functor.Identity as Identity
 import qualified Data.List as List
 import qualified Data.Maybe as Maybe
 
-type Object a
-    = Codec.List
+type Object a = Member a a
+
+type Member a b
+    = Codec.Item
           ( Trans.AccumT
                 (Map.Map Identifier.Identifier Schema.Schema)
                 Identity.Identity
@@ -32,6 +34,7 @@ type Object a
           )
           (Member.Member Value.Value)
           a
+          b
 
 fromObjectCodec :: Permission.Permission -> Object a -> Codec.Value a
 fromObjectCodec =

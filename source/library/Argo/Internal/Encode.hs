@@ -20,7 +20,7 @@ encodeWith i x =
     let c = Config.initial { Config.indent = i }
     in
         Encoder.run c $ do
-            Value.encode $ Codec.encodeWith HasCodec.codec x
+            Value.encode $ toValue x
             Monad.when (Config.hasIndent c)
                 . Trans.lift
                 . Trans.tell
@@ -28,3 +28,6 @@ encodeWith i x =
 
 encodePointer :: Pointer.Pointer -> Builder.Builder
 encodePointer = Encoder.run Config.initial . Pointer.encode
+
+toValue :: HasCodec.HasCodec a => a -> Value.Value
+toValue = Codec.encodeWith HasCodec.codec

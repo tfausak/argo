@@ -10,13 +10,15 @@ import qualified Argo.Vendor.Transformers as Trans
 import qualified Control.Monad as Monad
 import qualified Data.Functor.Identity as Identity
 
-type List s e a
+type List s e a = Item s e a a
+
+type Item s e a b
     = Codec.Codec
           (Trans.StateT [e] (Trans.ExceptT String Identity.Identity))
           (Trans.WriterT [e] Identity.Identity)
           s
           a
-          a
+          b
 
 fromListCodec
     :: ( Permission.Permission

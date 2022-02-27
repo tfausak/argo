@@ -10,7 +10,10 @@ import qualified Argo.Vendor.ByteString as ByteString
 decode :: HasCodec.HasCodec a => ByteString.ByteString -> Either String a
 decode x = do
     y <- Decoder.run (Decoder.spaces *> Value.decode) x
-    Codec.decodeWith HasCodec.codec y
+    fromValue y
 
 decodePointer :: ByteString.ByteString -> Either String Pointer.Pointer
 decodePointer = Decoder.run Pointer.decode
+
+fromValue :: HasCodec.HasCodec a => Value.Value -> Either String a
+fromValue = Codec.decodeWith HasCodec.codec

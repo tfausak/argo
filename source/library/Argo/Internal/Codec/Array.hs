@@ -13,8 +13,10 @@ import qualified Argo.Vendor.Transformers as Trans
 import qualified Data.Functor.Identity as Identity
 import qualified Data.List.NonEmpty as NonEmpty
 
-type Array a
-    = Codec.List
+type Array a = Element a a
+
+type Element a b
+    = Codec.Item
           ( Trans.AccumT
                 (Map.Map Identifier.Identifier Schema.Schema)
                 Identity.Identity
@@ -22,6 +24,7 @@ type Array a
           )
           Value.Value
           a
+          b
 
 fromArrayCodec :: Permission.Permission -> Array a -> Codec.Value a
 fromArrayCodec =
