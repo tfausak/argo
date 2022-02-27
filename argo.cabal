@@ -1,7 +1,7 @@
 cabal-version: 2.2
 
 name: argo
-version: 0.2022.2.23
+version: 0.2022.2.27
 
 build-type: Simple
 category: JSON
