@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveLift #-}
 
 module Argo.Internal.Pointer.Token where
@@ -15,11 +13,13 @@ import qualified Argo.Vendor.Text as Text
 import qualified Argo.Vendor.Transformers as Trans
 import qualified Data.String as String
 import qualified Data.Word as Word
-import qualified GHC.Generics as Generics
 
 newtype Token
     = Token Text.Text
-    deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
+    deriving (Eq, TH.Lift, Show)
+
+instance DeepSeq.NFData Token where
+    rnf = DeepSeq.rnf . toText
 
 instance String.IsString Token where
     fromString = fromText . String.fromString

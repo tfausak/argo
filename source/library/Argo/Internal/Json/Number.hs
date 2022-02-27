@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveLift #-}
 
 module Argo.Internal.Json.Number where
@@ -18,11 +16,13 @@ import qualified Control.Monad as Monad
 import qualified Data.Bool as Bool
 import qualified Data.Maybe as Maybe
 import qualified Data.Word as Word
-import qualified GHC.Generics as Generics
 
 newtype Number
     = Number Decimal.Decimal
-    deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
+    deriving (Eq, TH.Lift, Show)
+
+instance DeepSeq.NFData Number where
+    rnf = DeepSeq.rnf . toDecimal
 
 fromDecimal :: Decimal.Decimal -> Number
 fromDecimal = Number

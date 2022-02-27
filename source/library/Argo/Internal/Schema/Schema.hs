@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveLift #-}
 
 module Argo.Internal.Schema.Schema where
@@ -13,7 +11,6 @@ import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.TemplateHaskell as TH
 import qualified Argo.Vendor.Text as Text
 import qualified Data.List.NonEmpty as NonEmpty
-import qualified GHC.Generics as Generics
 import qualified Numeric.Natural as Natural
 
 -- | A JSON Schema.
@@ -35,7 +32,22 @@ data Schema
     | Ref Identifier.Identifier
     | String (Maybe Natural.Natural) (Maybe Natural.Natural)
     | True
-    deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
+    deriving (Eq, TH.Lift, Show)
+
+instance DeepSeq.NFData Schema where
+    rnf x = case x of
+        Array a b c d -> DeepSeq.rnf (a, b, c, d)
+        Boolean -> ()
+        Const a -> DeepSeq.rnf a
+        Argo.Internal.Schema.Schema.False -> ()
+        Integer a b -> DeepSeq.rnf (a, b)
+        Null -> ()
+        Number -> ()
+        Object a b c -> DeepSeq.rnf (a, b, c)
+        OneOf a -> DeepSeq.rnf a
+        Ref a -> DeepSeq.rnf a
+        String a b -> DeepSeq.rnf (a, b)
+        Argo.Internal.Schema.Schema.True -> ()
 
 instance Semigroup Schema where
     x <> y = case (x, y) of

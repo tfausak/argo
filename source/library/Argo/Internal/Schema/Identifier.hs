@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveLift #-}
 
 module Argo.Internal.Schema.Identifier where
@@ -8,11 +6,13 @@ import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.TemplateHaskell as TH
 import qualified Argo.Vendor.Text as Text
 import qualified Data.String as String
-import qualified GHC.Generics as Generics
 
 newtype Identifier
     = Identifier Text.Text
-    deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Ord, Show)
+    deriving (Eq, TH.Lift, Ord, Show)
+
+instance DeepSeq.NFData Identifier where
+    rnf = DeepSeq.rnf . toText
 
 instance String.IsString Identifier where
     fromString = fromText . String.fromString

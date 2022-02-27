@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveLift #-}
 
 module Argo.Internal.Json.String where
@@ -17,11 +15,13 @@ import qualified Control.Monad as Monad
 import qualified Data.Char as Char
 import qualified Data.String as String
 import qualified Data.Word as Word
-import qualified GHC.Generics as Generics
 
 newtype String
     = String Text.Text
-    deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Ord, Show)
+    deriving (Eq, TH.Lift, Ord, Show)
+
+instance DeepSeq.NFData Argo.Internal.Json.String.String where
+    rnf = DeepSeq.rnf . toText
 
 instance String.IsString Argo.Internal.Json.String.String where
     fromString = fromText . String.fromString

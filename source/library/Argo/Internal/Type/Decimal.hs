@@ -1,5 +1,3 @@
-{-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveLift #-}
 
 module Argo.Internal.Type.Decimal where
@@ -10,11 +8,13 @@ import qualified Argo.Vendor.DeepSeq as DeepSeq
 import qualified Argo.Vendor.TemplateHaskell as TH
 import qualified Data.List as List
 import qualified Data.Ratio as Ratio
-import qualified GHC.Generics as Generics
 import qualified Numeric
 
 data Decimal = Decimal Integer Integer
-    deriving (Eq, Generics.Generic, TH.Lift, DeepSeq.NFData, Show)
+    deriving (Eq, TH.Lift, Show)
+
+instance DeepSeq.NFData Decimal where
+    rnf (Decimal s e) = DeepSeq.rnf (s, e)
 
 negate :: Decimal -> Decimal
 negate (Decimal s e) = Decimal (-s) e
