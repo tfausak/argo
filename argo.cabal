@@ -1,11 +1,14 @@
 cabal-version: 2.2
 
 name: argo
-version: 0.2022.2.27
+version: 0.2022.8.28
 
 build-type: Simple
 category: JSON
-description: Argo parses and renders JSON.
+description:
+  Warning: This package is not maintained anymore.
+  .
+  Argo parses and renders JSON.
 extra-source-files: CHANGELOG.md README.md
 license-file: LICENSE.md
 license: MIT
